@@ -92,12 +92,7 @@ class CleanChessDF(Task):
         df = df[list(self.columns)]
 
         with self.output().open('w') as db:
-            db.write(df.to_csv(sep='\t',
-                               index=False,
-                               header=False,
-                               na_rep='\\N',
-                               line_terminator='\n',
-                               ))
+            df.to_pickle(db, compression=None)
 
 
 @requires(CleanChessDF)
@@ -106,7 +101,7 @@ class ChessGames(TransactionFactTable):
     pass
 
 
-@inherits(FetchLichessApi)
+@inherits(FetchLichessApi, ChessGames)
 class CopyGames(CopyWrapper):
 
     jobs = [{'table_type': ChessGames,

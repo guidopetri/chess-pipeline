@@ -37,11 +37,11 @@ class TransactionFactTable(postgres.CopyToTable):
     host = Parameter(visibility=ParameterVisibility.PRIVATE)
     port = IntParameter(visibility=ParameterVisibility.PRIVATE)
     database = Parameter(visibility=ParameterVisibility.PRIVATE)
-    table = Parameter()
-    fn = TaskParameter()
-    columns = ListParameter()
-    id_col = Parameter()
-    merge_cols = DictParameter()
+    table = Parameter(default='')
+    fn = TaskParameter(default=WrapperTask)
+    columns = ListParameter(default=[])
+    id_col = Parameter(default='')
+    merge_cols = DictParameter(default={})
 
     column_separator = '\t'
 

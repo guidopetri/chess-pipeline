@@ -2,7 +2,7 @@
 
 from luigi.parameter import Parameter, ListParameter, IntParameter
 from luigi.util import requires, inherits
-from luigi.format import UTF8, Nop
+from luigi.format import Nop
 from luigi import Task
 from luigi.mock import MockTarget
 from postgres_templates import CopyWrapper, HashableDict, TransactionFactTable
@@ -49,7 +49,7 @@ class CleanChessDF(Task):
     columns = ListParameter()
 
     def output(self):
-        return MockTarget('CleanChessDF', format=UTF8)
+        return MockTarget('CleanChessDF', format=Nop)
 
     def run(self):
         from pandas import read_pickle, to_datetime

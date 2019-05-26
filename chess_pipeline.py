@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 
 from luigi.parameter import Parameter, ListParameter, IntParameter
+from luigi.parameter import DateParameter
 from luigi.util import requires, inherits
 from luigi.format import Nop
 from luigi import Task
@@ -11,6 +12,7 @@ from datetime import datetime, timedelta
 
 class FetchLichessApi(Task):
 
+    date = DateParameter(default=datetime.today())
     player = Parameter(default='thibault')
     perfType = Parameter(default='blitz')
     since = IntParameter(default=None)

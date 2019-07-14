@@ -54,7 +54,7 @@ class CleanChessDF(Task):
         return MockTarget('CleanChessDF', format=Nop)
 
     def run(self):
-        from pandas import read_pickle, to_datetime
+        from pandas import read_pickle, to_datetime, to_numeric
 
         with self.input().open('r') as f:
             df = read_pickle(f, compression=None)
@@ -71,7 +71,7 @@ class CleanChessDF(Task):
 
             for column in rating_columns:
                 df[column] = df[column].replace('?', '')
-                df[column] = df[column].astype(int)
+                df[column] = to_numeric(df[column])
 
             df.rename(columns={'Black':           'black',
                                'BlackElo':        'black_elo',

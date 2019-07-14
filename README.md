@@ -10,7 +10,7 @@ In order to run it, the following Python packages are required:
 - psycopg2
 - pandas
 - python-chess
-- python-lichess (NB: I made a PR to fix an API call that is being made improperly - this is the version that must be used)
+- python-lichess
 
 A PostGreSQL server must also be set up properly. The data is written to a table with the format listed in `chess_games.sql`.
 

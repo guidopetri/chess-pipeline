@@ -70,6 +70,7 @@ class CleanChessDF(Task):
                               ]
 
             for column in rating_columns:
+                df[column] = df[column].replace('?', '')
                 df[column] = df[column].astype(int)
 
             df.rename(columns={'Black':           'black',

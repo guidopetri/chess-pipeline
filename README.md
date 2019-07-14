@@ -51,4 +51,3 @@ The script defaults to writing to a table called `chess_games`.
   - column for arena/not
   - column for opening name
   - column for datetime played
-

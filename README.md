@@ -40,7 +40,7 @@ The script defaults to writing to a table called `chess_games`.
 
 ## TODO
 
-- Add signifier for tentative rating or not
+- ~Add signifier for tentative rating or not~
 - Better integer/tentative rating handling (i.e. use "not null")
 - Better Transform step/schema handling
   - ~column for player~
@@ -54,5 +54,7 @@ The script defaults to writing to a table called `chess_games`.
   - ~column for rated/casual~
   - column for opening name
   - column for whether berserked or not in arena game
+  - column for starting time
+  - similar columns for opponent
 - More stats (e.g. was there a queen trade, queenside/kingside attack)
 - Write to files and then clean up afterwards instead of using MockTarget

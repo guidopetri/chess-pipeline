@@ -4,3 +4,4 @@
 *.sublime-project
 *.sublime-workspace
 luigi.cfg
+/__pycache__/

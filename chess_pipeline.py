@@ -55,6 +55,7 @@ class CleanChessDF(Task):
 
     def run(self):
         from pandas import read_pickle, to_datetime, to_numeric
+        from numpy import nan
 
         with self.input().open('r') as f:
             df = read_pickle(f, compression=None)
@@ -70,7 +71,8 @@ class CleanChessDF(Task):
                               ]
 
             for column in rating_columns:
-                df[column] = df[column].replace('?', '')
+                df[column] = df[column].str.replace('?', '')
+                df[column] = df[column].replace('', nan)
                 df[column] = to_numeric(df[column])
 
             df.rename(columns={'Black':           'black',

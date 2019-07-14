@@ -117,6 +117,7 @@ class CleanChessDF(Task):
         df['datetime_played'] = to_datetime(df['utc_date_played'].astype(str)
                                             + ' '
                                             + df['time_played'].astype(str))
+        df['starting_time'] = df['time_control'].str.extract(r'(\d+)\+')
         df['increment'] = df['time_control'].str.extract(r'\+(\d+)')
 
         df['in_arena'] = df['event_type'].str.contains(r'Arena')
@@ -140,6 +141,7 @@ class CleanChessDF(Task):
         for column in rating_columns:
             df[column] = df[column].str.replace('?', '')
             df[column] = df[column].replace('', nan)
+            df[column].fillna(0, inplace=True)
             df[column] = to_numeric(df[column])
 
         # filter unnecessary columns out

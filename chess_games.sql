@@ -2,7 +2,7 @@ create table chess_games(
     id                serial  primary key,
     black             text    not null,
     black_elo         real    not null,
-    black_rating_diff real,
+    black_rating_diff real    not null,
     date_played       date    not null,
     opening_played    text    not null,
     event_type        text    not null,
@@ -16,5 +16,5 @@ create table chess_games(
     chess_variant     text    not null,
     white             text    not null,
     white_elo         real    not null,
-    white_rating_diff real
+    white_rating_diff real    not null
 );

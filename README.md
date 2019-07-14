@@ -37,3 +37,8 @@ By default, the script pulls Blitz games from the last two days for the user [`t
 The above can also be added to your `crontab`, as long as your PATH and PYTHONPATH are set up correctly.
 
 The script defaults to writing to a table called `chess_games`.
+
+## TODO
+
+- Add signifier for tentative rating or not
+- 

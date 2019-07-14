@@ -41,4 +41,14 @@ The script defaults to writing to a table called `chess_games`.
 ## TODO
 
 - Add signifier for tentative rating or not
-- 
+- Better integer/tentative rating handling (i.e. use "not null")
+- Better Transform step/schema handling
+  - column for player
+  - column for player color
+  - column for player result
+  - column for rating diff for player
+  - column for game type (time control)
+  - column for arena/not
+  - column for opening name
+  - column for datetime played
+

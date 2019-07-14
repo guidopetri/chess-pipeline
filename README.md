@@ -45,11 +45,13 @@ The script defaults to writing to a table called `chess_games`.
 - Better Transform step/schema handling
   - ~column for player~
   - ~column for player color~
-  - column for player result
+  - ~column for player result~
   - ~column for rating diff for player~
   - ~column for game type (time control)~
-  - column for arena/not
+  - ~column for arena/not~
   - column for opening name
   - ~column for datetime played~
+  - ~column for with/without increment~
+  - column for whether berserked or not in arena game
 - More stats (e.g. was there a queen trade, queenside/kingside attack)
-- write to files and then clean up afterwards instead of using MockTarget
+- Write to files and then clean up afterwards instead of using MockTarget

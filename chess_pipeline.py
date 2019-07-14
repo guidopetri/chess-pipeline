@@ -116,10 +116,24 @@ class CleanChessDF(Task):
                                      * df['black_rating_diff'])
                                     + (~series_player_black
                                         * df['white_rating_diff']))
+
+        series_result_helper = df['result'] + series_player_black.astype(str)
+        df['player_result'] = series_result_helper.map({'0-1True': 'Win',
+                                                        '1-0False': 'Win',
+                                                        '1/2-1/2True': 'Draw',
+                                                        '1/2-1/2False': 'Draw',
+                                                        '1-0True': 'Loss',
+                                                        '0-1False': 'Loss'})
+
         df['time_control_category'] = self.perfType
         df['datetime_played'] = to_datetime(df['utc_date_played'].astype(str)
                                             + ' '
                                             + df['time_played'].astype(str))
+        df['increment'] = df['time_control'].str.extract(r'\+(\d+)')
+
+        df['in_arena'] = df['event_type'].str.contains(r'Arena')
+        df['in_arena'] = df['in_arena'].map({True: 'In arena',
+                                             False: 'Not in arena'})
 
         # filter unnecessary columns out
         df = df[list(self.columns)]

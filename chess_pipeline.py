@@ -123,10 +123,9 @@ class CleanChessDF(Task):
         df['in_arena'] = df['in_arena'].map({True: 'In arena',
                                              False: 'Not in arena'})
 
-        # failing for matches in arenas which are always rated
-        df['rated_casual'] = df['event_type'].str.contains(r'Rated')
-        df['rated_casual'] = df['rated_casual'].map({True: 'Rated',
-                                                     False: 'Casual'})
+        df['rated_casual'] = df['black_elo'].isna()
+        df['rated_casual'] = df['rated_casual'].map({True: 'Casual',
+                                                     False: 'Rated'})
 
         # type handling
         df['date_played'] = to_datetime(df['date_played'])

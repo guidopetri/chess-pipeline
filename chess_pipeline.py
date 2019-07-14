@@ -139,9 +139,8 @@ class CleanChessDF(Task):
                           ]
 
         for column in rating_columns:
-            df[column] = df[column].str.replace('?', '')
-            df[column] = df[column].replace('', nan)
-            df[column].fillna(0, inplace=True)
+            df[column] = df[column].replace('?', nan)
+            df[column].fillna(1500, inplace=True)
             df[column] = to_numeric(df[column])
 
         # filter unnecessary columns out

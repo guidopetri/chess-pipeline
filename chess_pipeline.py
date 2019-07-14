@@ -70,21 +70,6 @@ class CleanChessDF(Task):
 
             return
 
-        # type handling
-        df['Date'] = to_datetime(df['Date'])
-        df['UTCDate'] = to_datetime(df['UTCDate'])
-
-        rating_columns = ['BlackElo',
-                          'BlackRatingDiff',
-                          'WhiteElo',
-                          'WhiteRatingDiff',
-                          ]
-
-        for column in rating_columns:
-            df[column] = df[column].str.replace('?', '')
-            df[column] = df[column].replace('', nan)
-            df[column] = to_numeric(df[column])
-
         # rename columns
         df.rename(columns={'Black':           'black',
                            'BlackElo':        'black_elo',
@@ -106,7 +91,10 @@ class CleanChessDF(Task):
                            },
                   inplace=True)
 
-        # get new columns
+        # add new columns
+        for column in ['black_elo', 'white_elo']:
+            df[column + '_tentative'] = df[column].str.contains(r'\?')
+
         df['player'] = self.player
         series_player_black = df['black'] == self.player
         df['player_color'] = series_player_black.map({True: 'black',
@@ -135,9 +123,25 @@ class CleanChessDF(Task):
         df['in_arena'] = df['in_arena'].map({True: 'In arena',
                                              False: 'Not in arena'})
 
+        # failing for matches in arenas which are always rated
         df['rated_casual'] = df['event_type'].str.contains(r'Rated')
         df['rated_casual'] = df['rated_casual'].map({True: 'Rated',
                                                      False: 'Casual'})
+
+        # type handling
+        df['date_played'] = to_datetime(df['date_played'])
+        df['utc_date_played'] = to_datetime(df['utc_date_played'])
+
+        rating_columns = ['black_elo',
+                          'black_rating_diff',
+                          'white_elo',
+                          'white_rating_diff',
+                          ]
+
+        for column in rating_columns:
+            df[column] = df[column].str.replace('?', '')
+            df[column] = df[column].replace('', nan)
+            df[column] = to_numeric(df[column])
 
         # filter unnecessary columns out
         df = df[list(self.columns)]

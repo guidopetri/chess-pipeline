@@ -49,9 +49,10 @@ The script defaults to writing to a table called `chess_games`.
   - ~column for rating diff for player~
   - ~column for game type (time control)~
   - ~column for arena/not~
-  - column for opening name
   - ~column for datetime played~
   - ~column for with/without increment~
+  - ~column for rated/casual~
+  - column for opening name
   - column for whether berserked or not in arena game
 - More stats (e.g. was there a queen trade, queenside/kingside attack)
 - Write to files and then clean up afterwards instead of using MockTarget

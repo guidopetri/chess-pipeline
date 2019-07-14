@@ -70,6 +70,7 @@ class CleanChessDF(Task):
 
             return
 
+        # type handling
         df['Date'] = to_datetime(df['Date'])
         df['UTCDate'] = to_datetime(df['UTCDate'])
 
@@ -84,6 +85,7 @@ class CleanChessDF(Task):
             df[column] = df[column].replace('', nan)
             df[column] = to_numeric(df[column])
 
+        # rename columns
         df.rename(columns={'Black':           'black',
                            'BlackElo':        'black_elo',
                            'BlackRatingDiff': 'black_rating_diff',
@@ -104,6 +106,22 @@ class CleanChessDF(Task):
                            },
                   inplace=True)
 
+        # get new columns
+        df['player'] = self.player
+        series_player_black = df['black'] == self.player
+        df['player_color'] = series_player_black.map({True: 'black',
+                                                      False: 'white'
+                                                      })
+        df['player_rating_diff'] = ((series_player_black
+                                     * df['black_rating_diff'])
+                                    + (~series_player_black
+                                        * df['white_rating_diff']))
+        df['time_control_category'] = self.perfType
+        df['datetime_played'] = to_datetime(df['utc_date_played'].astype(str)
+                                            + ' '
+                                            + df['time_played'].astype(str))
+
+        # filter unnecessary columns out
         df = df[list(self.columns)]
 
         with self.output().open('w') as db:

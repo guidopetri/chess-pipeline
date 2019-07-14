@@ -5,3 +5,4 @@
 *.sublime-workspace
 luigi.cfg
 /__pycache__/
+test_pipeline.bat

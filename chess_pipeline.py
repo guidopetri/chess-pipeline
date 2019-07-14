@@ -59,39 +59,40 @@ class CleanChessDF(Task):
         with self.input().open('r') as f:
             df = read_pickle(f, compression=None)
 
-        df['Date'] = to_datetime(df['Date'])
-        df['UTCDate'] = to_datetime(df['UTCDate'])
+        if not df.empty:
+            df['Date'] = to_datetime(df['Date'])
+            df['UTCDate'] = to_datetime(df['UTCDate'])
 
-        rating_columns = ['BlackElo',
-                          'BlackRatingDiff',
-                          'WhiteElo',
-                          'WhiteRatingDiff',
-                          ]
+            rating_columns = ['BlackElo',
+                              'BlackRatingDiff',
+                              'WhiteElo',
+                              'WhiteRatingDiff',
+                              ]
 
-        for column in rating_columns:
-            df[column] = df[column].astype(int)
+            for column in rating_columns:
+                df[column] = df[column].astype(int)
 
-        df.rename(columns={'Black':           'black',
-                           'BlackElo':        'black_elo',
-                           'BlackRatingDiff': 'black_rating_diff',
-                           'Date':            'date_played',
-                           'ECO':             'opening_played',
-                           'Event':           'event_type',
-                           'Result':          'result',
-                           'Round':           'round',
-                           'Site':            'game_link',
-                           'Termination':     'termination',
-                           'TimeControl':     'time_control',
-                           'UTCDate':         'utc_date_played',
-                           'UTCTime':         'time_played',
-                           'Variant':         'chess_variant',
-                           'White':           'white',
-                           'WhiteElo':        'white_elo',
-                           'WhiteRatingDiff': 'white_rating_diff',
-                           },
-                  inplace=True)
+            df.rename(columns={'Black':           'black',
+                               'BlackElo':        'black_elo',
+                               'BlackRatingDiff': 'black_rating_diff',
+                               'Date':            'date_played',
+                               'ECO':             'opening_played',
+                               'Event':           'event_type',
+                               'Result':          'result',
+                               'Round':           'round',
+                               'Site':            'game_link',
+                               'Termination':     'termination',
+                               'TimeControl':     'time_control',
+                               'UTCDate':         'utc_date_played',
+                               'UTCTime':         'time_played',
+                               'Variant':         'chess_variant',
+                               'White':           'white',
+                               'WhiteElo':        'white_elo',
+                               'WhiteRatingDiff': 'white_rating_diff',
+                               },
+                      inplace=True)
 
-        df = df[list(self.columns)]
+            df = df[list(self.columns)]
 
         with self.output().open('w') as db:
             df.to_pickle(db, compression=None)

@@ -64,8 +64,9 @@ class TransactionFactTable(postgres.CopyToTable):
         with self.input().open('r') as f:
             df = read_pickle(f, compression=None)
 
-        df = df[~df[self.id_col].isin(current_df['id_col'].values.tolist())]
-        df = df[list(self.columns)]
+        if not df.empty:
+            df = df[~df[self.id_col].isin(current_df['id_col'].values)]
+            df = df[list(self.columns)]
 
         for index, line in df.iterrows():  # returns (index,Series) tuple
             yield line.values.tolist()

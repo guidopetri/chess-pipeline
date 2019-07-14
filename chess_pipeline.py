@@ -124,7 +124,7 @@ class CleanChessDF(Task):
         df['in_arena'] = df['in_arena'].map({True: 'In arena',
                                              False: 'Not in arena'})
 
-        df['rated_casual'] = df['black_rating_diff'].isna()
+        df['rated_casual'] = df['event_type'].str.contains('Casual')
         df['rated_casual'] = df['rated_casual'].map({True: 'Casual',
                                                      False: 'Rated'})
 

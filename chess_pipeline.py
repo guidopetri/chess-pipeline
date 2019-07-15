@@ -96,22 +96,45 @@ class CleanChessDF(Task):
             df[column + '_tentative'] = df[column].str.contains(r'\?')
 
         df['player'] = self.player
+
+        # add two strings and remove the player so that we don't
+        # have to use pd.DataFrame.apply
+        df['opponent'] = (df['white'] + df['black']).str.replace(self.player,
+                                                                 '')
         series_player_black = df['black'] == self.player
         df['player_color'] = series_player_black.map({True: 'black',
-                                                      False: 'white'
+                                                      False: 'white',
                                                       })
+        df['opponent_color'] = series_player_black.map({False: 'black',
+                                                        True: 'white',
+                                                        })
         df['player_rating_diff'] = ((series_player_black
                                      * df['black_rating_diff'])
                                     + (~series_player_black
                                         * df['white_rating_diff']))
 
-        series_result_helper = df['result'] + series_player_black.astype(str)
-        df['player_result'] = series_result_helper.map({'0-1True': 'Win',
-                                                        '1-0False': 'Win',
-                                                        '1/2-1/2True': 'Draw',
-                                                        '1/2-1/2False': 'Draw',
-                                                        '1-0True': 'Loss',
-                                                        '0-1False': 'Loss'})
+        df['opponent_rating_diff'] = ((series_player_black
+                                       * df['white_rating_diff'])
+                                      + (~series_player_black
+                                          * df['black_rating_diff']))
+
+        # another helper series
+        series_result = df['result'] + series_player_black.astype(str)
+        df['player_result'] = series_result.map({'0-1True': 'Win',
+                                                 '1-0False': 'Win',
+                                                 '1/2-1/2True': 'Draw',
+                                                 '1/2-1/2False': 'Draw',
+                                                 '1-0True': 'Loss',
+                                                 '0-1False': 'Loss',
+                                                 })
+
+        df['opponent_result'] = series_result.map({'0-1True': 'Loss',
+                                                   '1-0False': 'Loss',
+                                                   '1/2-1/2True': 'Draw',
+                                                   '1/2-1/2False': 'Draw',
+                                                   '1-0True': 'Win',
+                                                   '0-1False': 'Win',
+                                                   })
 
         df['time_control_category'] = self.perfType
         df['datetime_played'] = to_datetime(df['utc_date_played'].astype(str)

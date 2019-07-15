@@ -32,11 +32,16 @@ class TransactionFactTable(postgres.CopyToTable):
                        (`table`, `right`).
     """
 
-    user = Parameter(visibility=ParameterVisibility.PRIVATE)
-    password = Parameter(visibility=ParameterVisibility.PRIVATE)
-    host = Parameter(visibility=ParameterVisibility.PRIVATE)
-    port = IntParameter(visibility=ParameterVisibility.PRIVATE)
-    database = Parameter(visibility=ParameterVisibility.PRIVATE)
+    user = Parameter(visibility=ParameterVisibility.PRIVATE,
+                     significant=False)
+    password = Parameter(visibility=ParameterVisibility.PRIVATE,
+                         significant=False)
+    host = Parameter(visibility=ParameterVisibility.PRIVATE,
+                     significant=False)
+    port = IntParameter(visibility=ParameterVisibility.PRIVATE,
+                        significant=False)
+    database = Parameter(visibility=ParameterVisibility.PRIVATE,
+                         significant=False)
     table = Parameter(default='')
     fn = TaskParameter(default=WrapperTask)
     columns = ListParameter(default=[])
@@ -99,7 +104,8 @@ class CopyWrapper(WrapperTask):
                                  value.
     """
 
-    password = Parameter(visibility=ParameterVisibility.PRIVATE)
+    password = Parameter(visibility=ParameterVisibility.PRIVATE,
+                         significant=False)
 
     jobs = []
 

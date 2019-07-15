@@ -96,10 +96,11 @@ class CleanChessDF(Task):
 
         df['player'] = self.player
 
-        # add two strings and remove the player so that we don't
+        # add two strings and remove the player name so that we don't
         # have to use pd.DataFrame.apply
-        df['opponent'] = (df['white'] + df['black']).str.replace(self.player,
-                                                                 '')
+        df['opponent'] = df['white'] + df['black']
+        df['opponent'] = df['opponent'].str.replace(self.player, '')
+
         series_player_black = df['black'] == self.player
         df['player_color'] = series_player_black.map({True: 'black',
                                                       False: 'white',

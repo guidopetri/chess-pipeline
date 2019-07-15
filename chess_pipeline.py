@@ -55,7 +55,6 @@ class CleanChessDF(Task):
 
     def run(self):
         from pandas import read_pickle, to_datetime, to_numeric
-        from numpy import nan
 
         with self.input().open('r') as f:
             df = read_pickle(f, compression=None)
@@ -162,8 +161,8 @@ class CleanChessDF(Task):
                           ]
 
         for column in rating_columns:
-            df[column] = df[column].replace('?', nan)
-            df[column].fillna(1500, inplace=True)
+            # ? ratings are anonymous players
+            df[column] = df[column].replace('?', '1500')
             df[column] = to_numeric(df[column])
 
         # filter unnecessary columns out

@@ -92,7 +92,7 @@ class CleanChessDF(Task):
 
         # add new columns
         for column in ['black_elo', 'white_elo']:
-            df[column + '_tentative'] = df[column].str.contains(r'\?')
+            df[column + '_tentative'] = 'Unknown'
 
         df['player'] = self.player
 
@@ -202,6 +202,22 @@ class CopyGames(CopyWrapper):
                             'white',
                             'white_elo',
                             'white_rating_diff',
+                            'black_elo_tentative',
+                            'white_elo_tentative',
+                            'player',
+                            'opponent',
+                            'player_color',
+                            'opponent_color',
+                            'player_rating_diff',
+                            'opponent_rating_diff',
+                            'player_result',
+                            'opponent_result',
+                            'time_control_category',
+                            'datetime_played',
+                            'starting_time',
+                            'increment',
+                            'in_arena',
+                            'rated_casual',
                             ],
              'id_col':     'game_link',
              'date_cols':  ['date_played', 'utc_date_played'],

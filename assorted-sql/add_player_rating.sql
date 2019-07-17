@@ -1,0 +1,10 @@
+begin;
+alter table chess_games add column player_elo real;
+alter table chess_games add column opponent_elo real;
+update chess_games set player_elo = white_elo where white = player;
+update chess_games set player_elo = black_elo where black = player;
+update chess_games set opponent_elo = black_elo where white = player;
+update chess_games set opponent_elo = white_elo where black = player;
+alter table chess_games alter column player_elo set not null;
+alter table chess_games alter column opponent_elo set not null;
+commit;

@@ -108,6 +108,16 @@ class CleanChessDF(Task):
         df['opponent_color'] = series_player_black.map({False: 'black',
                                                         True: 'white',
                                                         })
+
+        df['player_elo'] = ((series_player_black
+                             * df['black_elo'])
+                            + (~series_player_black
+                                * df['white_elo']))
+        df['opponent_elo'] = ((series_player_black
+                               * df['white_elo'])
+                              + (~series_player_black
+                                  * df['black_elo']))
+
         df['player_rating_diff'] = ((series_player_black
                                      * df['black_rating_diff'])
                                     + (~series_player_black

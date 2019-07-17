@@ -32,5 +32,7 @@ create table chess_games(
     starting_time         integer   not null,
     increment             integer   not null,
     in_arena              text      not null,
-    rated_casual          text      not null
+    rated_casual          text      not null,
+    player_rating         real      not null,
+    opponent_rating       real      not null
 );

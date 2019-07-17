@@ -1,0 +1,1 @@
+copy eco_codes(eco_code, opening_name, opening_notes) from 'eco-dictionary.csv' with csv delimiter ',';

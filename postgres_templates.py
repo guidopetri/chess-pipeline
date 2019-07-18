@@ -4,7 +4,7 @@ from collections import OrderedDict
 from luigi.contrib import postgres
 from luigi.parameter import Parameter, ListParameter, DictParameter
 from luigi.parameter import IntParameter, TaskParameter, ParameterVisibility
-from luigi import WrapperTask
+from luigi import Task
 
 
 class HashableDict(OrderedDict):
@@ -24,8 +24,8 @@ class TransactionFactTable(postgres.CopyToTable):
     :param table: The table to write to.
     :param columns: The columns, in order they show up in the PostGreSQL table.
     :param fn: The Task that provides the data to load.
-    :param id_col: The column to be used to identify whether a row is already
-                   in the table.
+    :param id_cols: The columns to be used to identify whether a row is already
+                    in the table.
     :param merge_cols: The columns representing dimension tables. In a
                        dictionary format, with the key being the `left` to
                        merge with, and the value being a tuple of
@@ -43,7 +43,7 @@ class TransactionFactTable(postgres.CopyToTable):
     database = Parameter(visibility=ParameterVisibility.PRIVATE,
                          significant=False)
     table = Parameter(default='')
-    fn = TaskParameter(default=WrapperTask)
+    fn = TaskParameter(default=Task)
     columns = ListParameter(default=[])
     id_cols = ListParameter(default=[])
     merge_cols = DictParameter(default={})
@@ -78,9 +78,10 @@ class TransactionFactTable(postgres.CopyToTable):
             yield line.values.tolist()
 
 
-class CopyWrapper(WrapperTask):
+class CopyWrapper(Task):
     """
-    Dynamically require each Task in the `jobs` list.
+    Dynamically require each Task in the `jobs` list and remove all local
+    outputs.
 
     In order to write to multiple tables, we need to pass in a different
     `table` parameter each time. Using the `jobs` list, we can pass in a `dict`
@@ -94,8 +95,8 @@ class CopyWrapper(WrapperTask):
                  - `fn`: The Task to run in order to get the data.
                  - `columns: The table's columns, in the order they show up in
                              the PostGreSQL table.
-                 - `id_col`: The column to be used to identify whether a row is
-                             already present.
+                 - `id_cols`: The columns to be used to identify whether a row
+                              is already present.
                  - `date_cols`: The columns that have to be converted to
                                 datetime before copying.
                  - `merge_cols`: The columns that should represent dimension
@@ -119,3 +120,14 @@ class CopyWrapper(WrapperTask):
             self.date_cols = job['date_cols']
             self.merge_cols = job['merge_cols']
             yield self.clone(job['table_type'])
+
+    def run(self):
+        import os
+
+        for file in os.listdir('~/Temp'):
+            os.remove('~/Temp/{}'.format(file))
+
+    def complete(self):
+        import os
+
+        return os.listdir('~/Temp') == []

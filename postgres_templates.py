@@ -45,7 +45,7 @@ class TransactionFactTable(postgres.CopyToTable):
     table = Parameter(default='')
     fn = TaskParameter(default=WrapperTask)
     columns = ListParameter(default=[])
-    id_col = Parameter(default='')
+    id_cols = ListParameter(default=[])
     merge_cols = DictParameter(default={})
 
     column_separator = '\t'
@@ -59,18 +59,19 @@ class TransactionFactTable(postgres.CopyToTable):
         connection = self.output().connect()
         cursor = connection.cursor()
 
-        sql = """SELECT %s FROM %s;""" % (self.id_col, self.table)
+        sql = """SELECT %s FROM %s;""" % (', '.join(self.id_cols),
+                                          self.table)
 
         cursor.execute(sql)
         results = cursor.fetchall()
 
-        current_df = DataFrame(results, columns=['id_col'])
+        current_df = DataFrame(results, columns=self.id_cols)
 
         with self.input().open('r') as f:
             df = read_pickle(f, compression=None)
 
         if not df.empty:
-            df = df[~df[self.id_col].isin(current_df['id_col'].values)]
+            df = df[~df[self.id_cols].isin(current_df).any(axis=1)]
             df = df[list(self.columns)]
 
         for index, line in df.iterrows():  # returns (index,Series) tuple
@@ -114,7 +115,7 @@ class CopyWrapper(WrapperTask):
             self.table = job['table']
             self.fn = job['fn']
             self.columns = job['columns']
-            self.id_col = job['id_col']
+            self.id_col = job['id_cols']
             self.date_cols = job['date_cols']
             self.merge_cols = job['merge_cols']
             yield self.clone(job['table_type'])

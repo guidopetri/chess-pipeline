@@ -1,0 +1,13 @@
+begin;
+alter table chess_games drop column black;
+alter table chess_games drop column black_elo;
+alter table chess_games drop column black_rating_diff;
+alter table chess_games drop column date_played;
+alter table chess_games drop column opening_played;
+alter table chess_games drop column time_control;
+alter table chess_games drop column utc_date_played;
+alter table chess_games drop column time_played;
+alter table chess_games drop column white;
+alter table chess_games drop column white_elo;
+alter table chess_games drop column white_rating_diff;
+commit;

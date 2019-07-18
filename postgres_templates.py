@@ -116,7 +116,7 @@ class CopyWrapper(Task):
             self.table = job['table']
             self.fn = job['fn']
             self.columns = job['columns']
-            self.id_col = job['id_cols']
+            self.id_cols = job['id_cols']
             self.date_cols = job['date_cols']
             self.merge_cols = job['merge_cols']
             yield self.clone(job['table_type'])

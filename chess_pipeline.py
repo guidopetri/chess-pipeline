@@ -229,7 +229,8 @@ class CopyGames(CopyWrapper):
                             'in_arena',
                             'rated_casual',
                             ],
-             'id_col':     'game_link',
+             'id_cols':    ['player',
+                            'game_link'],
              'date_cols':  ['date_played', 'utc_date_played'],
              'merge_cols': HashableDict()},
             ]

@@ -38,29 +38,35 @@ The above can also be added to your `crontab`, as long as your PATH and PYTHONPA
 
 The script defaults to writing to a table called `chess_games`.
 
+## Attributes
+
+For each chess game:
+  - player name
+  - player color
+  - player result
+  - player rating
+  - rating diff for player
+  - game type (time control - bullet, blitz, etc.)
+  - in arena or not
+  - datetime played
+  - with or without increment
+  - rated or casual
+  - clock start time
+  - clock increment
+  - opening name
+
+and similar columns for opponent.
+
 ## TODO
 
+**bold**: currently working on it
+
 - Add signifier for tentative rating or not (is this even available?)
-- ~Better integer/tentative rating handling (i.e. use "not null")~
-- Better Transform step/schema handling
-  - ~column for player~
-  - ~column for player color~
-  - ~column for player result~
-  - ~column for rating diff for player~
-  - ~column for game type (time control)~
-  - ~column for arena/not~
-  - ~column for datetime played~
-  - ~column for with/without increment~
-  - ~column for rated/casual~
-  - ~column for starting time~
-  - ~similar columns for opponent~
-  - ~column for player rating~
-  - ~column for opening name~
-  - column for whether berserked or not in arena game
+- column for whether berserked or not in arena game
 - More stats (e.g. was there a queen trade, queenside/kingside attack)
   - Using python-chess `Visitors`
 - Write to files and then clean up afterwards instead of using `MockTarget`
-- Use more specific "already in table" handling with the `player` column
+- **Use more specific "already in table" handling with the `player` column**
 - Clean up unnecessary columns
 - Clean up column names
 - Use Lichess API directly (both JSON and PGN formats)

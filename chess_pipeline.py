@@ -19,7 +19,7 @@ class FetchLichessApi(Task):
     def output(self):
         import os
 
-        file_location = '~/Temp/raw-games-%s.pckl' % self.player
+        file_location = '~/Temp/luigi/raw-games-%s.pckl' % self.player
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):
@@ -57,7 +57,7 @@ class CleanChessDF(Task):
     def output(self):
         import os
 
-        file_location = '~/Temp/cleaned-games-%s.pckl' % self.player
+        file_location = '~/Temp/luigi/cleaned-games-%s.pckl' % self.player
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):

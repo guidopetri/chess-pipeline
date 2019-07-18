@@ -71,7 +71,9 @@ class TransactionFactTable(postgres.CopyToTable):
             df = read_pickle(f, compression=None)
 
         if not df.empty:
-            df = df[~df[self.id_cols].isin(current_df).any(axis=1)]
+            # self.id_cols is tuple for some reason, so we need to convert
+            # to list first
+            df = df[~df[list(self.id_cols)].isin(current_df).any(axis=1)]
             df = df[list(self.columns)]
 
         for index, line in df.iterrows():  # returns (index,Series) tuple

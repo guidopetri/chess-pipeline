@@ -124,10 +124,10 @@ class CopyWrapper(Task):
     def run(self):
         import os
 
-        for file in os.listdir('~/Temp'):
+        for file in os.listdir(os.path.expanduser('~/Temp')):
             os.remove('~/Temp/{}'.format(file))
 
     def complete(self):
         import os
 
-        return os.listdir('~/Temp') == []
+        return os.listdir(os.path.expanduser('~/Temp')) == []

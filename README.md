@@ -66,7 +66,7 @@ and similar columns for opponent.
 - column for whether berserked or not in arena game
 - More stats (e.g. was there a queen trade, queenside/kingside attack)
   - Using python-chess `Visitors`
-- Write to files and then clean up afterwards instead of using `MockTarget`
+- *Write to files and then clean up afterwards instead of using `MockTarget`*
 - *Use more specific "already in table" handling with the `player` column*
 - Clean up unnecessary columns
 - Clean up column names

@@ -4,8 +4,7 @@ from luigi.parameter import Parameter, ListParameter, IntParameter
 from luigi.parameter import DateParameter
 from luigi.util import requires, inherits
 from luigi.format import Nop
-from luigi import Task
-from luigi.mock import MockTarget
+from luigi import Task, LocalTarget
 from postgres_templates import CopyWrapper, HashableDict, TransactionFactTable
 from datetime import datetime, timedelta
 
@@ -18,12 +17,15 @@ class FetchLichessApi(Task):
     since = IntParameter(default=None)
 
     def output(self):
-        return MockTarget('LichessGames %s' % self.player, format=Nop)
+        file_location = '~/Temp/raw-games-%s.pckl' % self.player
+        return LocalTarget(file_location, format=Nop)
 
     def run(self):
         import lichess.api
         from lichess.format import PYCHESS
         from pandas import DataFrame
+
+        self.output().makedirs()
 
         if self.since is None:
             two_days_ago = datetime.today() - timedelta(days=2)
@@ -51,10 +53,13 @@ class CleanChessDF(Task):
     columns = ListParameter()
 
     def output(self):
-        return MockTarget('CleanChessDF', format=Nop)
+        file_location = '~/Temp/cleaned-games-%s.pckl' % self.player
+        return LocalTarget(file_location, format=Nop)
 
     def run(self):
         from pandas import read_pickle, to_datetime, to_numeric
+
+        self.output().makedirs()
 
         with self.input().open('r') as f:
             df = read_pickle(f, compression=None)
@@ -185,7 +190,6 @@ class CleanChessDF(Task):
 
 @requires(CleanChessDF)
 class ChessGames(TransactionFactTable):
-
     pass
 
 

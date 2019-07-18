@@ -124,10 +124,20 @@ class CopyWrapper(Task):
     def run(self):
         import os
 
-        for file in os.listdir(os.path.expanduser('~/Temp')):
-            os.remove('~/Temp/{}'.format(file))
+        filepath = os.path.expanduser('~/Temp/luigi')
+
+        for file in os.listdir(filepath):
+            os.remove(filepath + '/{}'.format(file))
 
     def complete(self):
         import os
 
-        return os.listdir(os.path.expanduser('~/Temp')) == []
+        filepath = os.path.expanduser('~/Temp/luigi')
+
+        if not os.path.exists(filepath):
+            return False
+
+        existing_files = os.listdir(filepath)
+        finished_tasks = [inp.exists() for inp in self.input()]
+
+        return (existing_files == []) and (any(finished_tasks))

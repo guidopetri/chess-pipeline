@@ -17,8 +17,10 @@ class FetchLichessApi(Task):
     since = IntParameter(default=None)
 
     def output(self):
+        import os
+
         file_location = '~/Temp/raw-games-%s.pckl' % self.player
-        return LocalTarget(file_location, format=Nop)
+        return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):
         import lichess.api
@@ -53,8 +55,10 @@ class CleanChessDF(Task):
     columns = ListParameter()
 
     def output(self):
+        import os
+
         file_location = '~/Temp/cleaned-games-%s.pckl' % self.player
-        return LocalTarget(file_location, format=Nop)
+        return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):
         from pandas import read_pickle, to_datetime, to_numeric

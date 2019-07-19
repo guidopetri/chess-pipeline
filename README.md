@@ -68,6 +68,6 @@ and similar columns for opponent.
   - Using python-chess `Visitors`
 - *Use more specific "already in table" handling with the `player` column*
 - Clean up column names
-- **Use Lichess API directly (both JSON and PGN formats)**
+- Use Lichess API directly (both JSON and PGN formats)
 - Finish PostGreSQL setup script
 - Add some of the Tableau graphs to the repo

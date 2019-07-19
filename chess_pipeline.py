@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 
 from luigi.parameter import Parameter, ListParameter, IntParameter
-from luigi.parameter import DateParameter
+from luigi.parameter import DateParameter, ParameterVisibility
 from luigi.util import requires, inherits
 from luigi.format import Nop
 from luigi import Task, LocalTarget
@@ -15,6 +15,8 @@ class FetchLichessApi(Task):
     player = Parameter(default='thibault')
     perfType = Parameter(default='blitz')
     since = IntParameter(default=None)
+    lichess_token = Parameter(visibility=ParameterVisibility.PRIVATE,
+                              significant=False)
 
     def output(self):
         import os
@@ -37,6 +39,7 @@ class FetchLichessApi(Task):
         games = lichess.api.user_games(self.player,
                                        since=self.since,
                                        perfType=self.perfType,
+                                       auth=self.lichess_token,
                                        format=PYCHESS)
 
         header_infos = []

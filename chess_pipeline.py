@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-from luigi.parameter import Parameter, ListParameter
+from luigi.parameter import Parameter, ListParameter, BoolParameter
 from luigi.parameter import DateParameter, ParameterVisibility
 from luigi.util import requires, inherits
 from luigi.format import Nop
@@ -11,14 +11,12 @@ from datetime import datetime, timedelta
 
 class FetchLichessApi(Task):
 
-    today = datetime.today()
-
     player = Parameter(default='thibault')
     perfType = Parameter(default='blitz')
     lichess_token = Parameter(visibility=ParameterVisibility.PRIVATE,
                               significant=False)
-    since = DateParameter(default=today - timedelta(days=1))
-    until = DateParameter(default=today)
+    since = DateParameter(default=datetime.today().date() - timedelta(days=1))
+    single_day = BoolParameter()
 
     def output(self):
         import os
@@ -34,11 +32,15 @@ class FetchLichessApi(Task):
 
         self.output().makedirs()
 
-        unix_time_prev = timegm(self.since.timetuple())
-        self.since = int(1000 * unix_time_prev)
-
-        unix_time_until = timegm(self.until.timetuple())
+        if self.single_day:
+            unix_time_until = timegm((self.since
+                                      + timedelta(days=1)).timetuple())
+        else:
+            unix_time_until = timegm(datetime.today().date().timetuple())
         self.until = int(1000 * unix_time_until)
+
+        unix_time_since = timegm(self.since.timetuple())
+        self.since = int(1000 * unix_time_since)
 
         games = lichess.api.user_games(self.player,
                                        since=self.since,

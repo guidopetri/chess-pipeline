@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-from luigi.parameter import Parameter, ListParameter, IntParameter
+from luigi.parameter import Parameter, ListParameter
 from luigi.parameter import DateParameter, ParameterVisibility
 from luigi.util import requires, inherits
 from luigi.format import Nop
@@ -11,12 +11,14 @@ from datetime import datetime, timedelta
 
 class FetchLichessApi(Task):
 
-    date = DateParameter(default=datetime.today())
+    today = datetime.today()
+
     player = Parameter(default='thibault')
     perfType = Parameter(default='blitz')
-    since = IntParameter(default=None)
     lichess_token = Parameter(visibility=ParameterVisibility.PRIVATE,
                               significant=False)
+    since = DateParameter(default=today - timedelta(days=1))
+    until = DateParameter(default=today)
 
     def output(self):
         import os
@@ -28,16 +30,19 @@ class FetchLichessApi(Task):
         import lichess.api
         from lichess.format import PYCHESS
         from pandas import DataFrame
+        from calendar import timegm
 
         self.output().makedirs()
 
-        if self.since is None:
-            two_days_ago = datetime.today() - timedelta(days=2)
-            unix_time = two_days_ago.timestamp()
-            self.since = int(1000 * unix_time)
+        unix_time_prev = timegm(self.since.timetuple())
+        self.since = int(1000 * unix_time_prev)
+
+        unix_time_until = timegm(self.until.timetuple())
+        self.until = int(1000 * unix_time_until)
 
         games = lichess.api.user_games(self.player,
                                        since=self.since,
+                                       until=self.until,
                                        perfType=self.perfType,
                                        auth=self.lichess_token,
                                        format=PYCHESS)

@@ -29,6 +29,8 @@ class FetchLichessApi(Task):
         from lichess.format import PYCHESS
         from pandas import DataFrame
         from calendar import timegm
+        from visitors import EvalsVisitor, ClocksVisitor, QueenExchangeVisitor
+        from visitors import CastlingVisitor
 
         self.output().makedirs()
 
@@ -52,9 +54,25 @@ class FetchLichessApi(Task):
                                        opening='true',
                                        format=PYCHESS)
 
+        visitors = [EvalsVisitor,
+                    ClocksVisitor,
+                    QueenExchangeVisitor,
+                    CastlingVisitor,
+                    ]
+
+        visitor_stats = {'clocks': 'clocks',
+                         'evaluations': 'evals',
+                         'queen_exchange': 'queen_exchanged',
+                         'castling_sides': 'castling',
+                         }
+
         header_infos = []
         for game in games:
-            header_infos.append({x: y for x, y in game.headers.items()})
+            game_infos = {x: y for x, y in game.headers.items()}
+            [game.visit(visitor) for visitor in visitors]
+            for k, v in visitor_stats.items():
+                game_infos[k] = getattr(game, v)
+            header_infos.append(game_infos)
 
         df = DataFrame(header_infos)
 

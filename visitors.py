@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
 from chess.pgn import BaseVisitor
+import chess
 import re
 
 
@@ -15,7 +16,7 @@ class EvalsVisitor(BaseVisitor):
             evaluation = re.search(r'\[%eval ([^\]]+)', comment).group(1)
         else:
             evaluation = ''
-        self.gm.evals.append(evaluation)
+        self.game.evals.append(evaluation)
 
 
 class ClocksVisitor(BaseVisitor):
@@ -29,7 +30,7 @@ class ClocksVisitor(BaseVisitor):
             clock_time = re.search(r'\[%clk ([^\]]+)', comment).group(1)
         else:
             clock_time = ''
-        self.gm.clocks.append(clock_time)
+        self.game.clocks.append(clock_time)
 
 
 class QueenExchangeVisitor(BaseVisitor):
@@ -40,13 +41,35 @@ class QueenExchangeVisitor(BaseVisitor):
     def begin_game(self):
         self.move_counter = 0
         self.captured_at = 0
-        self.gm.queen_exchanged = False
+        self.game.queen_exchanged = False
 
     def visit_move(self, board, move):
         self.move_counter += 1
         dest = board.piece_at(move.to_square)
-        # chess.QUEEN has a value of 5
-        if dest is not None and dest.piece_type == 5:
+        if dest is not None and dest.piece_type == chess.QUEEN:
             if self.captured_at == self.move_counter - 1:
-                self.gm.queen_exchanged = True
+                self.game.queen_exchanged = True
             self.captured_at = self.move_counter
+
+
+class CastlingVisitor(BaseVisitor):
+
+    def __init__(self, gm):
+        self.game = gm
+
+    def begin_game(self):
+        self.game.castling = {'black': '',
+                              'white': '',
+                              }
+
+    def visit_move(self, board, move):
+        from_sq = board.piece_at(move.from_square)
+        if from_sq is not None and from_sq.piece_type == chess.KING:
+            if move.to_square == chess.G8:
+                self.game.castling['black'] = 'kingside'
+            elif move.to_square == chess.G1:
+                self.game.castling['white'] = 'kingside'
+            elif move.to_square == chess.C8:
+                self.game.castling['black'] = 'queenside'
+            elif move.to_square == chess.C1:
+                self.game.castling['white'] = 'queenside'

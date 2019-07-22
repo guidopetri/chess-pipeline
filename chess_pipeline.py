@@ -47,6 +47,9 @@ class FetchLichessApi(Task):
                                        until=self.until,
                                        perfType=self.perfType,
                                        auth=self.lichess_token,
+                                       clocks='true',
+                                       evals='true',
+                                       opening='true',
                                        format=PYCHESS)
 
         header_infos = []
@@ -106,6 +109,7 @@ class CleanChessDF(Task):
                            'White':           'white',
                            'WhiteElo':        'white_elo',
                            'WhiteRatingDiff': 'white_rating_diff',
+                           'Opening':         'lichess_opening'
                            },
                   inplace=True)
 

@@ -16,3 +16,17 @@ class EvalsVisitor(BaseVisitor):
         else:
             evaluation = ''
         self.gm.evals.append(evaluation)
+
+
+class ClocksVisitor(BaseVisitor):
+
+    def __init__(self, gm):
+        self.game = gm
+        self.game.clocks = []
+
+    def visit_comment(self, comment):
+        if 'clk' in comment:
+            clock_time = re.search(r'\[%clk ([^\]]+)', comment).group(1)
+        else:
+            clock_time = ''
+        self.gm.clocks.append(clock_time)

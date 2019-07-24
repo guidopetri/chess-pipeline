@@ -64,8 +64,8 @@ and similar columns for opponent.
 
 - Add signifier for tentative rating or not (is this even available?)
 - column for whether berserked or not in arena game
-- More stats (e.g. was there a queen trade, queenside/kingside attack)
-  - Using python-chess `Visitors`
+- **More stats (e.g. was there a queen trade, queenside/kingside attack)**
+  - **Using python-chess `Visitors`**
 - *Use more specific "already in table" handling with the `player` column*
 - Clean up column names
 - Use Lichess API directly (both JSON and PGN formats)?

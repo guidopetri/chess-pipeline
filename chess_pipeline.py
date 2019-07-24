@@ -69,7 +69,7 @@ class FetchLichessApi(Task):
         header_infos = []
         for game in games:
             game_infos = {x: y for x, y in game.headers.items()}
-            [game.visit(visitor) for visitor in visitors]
+            [game.accept(visitor) for visitor in visitors]
             for k, v in visitor_stats.items():
                 game_infos[k] = getattr(game, v)
             header_infos.append(game_infos)

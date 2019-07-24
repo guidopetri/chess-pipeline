@@ -58,8 +58,8 @@ class CastlingVisitor(BaseVisitor):
         self.game = gm
 
     def begin_game(self):
-        self.game.castling = {'black': '',
-                              'white': '',
+        self.game.castling = {'black': None,
+                              'white': None,
                               }
 
     def visit_move(self, board, move):

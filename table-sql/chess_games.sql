@@ -23,5 +23,6 @@ create table chess_games(
     in_arena              text      not null,
     rated_casual          text      not null,
     player_elo            real      not null,
-    opponent_elo          real      not null
+    opponent_elo          real      not null,
+    queen_exchange        text      not null
 );

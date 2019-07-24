@@ -41,14 +41,14 @@ class QueenExchangeVisitor(BaseVisitor):
     def begin_game(self):
         self.move_counter = 0
         self.captured_at = 0
-        self.game.queen_exchanged = False
+        self.game.queen_exchange = False
 
     def visit_move(self, board, move):
         self.move_counter += 1
         dest = board.piece_at(move.to_square)
         if dest is not None and dest.piece_type == chess.QUEEN:
             if self.captured_at == self.move_counter - 1:
-                self.game.queen_exchanged = True
+                self.game.queen_exchange = True
             self.captured_at = self.move_counter
 
 

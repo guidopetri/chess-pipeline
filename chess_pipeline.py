@@ -62,7 +62,7 @@ class FetchLichessApi(Task):
 
         visitor_stats = {'clocks': 'clocks',
                          'evaluations': 'evals',
-                         'queen_exchange': 'queen_exchanged',
+                         'queen_exchange': 'queen_exchange',
                          'castling_sides': 'castling',
                          }
 
@@ -202,6 +202,11 @@ class CleanChessDF(Task):
         df['rated_casual'] = df['rated_casual'].map({True: 'Casual',
                                                      False: 'Rated'})
 
+        mapping_dict = {True: 'Queen exchange',
+                        False: 'No queen exchange',
+                        }
+        df['queen_exchange'] = df['queen_exchange'].map(mapping_dict)
+
         # type handling
         df['date_played'] = to_datetime(df['date_played'])
         df['utc_date_played'] = to_datetime(df['utc_date_played'])
@@ -259,6 +264,7 @@ class CopyGames(CopyWrapper):
                             'rated_casual',
                             'player_elo',
                             'opponent_elo',
+                            'queen_exchange',
                             ],
              'id_cols':    ['player',
                             'game_link'],

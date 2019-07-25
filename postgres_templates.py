@@ -73,7 +73,12 @@ class TransactionFactTable(postgres.CopyToTable):
         if not df.empty:
             # self.id_cols is tuple for some reason, so we need to convert
             # to list first
-            df = df[~df[list(self.id_cols)].isin(current_df.to_dict(orient='list')).all(axis=1)]
+            # also, .isin compares by index as well as columns if passed a DF
+            # to avoid that we can pass the dict with orient='list' and compare
+            # just the columns
+            df = df[~(df[list(self.id_cols)]
+                      .isin(current_df.to_dict(orient='list'))
+                      .all(axis=1))]
             df = df[list(self.columns)]
 
         for index, line in df.iterrows():  # returns (index,Series) tuple

@@ -26,5 +26,7 @@ create table chess_games(
     opponent_elo           real      not null,
     queen_exchange         text      not null,
     player_castling_side   text      not null,
-    opponent_castling_side text      not null
+    opponent_castling_side text      not null,
+    lichess_opening        text      not null,
+    opening_played         text      not null
 );

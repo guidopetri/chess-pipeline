@@ -212,10 +212,10 @@ class CleanChessDF(Task):
         df['date_played'] = to_datetime(df['date_played'])
         df['utc_date_played'] = to_datetime(df['utc_date_played'])
 
-        rating_columns = ['black_elo',
-                          'black_rating_diff',
-                          'white_elo',
-                          'white_rating_diff',
+        rating_columns = ['player_elo',
+                          'player_rating_diff',
+                          'opponent_elo',
+                          'opponent_rating_diff'
                           ]
 
         for column in rating_columns:

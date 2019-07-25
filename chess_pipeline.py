@@ -93,7 +93,7 @@ class CleanChessDF(Task):
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):
-        from pandas import read_pickle, to_datetime, to_numeric
+        from pandas import read_pickle, to_datetime, to_numeric, Series, merge
 
         self.output().makedirs()
 
@@ -208,6 +208,42 @@ class CleanChessDF(Task):
                         }
         df['queen_exchange'] = df['queen_exchange'].map(mapping_dict)
 
+        # figure out castling sides
+        castling_df = df[['game_link',
+                          'player_color',
+                          'opponent_color',
+                          'castling_sides']]
+        # the following line is way easier in pandas 0.25.0, but there is some
+        # bug between luigi 2.8.7 and pandas 0.25.0 when pickling dataframes
+
+        # convert dict to dataframe cells
+        castling_df = (castling_df.set_index(['game_link',
+                                              'player_color',
+                                              'opponent_color'])
+                                  .stack()
+                                  .apply(Series)
+                                  .reset_index()
+                                  .drop('level_3', axis=1))
+        castling_df.fillna('No castling', inplace=True)
+        castle_helper_srs = castling_df['player_color'] == 'black'
+        castling_df['player_castling_side'] = ((~castle_helper_srs)
+                                               * castling_df['white']
+                                               + castle_helper_srs
+                                               * castling_df['black'])
+        castling_df['opponent_castling_side'] = ((~castle_helper_srs)
+                                                 * castling_df['black']
+                                                 + castle_helper_srs
+                                                 * castling_df['white'])
+
+        castling_df = castling_df[['game_link',
+                                   'player_castling_side',
+                                   'opponent_castling_side',
+                                   ]]
+
+        df = merge(df,
+                   castling_df,
+                   on='game_link')
+
         # type handling
         df['date_played'] = to_datetime(df['date_played'])
         df['utc_date_played'] = to_datetime(df['utc_date_played'])
@@ -230,61 +266,8 @@ class CleanChessDF(Task):
             df.to_pickle(db, compression=None)
 
 
-@requires(FetchLichessApi)
-class CleanCastling(Task):
-
-    columns = ListParameter()
-
-    def output(self):
-        import os
-
-        file_location = '~/Temp/luigi/cleaned-castling-%s.pckl' % self.player
-        return LocalTarget(os.path.expanduser(file_location), format=Nop)
-
-    def run(self):
-        from pandas import read_pickle, Series
-
-        self.output().makedirs()
-
-        with self.input().open('r') as f:
-            df = read_pickle(f, compression=None)
-
-        if df.empty:
-
-            def complete(self):
-                return True
-
-            with self.output().open('w') as db:
-                df.to_pickle(db, compression=None)
-
-            return
-
-        df = df[['Site', 'castling_sides']]
-        df.columns = ['game', 'castling_sides']
-        # the following line is way easier in pandas 0.25.0, but there is some
-        # bug between luigi 2.8.7 and pandas 0.25.0 when pickling dataframes
-        df = (df.set_index('game')
-                .stack()
-                .apply(Series)
-                .reset_index()
-                .drop('level_1', axis=1))  # convert dict to dataframe cells
-        df = df.melt('game')  # get two rows, one for each side
-        df.columns = ['game', 'side', 'castling_side']
-        df.fillna('No castling', inplace=True)
-
-        df = df[list(self.columns)]
-
-        with self.output().open('w') as db:
-            df.to_pickle(db, compression=None)
-
-
 @requires(CleanChessDF)
 class ChessGames(TransactionFactTable):
-    pass
-
-
-@requires(CleanCastling)
-class Castling(TransactionFactTable):
     pass
 
 
@@ -324,20 +307,11 @@ class CopyGames(CopyWrapper):
                             'player_elo',
                             'opponent_elo',
                             'queen_exchange',
+                            'player_castling_side',
+                            'opponent_castling_side',
                             ],
              'id_cols':    ['player',
                             'game_link'],
              'date_cols':  ['date_played', 'utc_date_played'],
-             'merge_cols': HashableDict()},
-            {'table_type': Castling,
-             'fn':         CleanCastling,
-             'table':      'castling',
-             'columns':    ['game',
-                            'side',
-                            'castling_side'
-                            ],
-             'id_cols':    ['game',
-                            'side'],
-             'date_cols':  [],
              'merge_cols': HashableDict()},
             ]

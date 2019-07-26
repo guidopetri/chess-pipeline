@@ -69,6 +69,8 @@ class FetchLichessApi(Task):
         header_infos = []
         for game in games:
             game_infos = {x: y for x, y in game.headers.items()}
+            if game.headers['Variant'] == 'From Position':
+                game.headers['Variant'] = 'Standard'
             for visitor in visitors:
                 game.accept(visitor(game))
             for k, v in visitor_stats.items():

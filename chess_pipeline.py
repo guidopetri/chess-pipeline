@@ -309,6 +309,8 @@ class CopyGames(CopyWrapper):
                             'queen_exchange',
                             'player_castling_side',
                             'opponent_castling_side',
+                            'lichess_opening',
+                            'opening_played',
                             ],
              'id_cols':    ['player',
                             'game_link'],

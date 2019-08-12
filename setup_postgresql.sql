@@ -20,14 +20,15 @@ create user luigi_user;
 \password luigi_user
 
 --grant luigi user privileges on database
-
+alter default privileges in schema public grant select, insert, update, delete, truncate on tables to luigi_user;
+alter default privileges in schema public grant usage on sequences to luigi_user;
 
 -- the task history user
 create user task_history_user;
 \password task_history_user
 
 -- grant task history user privileges on task history db
-
+grant create, connect on database task_history_db to task_history_user;
 
 -- a read-only user
 create user read_user;
@@ -43,4 +44,4 @@ grant select on all tables in schema public to read_access;
 -- grant access to future tables
 alter default privileges in schema public grant select on tables to read_access;
 
-grant read_access TO read_user;
+grant read_access to read_user;

@@ -108,8 +108,8 @@ class CleanChessDF(Task):
             def complete(self):
                 return True
 
-            with self.output().open('w') as db:
-                df.to_pickle(db, compression=None)
+            with self.output().temporary_path() as temp_output_path:
+                df.to_pickle(temp_output_path, compression=None)
 
             return
 

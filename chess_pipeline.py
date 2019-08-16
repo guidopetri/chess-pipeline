@@ -86,8 +86,6 @@ class FetchLichessApi(Task):
 @requires(FetchLichessApi)
 class CleanChessDF(Task):
 
-    columns = ListParameter()
-
     def output(self):
         import os
 
@@ -95,8 +93,7 @@ class CleanChessDF(Task):
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):
-        from pandas import read_pickle, to_datetime, to_numeric
-        from pandas import concat, Series, merge
+        from pandas import read_pickle
 
         self.output().makedirs()
 
@@ -134,6 +131,83 @@ class CleanChessDF(Task):
                            'Opening':         'lichess_opening'
                            },
                   inplace=True)
+
+        with self.output().temporary_path() as temp_output_path:
+            df.to_pickle(temp_output_path, compression=None)
+
+
+@requires(CleanChessDF)
+class ExplodeEvals(Task):
+
+    columns = ListParameter()
+
+    def output(self):
+        import os
+
+        file_location = '~/Temp/luigi/game-evals-%s.pckl' % self.player
+        return LocalTarget(os.path.expanduser(file_location), format=Nop)
+
+    def run(self):
+        from pandas import read_pickle
+
+        self.output().makedirs()
+
+        with self.input().open('r') as f:
+            df = read_pickle(f, compression=None)
+
+        if df.empty:
+
+            def complete(self):
+                return True
+
+            with self.output().temporary_path() as temp_output_path:
+                df.to_pickle(temp_output_path, compression=None)
+
+            return
+
+        df = df[['game_link', 'evaluations']]
+
+        df = df.explode('evaluations')
+        df['half_move'] = df.groupby('game_link').cumcount() + 1
+
+        df.rename(columns={'evaluations': 'evaluation'},
+                  inplace=True)
+
+        df = df[list(self.columns)]
+
+        with self.output().temporary_path() as temp_output_path:
+            df.to_pickle(temp_output_path, compression=None)
+
+
+@requires(CleanChessDF)
+class GetGameInfos(Task):
+
+    columns = ListParameter()
+
+    def output(self):
+        import os
+
+        file_location = '~/Temp/luigi/game-infos-%s.pckl' % self.player
+        return LocalTarget(os.path.expanduser(file_location), format=Nop)
+
+    def run(self):
+        from pandas import read_pickle, to_datetime, to_numeric
+        from pandas import concat, Series, merge
+
+        self.output().makedirs()
+
+        with self.input().open('r') as f:
+            df = read_pickle(f, compression=None)
+
+        if df.empty:
+
+            def complete(self):
+                return True
+
+            with self.output().temporary_path() as temp_output_path:
+                df.to_pickle(temp_output_path, compression=None)
+
+            return
 
         # add new columns
         for column in ['black_elo', 'white_elo']:
@@ -265,8 +339,13 @@ class CleanChessDF(Task):
             df.to_pickle(temp_output_path, compression=None)
 
 
-@requires(CleanChessDF)
+@requires(GetGameInfos)
 class ChessGames(TransactionFactTable):
+    pass
+
+
+@requires(ExplodeEvals)
+class MoveEvals(TransactionFactTable):
     pass
 
 
@@ -275,11 +354,11 @@ class MoveList(TransactionFactTable):
     pass
 
 
-@inherits(FetchLichessApi, ChessGames)
+@inherits(FetchLichessApi, ChessGames, MoveEvals)
 class CopyGames(CopyWrapper):
 
     jobs = [{'table_type': ChessGames,
-             'fn':         CleanChessDF,
+             'fn':         GetGameInfos,
              'table':      'chess_games',
              'columns':    ['event_type',
                             'result',
@@ -314,5 +393,16 @@ class CopyGames(CopyWrapper):
              'id_cols':    ['player',
                             'game_link'],
              'date_cols':  ['datetime_played'],
+             'merge_cols': HashableDict()},
+            {'table_type': MoveEvals,
+             'fn': ExplodeEvals,
+             'table': 'game_evals',
+             'columns': ['game_link',
+                         'half_move',
+                         'evaluation',
+                         ],
+             'id_cols': ['game_link',
+                         'half_move'],
+             'date_cols': [],
              'merge_cols': HashableDict()},
             ]

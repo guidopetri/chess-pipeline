@@ -265,7 +265,7 @@ class GetGameInfos(Task):
                                                    '0-1False': 'Win',
                                                    })
 
-        df['time_control_category'] = self.perfType
+        df['time_control_category'] = self.perf_type
         df['datetime_played'] = to_datetime(df['utc_date_played'].astype(str)
                                             + ' '
                                             + df['time_played'].astype(str))

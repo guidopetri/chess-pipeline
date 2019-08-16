@@ -95,7 +95,8 @@ class CleanChessDF(Task):
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):
-        from pandas import read_pickle, to_datetime, to_numeric, Series, merge
+        from pandas import read_pickle, to_datetime, to_numeric
+        from pandas import concat, Series, merge
 
         self.output().makedirs()
 
@@ -215,17 +216,13 @@ class CleanChessDF(Task):
                           'player_color',
                           'opponent_color',
                           'castling_sides']]
-        # the following line is way easier in pandas 0.25.0, but there is some
-        # bug between luigi 2.8.7 and pandas 0.25.0 when pickling dataframes
+        # i thought the following would be easier with pandas 0.25.0's
+        # pd.DataFrame.explode() but because we use dicts, it isn't
 
         # convert dict to dataframe cells
-        castling_df = (castling_df.set_index(['game_link',
-                                              'player_color',
-                                              'opponent_color'])
-                                  .stack()
-                                  .apply(Series)
-                                  .reset_index()
-                                  .drop('level_3', axis=1))
+        castling_df = concat([castling_df.drop('castling_sides', axis=1),
+        					  castling_df['castling_sides'].apply(Series)],
+        					 axis=1)
         castling_df.fillna('No castling', inplace=True)
         castle_helper_srs = castling_df['player_color'] == 'black'
         castling_df['player_castling_side'] = ((~castle_helper_srs)

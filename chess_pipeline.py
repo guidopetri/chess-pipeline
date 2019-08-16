@@ -221,8 +221,8 @@ class CleanChessDF(Task):
 
         # convert dict to dataframe cells
         castling_df = concat([castling_df.drop('castling_sides', axis=1),
-        					  castling_df['castling_sides'].apply(Series)],
-        					 axis=1)
+                              castling_df['castling_sides'].apply(Series)],
+                             axis=1)
         castling_df.fillna('No castling', inplace=True)
         castle_helper_srs = castling_df['player_color'] == 'black'
         castling_df['player_castling_side'] = ((~castle_helper_srs)

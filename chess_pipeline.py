@@ -79,8 +79,8 @@ class FetchLichessApi(Task):
 
         df = DataFrame(header_infos)
 
-        with self.output().open('w') as f:
-            df.to_pickle(f, compression=None)
+        with self.output().temporary_path() as temp_output_path:
+            df.to_pickle(temp_output_path, compression=None)
 
 
 @requires(FetchLichessApi)
@@ -264,8 +264,8 @@ class CleanChessDF(Task):
         # filter unnecessary columns out
         df = df[list(self.columns)]
 
-        with self.output().open('w') as db:
-            df.to_pickle(db, compression=None)
+        with self.output().temporary_path() as temp_output_path:
+            df.to_pickle(temp_output_path, compression=None)
 
 
 @requires(CleanChessDF)

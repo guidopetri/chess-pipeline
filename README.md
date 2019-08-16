@@ -31,7 +31,7 @@ with the following arguments:
 By default, the script pulls Blitz games from the last two days for the user [`thibault`](http://lichess.org/@/thibault). This can be changed by passing in the following arguments:
 
 - `--player`, for the chess player
-- `--perfType`, for the kind of chess game - bullet, blitz, classical, etc.
+- `--perf-type`, for the kind of chess game - bullet, blitz, classical, etc.
 - `--since`, for since when to pull. This is given in Unix time.
 - `--single-day`, if only a single day is to be pulled from the API (this is a boolean flag)
 

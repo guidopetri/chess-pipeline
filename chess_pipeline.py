@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 class FetchLichessApi(Task):
 
     player = Parameter(default='thibault')
-    perfType = Parameter(default='blitz')
+    perf_type = Parameter(default='blitz')
     lichess_token = Parameter(visibility=ParameterVisibility.PRIVATE,
                               significant=False)
     since = DateParameter(default=datetime.today().date() - timedelta(days=1))
@@ -47,7 +47,7 @@ class FetchLichessApi(Task):
         games = lichess.api.user_games(self.player,
                                        since=self.since,
                                        until=self.until,
-                                       perfType=self.perfType,
+                                       perfType=self.perf_type,
                                        auth=self.lichess_token,
                                        clocks='true',
                                        evals='true',

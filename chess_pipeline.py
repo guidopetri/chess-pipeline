@@ -316,6 +316,6 @@ class CopyGames(CopyWrapper):
                             ],
              'id_cols':    ['player',
                             'game_link'],
-             'date_cols':  ['date_played', 'utc_date_played'],
+             'date_cols':  ['datetime_played'],
              'merge_cols': HashableDict()},
             ]

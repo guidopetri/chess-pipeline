@@ -76,7 +76,8 @@ and similar columns for opponent.
 - Add signifier for tentative rating or not (is this even available?)
 - column for whether berserked or not in arena game
 - clock times
-- evals
+- evals for checkmates (currently converting to nulls)
+  - how can we tell checkmate for black apart from checkmate for white?
 - More stats using python-chess `Visitors`
 - Clean up column names
 - ~Use Lichess API directly (both JSON and PGN formats)?~

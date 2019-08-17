@@ -148,7 +148,7 @@ class ExplodeEvals(Task):
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):
-        from pandas import read_pickle
+        from pandas import read_pickle, Series
 
         self.output().makedirs()
 
@@ -167,11 +167,18 @@ class ExplodeEvals(Task):
 
         df = df[['game_link', 'evaluations']]
 
-        df = df.explode('evaluations')
-        df['half_move'] = df.groupby('game_link').cumcount() + 1
-
-        df.rename(columns={'evaluations': 'evaluation'},
+        # pandas 0.25.0:
+        # df = df.explode('evaluations')
+        # df.rename(columns={'evaluations': 'evaluation',
+        #           inplace=True})
+        df = (df.set_index('game_link')['evaluations']
+                .apply(Series)
+                .stack()
+                .reset_index()
+                .drop('level_1', axis=1))
+        df.rename(columns={0: 'evaluation'},
                   inplace=True)
+        df['half_move'] = df.groupby('game_link').cumcount() + 1
 
         df = df[list(self.columns)]
 
@@ -394,17 +401,15 @@ class CopyGames(CopyWrapper):
                             'game_link'],
              'date_cols':  ['datetime_played'],
              'merge_cols': HashableDict()},
-            # commented out until we have pandas 0.25.0 or a better way of
-            # getting a list to explode
-            # {'table_type': MoveEvals,
-            #  'fn': ExplodeEvals,
-            #  'table': 'game_evals',
-            #  'columns': ['game_link',
-            #              'half_move',
-            #              'evaluation',
-            #              ],
-            #  'id_cols': ['game_link',
-            #              'half_move'],
-            #  'date_cols': [],
-            #  'merge_cols': HashableDict()},
+            {'table_type': MoveEvals,
+             'fn': ExplodeEvals,
+             'table': 'game_evals',
+             'columns': ['game_link',
+                         'half_move',
+                         'evaluation',
+                         ],
+             'id_cols': ['game_link',
+                         'half_move'],
+             'date_cols': [],
+             'merge_cols': HashableDict()},
             ]

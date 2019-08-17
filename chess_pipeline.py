@@ -148,7 +148,7 @@ class ExplodeEvals(Task):
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):
-        from pandas import read_pickle, Series
+        from pandas import read_pickle, Series, to_numeric
 
         self.output().makedirs()
 
@@ -179,6 +179,8 @@ class ExplodeEvals(Task):
         df.rename(columns={0: 'evaluation'},
                   inplace=True)
         df['half_move'] = df.groupby('game_link').cumcount() + 1
+        df['evaluation'] = to_numeric(df['evaluation'],
+                                      errors='coerce')
 
         df = df[list(self.columns)]
 

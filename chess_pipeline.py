@@ -452,6 +452,11 @@ class MoveEvals(TransactionFactTable):
     pass
 
 
+@requires(ExplodeClocks)
+class MoveClocks(TransactionFactTable):
+    pass
+
+
 @requires(CleanChessDF)
 class MoveList(TransactionFactTable):
     pass
@@ -503,6 +508,17 @@ class CopyGames(CopyWrapper):
              'columns': ['game_link',
                          'half_move',
                          'evaluation',
+                         ],
+             'id_cols': ['game_link',
+                         'half_move'],
+             'date_cols': [],
+             'merge_cols': HashableDict()},
+            {'table_type': MoveClocks,
+             'fn': ExplodeClocks,
+             'table': 'game_clocks',
+             'columns': ['game_link',
+                         'half_move',
+                         'clock',
                          ],
              'id_cols': ['game_link',
                          'half_move'],

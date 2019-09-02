@@ -83,6 +83,56 @@ class FetchLichessApiPGN(Task):
             df.to_pickle(temp_output_path, compression=None)
 
 
+class FetchLichessApiJSON(Task):
+
+    player = Parameter(default='thibault')
+    perf_type = Parameter(default='blitz')
+    lichess_token = Parameter(visibility=ParameterVisibility.PRIVATE,
+                              significant=False)
+    since = DateParameter(default=datetime.today().date() - timedelta(days=1))
+    single_day = BoolParameter()
+
+    def output(self):
+        import os
+
+        file_location = '~/Temp/luigi/raw-games-%s-json.pckl' % self.player
+        return LocalTarget(os.path.expanduser(file_location), format=Nop)
+
+    def run(self):
+        import lichess.api
+        from lichess.format import JSON
+        from pandas.io.json import json_normalize
+        from calendar import timegm
+
+        self.output().makedirs()
+
+        if self.single_day:
+            unix_time_until = timegm((self.since
+                                      + timedelta(days=1)).timetuple())
+        else:
+            unix_time_until = timegm(datetime.today().date().timetuple())
+        self.until = int(1000 * unix_time_until)
+
+        unix_time_since = timegm(self.since.timetuple())
+        self.since = int(1000 * unix_time_since)
+
+        games = lichess.api.user_games(self.player,
+                                       since=self.since,
+                                       until=self.until,
+                                       perfType=self.perf_type,
+                                       auth=self.lichess_token,
+                                       evals='true',
+                                       moves='false',
+                                       format=JSON)
+
+        df = json_normalize([game
+                             for game in games],
+                            sep='_')
+
+        with self.output().temporary_path() as temp_output_path:
+            df.to_pickle(temp_output_path, compression=None)
+
+
 @requires(FetchLichessApiPGN)
 class CleanChessDF(Task):
 

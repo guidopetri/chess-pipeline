@@ -239,6 +239,50 @@ class ExplodeEvals(Task):
 
 
 @requires(CleanChessDF)
+class ExplodeClocks(Task):
+
+    columns = ListParameter()
+
+    def output(self):
+        import os
+
+        file_location = '~/Temp/luigi/game-clocks-%s.pckl' % self.player
+        return LocalTarget(os.path.expanduser(file_location), format=Nop)
+
+    def run(self):
+        from pandas import read_pickle, to_timedelta
+
+        self.output().makedirs()
+
+        with self.input().open('r') as f:
+            df = read_pickle(f, compression=None)
+
+        if df.empty:
+
+            def complete(self):
+                return True
+
+            with self.output().temporary_path() as temp_output_path:
+                df.to_pickle(temp_output_path, compression=None)
+
+            return
+
+        df = df[['game_link', 'clocks']]
+
+        df = df.explode('clocks')
+        df.rename(columns={'clocks': 'clock'},
+                  inplace=True)
+        df['half_move'] = df.groupby('game_link').cumcount() + 1
+        df['clock'] = to_timedelta(df['clock'],
+                                   errors='coerce')
+
+        df = df[list(self.columns)]
+
+        with self.output().temporary_path() as temp_output_path:
+            df.to_pickle(temp_output_path, compression=None)
+
+
+@requires(CleanChessDF)
 class GetGameInfos(Task):
 
     columns = ListParameter()

@@ -217,17 +217,9 @@ class ExplodeEvals(Task):
 
         df = df[['game_link', 'evaluations']]
 
-        # pandas 0.25.0:
         df = df.explode('evaluations')
         df.rename(columns={'evaluations': 'evaluation'},
                   inplace=True)
-        # df = (df.set_index('game_link')['evaluations']
-        #         .apply(Series)
-        #         .stack()
-        #         .reset_index()
-        #         .drop('level_1', axis=1))
-        # df.rename(columns={0: 'evaluation'},
-        #           inplace=True)
         df['half_move'] = df.groupby('game_link').cumcount() + 1
         df['evaluation'] = to_numeric(df['evaluation'],
                                       errors='coerce')

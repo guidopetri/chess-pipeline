@@ -9,7 +9,7 @@ from postgres_templates import CopyWrapper, HashableDict, TransactionFactTable
 from datetime import datetime, timedelta
 
 
-class FetchLichessApi(Task):
+class FetchLichessApiPGN(Task):
 
     player = Parameter(default='thibault')
     perf_type = Parameter(default='blitz')
@@ -21,7 +21,7 @@ class FetchLichessApi(Task):
     def output(self):
         import os
 
-        file_location = '~/Temp/luigi/raw-games-%s.pckl' % self.player
+        file_location = '~/Temp/luigi/raw-games-%s-pgn.pckl' % self.player
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):
@@ -83,7 +83,7 @@ class FetchLichessApi(Task):
             df.to_pickle(temp_output_path, compression=None)
 
 
-@requires(FetchLichessApi)
+@requires(FetchLichessApiPGN)
 class CleanChessDF(Task):
 
     def output(self):
@@ -363,7 +363,7 @@ class MoveList(TransactionFactTable):
     pass
 
 
-@inherits(FetchLichessApi, ChessGames, MoveEvals)
+@inherits(FetchLichessApiPGN, ChessGames, MoveEvals)
 class CopyGames(CopyWrapper):
 
     jobs = [{'table_type': ChessGames,

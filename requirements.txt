@@ -1,6 +1,6 @@
 luigi>=2.8.7
 psycopg2>=2.6.2
-pandas==0.24.1
+pandas>=0.25.0
 python-chess>=0.28.0
 python-lichess>=0.8
 sendgrid==6.0.5

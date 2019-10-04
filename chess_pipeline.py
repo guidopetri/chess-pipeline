@@ -242,7 +242,7 @@ class ExplodeClocks(Task):
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):
-        from pandas import read_pickle, to_timedelta, Int64Dtype
+        from pandas import read_pickle, to_timedelta
 
         self.output().makedirs()
 
@@ -267,7 +267,7 @@ class ExplodeClocks(Task):
         df['half_move'] = df.groupby('game_link').cumcount() + 1
         df['clock'] = to_timedelta(df['clock'],
                                    errors='coerce')
-        df['clock'] = df['clock'].dt.total_seconds().astype(Int64Dtype())
+        df['clock'] = df['clock'].dt.total_seconds().astype(int)
 
         df = df[list(self.columns)]
 

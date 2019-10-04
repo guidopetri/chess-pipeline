@@ -267,7 +267,9 @@ class ExplodeClocks(Task):
         df['half_move'] = df.groupby('game_link').cumcount() + 1
         df['clock'] = to_timedelta(df['clock'],
                                    errors='coerce')
-        df['clock'] = df['clock'].dt.total_seconds().astype(int)
+        df['clock'] = df['clock'].dt.total_seconds()
+        df['clock'].fillna(-1.0, inplace=True)
+        df['clock'] = df['clock'].astype(int)
 
         df = df[list(self.columns)]
 

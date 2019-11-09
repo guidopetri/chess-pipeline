@@ -25,3 +25,8 @@ class postgres(Config):
                         significant=False)
     database = Parameter(visibility=ParameterVisibility.PRIVATE,
                          significant=False)
+
+
+class lichess_token(Config):
+    token = Parameter(visibility=ParameterVisibility.PRIVATE,
+                      significant=False)

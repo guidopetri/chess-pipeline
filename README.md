@@ -14,19 +14,11 @@ In order to run it, the following Python packages are required:
 
 A PostGreSQL server must also be set up properly. The data is written to a table with the format listed in `chess_games.sql`.
 
-## Running the script
+## Gathering chess data
 
-To run the script, run the following command with the location of `chess_pipeline.py` in your PYTHONPATH:
+To gather data from Lichess, run the following command with the location of `chess_pipeline.py` in your PYTHONPATH:
 
 `luigi --module chess_pipeline CopyGames`
-
-with the following arguments:
-
-- `--user`, the PostGreSQL user to log in as
-- `--password`, the password for the above user
-- `--host`, the hostname for where the server is running
-- `--port`, the port to which the server is listening
-- `--database`, the database to write to
 
 By default, the script pulls Blitz games from the last two days for the user [`thibault`](http://lichess.org/@/thibault). This can be changed by passing in the following arguments:
 
@@ -35,13 +27,21 @@ By default, the script pulls Blitz games from the last two days for the user [`t
 - `--since`, for since when to pull. This is given in Unix time.
 - `--single-day`, if only a single day is to be pulled from the API (this is a boolean flag)
 
-Optional arguments:
-
-- `--lichess-token` is the lichess API token to be used for faster API calls
-
 The above can also be added to your `crontab`, as long as your PATH and PYTHONPATH are set up correctly.
 
-The script defaults to writing to a table called `chess_games`.
+The script defaults to writing to a (main) table called `chess_games`. It also writes to tables called `game_clocks`, `game_evals`, and `game_moves` for the clock information, the computer evaluation of the position, and the moves made in the game, respectively.
+
+In order to access these tables, a section named `postgres_cfg` in your `luigi.cfg` file containing the following keys must exist:
+
+- `user`, the PostGreSQL user to log in as
+- `password`, the password for the above user
+- `host`, the hostname for where the server is running
+- `port`, the port to which the server is listening
+- `database`, the database to write to
+
+Optionally, you can also add a `lichess_token` section with the following key:
+
+- `lichess-token` is the lichess API token to be used for faster API calls
 
 ## Attributes
 

@@ -1,10 +1,11 @@
 #! /usr/bin/env python3
 
-from luigi import Task, LocalTarget
+from luigi import Task, LocalTarget, WrapperTask
 from luigi import Config
 from luigi.format import Nop
-from luigi.util import requires
-from luigi.parameter import Parameter
+from luigi.util import requires, inherits
+from luigi.parameter import Parameter, ListParameter
+from luigi.parameter import IntParameter, ParameterVisibility
 
 
 class sendgrid(Config):
@@ -17,9 +18,65 @@ class newsletter_cfg(Config):
     sender = Parameter()
 
 
-class CreateNewsletter(Task):
+class GetData(Task):
 
     player = Parameter()
+    user = Parameter(visibility=ParameterVisibility.PRIVATE,
+                     significant=False)
+    password = Parameter(visibility=ParameterVisibility.PRIVATE,
+                         significant=False)
+    host = Parameter(visibility=ParameterVisibility.PRIVATE,
+                     significant=False)
+    port = IntParameter(visibility=ParameterVisibility.PRIVATE,
+                        significant=False)
+    database = Parameter(visibility=ParameterVisibility.PRIVATE,
+                         significant=False)
+    columns = ListParameter(default=[])
+
+    def run(self):
+        from psycopg2 import connect
+        from pandas import DataFrame
+
+        db_connection_string = 'postgresql://{}:{}@{}:{}/{}'
+
+        with connect(db_connection_string.format(self.user,
+                                                 self.password,
+                                                 self.host,
+                                                 self.port,
+                                                 self.database)) as con:
+            cursor = con.cursor()
+
+            sql = """SELECT {} from chess_games
+                     WHERE player = {}
+                     AND datetime_played >= now()::date - interval '7 days';
+                  """
+
+            cursor.execute(sql.format((', '.join(self.columns),
+                                       self.player)))
+            colnames = [desc.name for desc in cursor.description]
+            results = cursor.fetchall()
+
+        df = DataFrame.from_records(results, columns=colnames)
+
+        with self.output().temporary_path() as temp_output_path:
+            df.to_pickle(temp_output_path, compression=None)
+
+    def output(self):
+        import os
+
+        file_location = '~/Temp/luigi/week-data-{}.pckl'.format(self.player)
+        return LocalTarget(os.path.expanduser(file_location), format=Nop)
+
+
+@inherits(GetData)
+class CreateGraphs(WrapperTask):
+
+    def requires(self):
+        yield 'tasks that write their own bits of email here'
+
+
+class CreateNewsletter(Task):
+
     receiver = Parameter()
 
     def run(self):

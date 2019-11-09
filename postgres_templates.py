@@ -3,7 +3,7 @@
 from collections import OrderedDict
 from luigi.contrib import postgres
 from luigi.parameter import Parameter, ListParameter, DictParameter
-from luigi.parameter import IntParameter, TaskParameter, ParameterVisibility
+from luigi.parameter import TaskParameter
 from luigi import Task
 
 
@@ -12,15 +12,21 @@ class HashableDict(OrderedDict):
         return hash(frozenset(self))
 
 
-class TransactionFactTable(postgres.CopyToTable):
+class PostgresTable(postgres.CopyToTable):
+    from configs import postgres_cfg
+
+    pg_cfg = postgres_cfg()
+    user = pg_cfg.user
+    password = pg_cfg.password
+    host = pg_cfg.host
+    port = pg_cfg.port
+    database = pg_cfg.database
+
+
+class TransactionFactTable(PostgresTable):
     """
     Copy a pandas DataFrame in a transaction fact table fashion to PostGreSQL.
 
-    :param user: The username to use to authenticate with PostGreSQL.
-    :param password: The password to use to authenticate with PostGreSQL.
-    :param host: The hostname where the PostGreSQL server is located.
-    :param port: The port that PostGreSQL is listening to.
-    :param database: The database name to write to.
     :param table: The table to write to.
     :param columns: The columns, in order they show up in the PostGreSQL table.
     :param fn: The Task that provides the data to load.
@@ -32,16 +38,6 @@ class TransactionFactTable(postgres.CopyToTable):
                        (`table`, `right`).
     """
 
-    user = Parameter(visibility=ParameterVisibility.PRIVATE,
-                     significant=False)
-    password = Parameter(visibility=ParameterVisibility.PRIVATE,
-                         significant=False)
-    host = Parameter(visibility=ParameterVisibility.PRIVATE,
-                     significant=False)
-    port = IntParameter(visibility=ParameterVisibility.PRIVATE,
-                        significant=False)
-    database = Parameter(visibility=ParameterVisibility.PRIVATE,
-                         significant=False)
     table = Parameter(default='')
     fn = TaskParameter(default=Task)
     columns = ListParameter(default=[])
@@ -81,7 +77,7 @@ class TransactionFactTable(postgres.CopyToTable):
                       .all(axis=1))]
             df = df[list(self.columns)]
 
-        for index, line in df.iterrows():  # returns (index,Series) tuple
+        for index, line in df.iterrows():  # returns (index, Series) tuple
             yield line.values.tolist()
 
 
@@ -94,7 +90,6 @@ class CopyWrapper(Task):
     `table` parameter each time. Using the `jobs` list, we can pass in a `dict`
     that has the appropriate parameters for each requirement.
 
-    :param password: The PostGreSQL password.
     :param jobs: List of dictionaries. Each dictionary specifies one Task to
                  run and copy to a PostGreSQL table. Necessary keys are:
 
@@ -112,9 +107,6 @@ class CopyWrapper(Task):
                                  as key, and a tuple of (`table`, `right`) as
                                  value.
     """
-
-    password = Parameter(visibility=ParameterVisibility.PRIVATE,
-                         significant=False)
 
     jobs = []
 

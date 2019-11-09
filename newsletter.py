@@ -19,8 +19,8 @@ class GetData(Task):
         pg_cfg = postgres_cfg()
         db_connection_string = 'postgresql://{}:{}@{}:{}/{}'
 
-        with connect(db_connection_string.format(pg_cfg.user,
-                                                 pg_cfg.password,
+        with connect(db_connection_string.format(pg_cfg.read_user,
+                                                 pg_cfg.read_password,
                                                  pg_cfg.host,
                                                  pg_cfg.port,
                                                  pg_cfg.database)) as con:

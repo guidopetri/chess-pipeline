@@ -75,6 +75,7 @@ class FetchLichessApiPGN(Task):
                 game.accept(visitor(game))
             for k, v in visitor_stats.items():
                 game_infos[k] = getattr(game, v)
+            game_infos['moves'] = [x.san() for x in game.mainline()]
             header_infos.append(game_infos)
 
         df = DataFrame(header_infos)
@@ -223,6 +224,48 @@ class ExplodeEvals(Task):
         df['half_move'] = df.groupby('game_link').cumcount() + 1
         df['evaluation'] = to_numeric(df['evaluation'],
                                       errors='coerce')
+
+        df = df[list(self.columns)]
+
+        with self.output().temporary_path() as temp_output_path:
+            df.to_pickle(temp_output_path, compression=None)
+
+
+@requires(CleanChessDF)
+class ExplodeMoves(Task):
+
+    columns = ListParameter()
+
+    def output(self):
+        import os
+
+        file_location = '~/Temp/luigi/game-moves-%s.pckl' % self.player
+        return LocalTarget(os.path.expanduser(file_location), format=Nop)
+
+    def run(self):
+        from pandas import read_pickle
+
+        self.output().makedirs()
+
+        with self.input().open('r') as f:
+            df = read_pickle(f, compression=None)
+
+        if df.empty:
+
+            def complete(self):
+                return True
+
+            with self.output().temporary_path() as temp_output_path:
+                df.to_pickle(temp_output_path, compression=None)
+
+            return
+
+        df = df[['game_link', 'moves']]
+
+        df = df.explode('moves')
+        df.rename(columns={'moves': 'move'},
+                  inplace=True)
+        df['half_move'] = df.groupby('game_link').cumcount() + 1
 
         df = df[list(self.columns)]
 
@@ -452,7 +495,7 @@ class MoveClocks(TransactionFactTable):
     pass
 
 
-@requires(CleanChessDF)
+@requires(ExplodeMoves)
 class MoveList(TransactionFactTable):
     pass
 
@@ -514,6 +557,17 @@ class CopyGames(CopyWrapper):
              'columns': ['game_link',
                          'half_move',
                          'clock',
+                         ],
+             'id_cols': ['game_link',
+                         'half_move'],
+             'date_cols': [],
+             'merge_cols': HashableDict()},
+            {'table_type': MoveList,
+             'fn': ExplodeMoves,
+             'table': 'game_moves',
+             'columns': ['game_link',
+                         'half_move',
+                         'move',
                          ],
              'id_cols': ['game_link',
                          'half_move'],

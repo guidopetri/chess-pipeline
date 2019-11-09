@@ -39,12 +39,13 @@ class CreateNewsletter(Task):
             encoded_img = base64.b64encode(f.read()).decode('utf-8')
 
         encoded_img_cid = 'classical'
-        attachment = mail.Attachment()
-        attachment.file_content = mail.FileContent(encoded_img)
-        attachment.file_type = mail.FileType('image/jpeg')
-        attachment.file_name = mail.FileName('classical-coast.jpg')
-        attachment.content_id = mail.ContentId(encoded_img_cid)
-        attachment.disposition = mail.Disposition('inline')
+        attachment = mail.Attachment(file_content=encoded_img,
+                                     file_name='classical-coast.jpg',
+                                     file_type='image/jpeg',
+                                     disposition='inline',
+                                     content_id=encoded_img_cid
+                                     )
+
         newsletter.attachment = attachment
 
         message = ("""<html><body><p>this is a test. maybe i need to add a
@@ -84,7 +85,8 @@ class CreateNewsletter(Task):
         newsletter.add_content(message, 'text/html')
 
         # add plaintext MIME to make it less likely to be categorized as spam
-        newsletter.add_content(BeautifulSoup(message).get_text(),
+        newsletter.add_content(BeautifulSoup(message,
+                                             parser='html.parser').get_text(),
                                'text/plain')
 
         with self.output().open('w') as f:

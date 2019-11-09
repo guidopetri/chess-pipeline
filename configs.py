@@ -14,7 +14,7 @@ class newsletter_cfg(Config):
     sender = Parameter()
 
 
-class postgres(Config):
+class postgres_cfg(Config):
     user = Parameter(visibility=ParameterVisibility.PRIVATE,
                      significant=False)
     password = Parameter(visibility=ParameterVisibility.PRIVATE,

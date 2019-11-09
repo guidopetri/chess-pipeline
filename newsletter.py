@@ -4,7 +4,7 @@ from luigi import Task, LocalTarget, WrapperTask
 from luigi.format import Nop
 from luigi.util import requires, inherits
 from luigi.parameter import Parameter, ListParameter
-from configs import sendgrid, newsletter_cfg, postgres
+from configs import sendgrid, newsletter_cfg, postgres_cfg
 
 
 class GetData(Task):
@@ -16,7 +16,7 @@ class GetData(Task):
         from psycopg2 import connect
         from pandas import DataFrame
 
-        pg_cfg = postgres()
+        pg_cfg = postgres_cfg()
         db_connection_string = 'postgresql://{}:{}@{}:{}/{}'
 
         with connect(db_connection_string.format(pg_cfg.user,

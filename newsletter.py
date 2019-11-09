@@ -1,49 +1,29 @@
 #! /usr/bin/env python3
 
 from luigi import Task, LocalTarget, WrapperTask
-from luigi import Config
 from luigi.format import Nop
 from luigi.util import requires, inherits
 from luigi.parameter import Parameter, ListParameter
-from luigi.parameter import IntParameter, ParameterVisibility
-
-
-class sendgrid(Config):
-    apikey = Parameter(config_path={'section': 'email',
-                                    'name': 'SENGRID_API_KEY'},
-                       description='API key for SendGrid login')
-
-
-class newsletter_cfg(Config):
-    sender = Parameter()
+from configs import sendgrid, newsletter_cfg, postgres
 
 
 class GetData(Task):
 
     player = Parameter()
-    user = Parameter(visibility=ParameterVisibility.PRIVATE,
-                     significant=False)
-    password = Parameter(visibility=ParameterVisibility.PRIVATE,
-                         significant=False)
-    host = Parameter(visibility=ParameterVisibility.PRIVATE,
-                     significant=False)
-    port = IntParameter(visibility=ParameterVisibility.PRIVATE,
-                        significant=False)
-    database = Parameter(visibility=ParameterVisibility.PRIVATE,
-                         significant=False)
     columns = ListParameter(default=[])
 
     def run(self):
         from psycopg2 import connect
         from pandas import DataFrame
 
+        pg_cfg = postgres()
         db_connection_string = 'postgresql://{}:{}@{}:{}/{}'
 
-        with connect(db_connection_string.format(self.user,
-                                                 self.password,
-                                                 self.host,
-                                                 self.port,
-                                                 self.database)) as con:
+        with connect(db_connection_string.format(pg_cfg.user,
+                                                 pg_cfg.password,
+                                                 pg_cfg.host,
+                                                 pg_cfg.port,
+                                                 pg_cfg.database)) as con:
             cursor = con.cursor()
 
             sql = """SELECT {} from chess_games

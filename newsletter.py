@@ -46,7 +46,7 @@ class CreateNewsletter(Task):
                                      content_id=encoded_img_cid
                                      )
 
-        newsletter.attachment = attachment
+        newsletter.add_attachment(attachment)
 
         message = ("""<html><body><p>this is a test. maybe i need to add a
          few more words

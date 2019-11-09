@@ -1,20 +1,19 @@
 #! /usr/bin/env python3
 
 from luigi.parameter import Parameter, ListParameter, BoolParameter
-from luigi.parameter import DateParameter, ParameterVisibility
+from luigi.parameter import DateParameter
 from luigi.util import requires, inherits
 from luigi.format import Nop
 from luigi import Task, LocalTarget
 from postgres_templates import CopyWrapper, HashableDict, TransactionFactTable
 from datetime import datetime, timedelta
+from configs import lichess_token
 
 
 class FetchLichessApiPGN(Task):
 
     player = Parameter(default='thibault')
     perf_type = Parameter(default='blitz')
-    lichess_token = Parameter(visibility=ParameterVisibility.PRIVATE,
-                              significant=False)
     since = DateParameter(default=datetime.today().date() - timedelta(days=1))
     single_day = BoolParameter()
 
@@ -44,11 +43,13 @@ class FetchLichessApiPGN(Task):
         unix_time_since = timegm(self.since.timetuple())
         self.since = int(1000 * unix_time_since)
 
+        token = lichess_token().token
+
         games = lichess.api.user_games(self.player,
                                        since=self.since,
                                        until=self.until,
                                        perfType=self.perf_type,
-                                       auth=self.lichess_token,
+                                       auth=token,
                                        clocks='true',
                                        evals='true',
                                        opening='true',
@@ -88,8 +89,6 @@ class FetchLichessApiJSON(Task):
 
     player = Parameter(default='thibault')
     perf_type = Parameter(default='blitz')
-    lichess_token = Parameter(visibility=ParameterVisibility.PRIVATE,
-                              significant=False)
     since = DateParameter(default=datetime.today().date() - timedelta(days=1))
     single_day = BoolParameter()
 
@@ -117,11 +116,13 @@ class FetchLichessApiJSON(Task):
         unix_time_since = timegm(self.since.timetuple())
         self.since = int(1000 * unix_time_since)
 
+        token = lichess_token().token
+
         games = lichess.api.user_games(self.player,
                                        since=self.since,
                                        until=self.until,
                                        perfType=self.perf_type,
-                                       auth=self.lichess_token,
+                                       auth=token,
                                        evals='true',
                                        moves='false',
                                        format=JSON)

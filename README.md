@@ -39,6 +39,11 @@ In order to access these tables, a section named `postgres_cfg` in your `luigi.c
 - `port`, the port to which the server is listening
 - `database`, the database to write to
 
+For greater control over write permissions, the following keys are used whenever data is read from the PostGreSQL server:
+
+- `read_user`, the PostGreSQL (read-only) user to log in as
+- `read_password`, the password for the above user
+
 Optionally, you can also add a `lichess_token` section with the following key:
 
 - `lichess-token` is the lichess API token to be used for faster API calls

@@ -26,13 +26,13 @@ class GetData(Task):
                                                  pg_cfg.database)) as con:
             cursor = con.cursor()
 
-            sql = """SELECT {} from chess_games
+            sql = """SELECT * from chess_games
                      WHERE player = '{}'
                      AND datetime_played >= now()::date - interval '7 days';
                   """
 
-            cursor.execute(sql.format((', '.join(self.columns),
-                                       self.player)))
+            cursor.execute(sql.format(  # (', '.join(self.columns),
+                                       self.player))
             colnames = [desc.name for desc in cursor.description]
             results = cursor.fetchall()
 

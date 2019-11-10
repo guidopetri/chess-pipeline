@@ -1,8 +1,8 @@
 #! /usr/bin/env python3
 
-from luigi import Task, LocalTarget, WrapperTask
+from luigi import Task, LocalTarget
 from luigi.format import Nop
-from luigi.util import requires, inherits
+from luigi.util import requires
 from luigi.parameter import Parameter, ListParameter
 from configs import sendgrid, newsletter_cfg, postgres_cfg
 
@@ -48,13 +48,97 @@ class GetData(Task):
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
 
-@inherits(GetData)
-class CreateGraphs(WrapperTask):
+@requires(GetData)
+class WinRatioByColor(Task):
 
-    def requires(self):
-        yield 'tasks that write their own bits of email here'
+    def output(self):
+        import os
+
+        file_location = '~/Temp/luigi/graphs/win-by-color.pckl'
+        return LocalTarget(os.path.expanduser(file_location), format=Nop)
+
+    def run(self):
+        import pickle
+        import os
+        from pandas import read_pickle
+        from seaborn import set as sns_set
+
+        with self.input().open('r') as f:
+            df = read_pickle(f, compression=None)
+
+        color_stats = df.groupby(['time_control_category',
+                                  'player_color',
+                                  'player_result']).agg({'id': 'nunique'})
+        color_stats.reset_index(drop=False, inplace=True)
+
+        # pivot so the columns are the player result
+        color_stats = color_stats.pivot_table(index=['time_control_category',
+                                                     'player_color'],
+                                              columns='player_result',
+                                              values='id')
+
+        # divide each row by the sum of the row
+        color_stats = color_stats.div(color_stats.sum(axis=1), axis=0)
+
+        # set seaborn style for plots
+        sns_set(style='whitegrid')
+
+        # reorder columns
+        color_stats = color_stats[['Win', 'Draw', 'Loss']]
+
+        ax = color_stats.plot(kind='bar',
+                              stacked=True,
+                              color='gyr',
+                              ylim=(0, 1),
+                              rot=0,
+                              title='Win-loss ratio by color played',
+                              yticks=[0.0,
+                                      0.1,
+                                      0.2,
+                                      0.3,
+                                      0.4,
+                                      0.5,
+                                      0.6,
+                                      0.7,
+                                      0.8,
+                                      0.9,
+                                      1.0,
+                                      1.01],  # enforce two digits of precision
+                              )
+        ax.set_ylabel('Ratio')
+        ax.set_xlabel('Category / Color')
+        ax.legend().set_title('')  # remove title
+
+        for p in ax.patches:
+            # place win% in the bar itself
+            ax.annotate('{:.2f}%'.format(100 * p.get_height()),
+                        xy=(0.5, 0.5),
+                        xycoords=p,
+                        ha='center',
+                        va='center',
+                        )
+
+        # save the figure
+        fig_loc = '~/Temp/luigi/graphs'
+        fig_loc = os.path.expanduser(fig_loc)
+        os.makedirs(fig_loc, exist_ok=True)
+        ax.get_figure().savefig(os.path.join(fig_loc, 'win-by-color.png'))
+
+        text = ('You had a {:.2f}% win rate with {} in {}'
+                ' and a {:.2f}% win rate with {}. <br>'
+                '<img alt=\'Win rate by color played\' src='
+                '\'cid:win-by-color\'><br>'
+                .format(100 * color_stats.iloc[0][0],
+                        *color_stats.iloc[0].name[::-1],
+                        100 * color_stats.iloc[1][0],
+                        color_stats.iloc[1].name[1],
+                        ))
+
+        with self.output().open('w') as f:
+            pickle.dump(text, f, protocol=-1)
 
 
+@requires(WinRatioByColor)
 class CreateNewsletter(Task):
 
     receiver = Parameter()

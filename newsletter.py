@@ -139,6 +139,117 @@ class WinRatioByColor(Task):
             pickle.dump(text, f, protocol=-1)
 
 
+@requires(GetData)
+class EloByWeekday(Task):
+
+    def output(self):
+        import os
+
+        file_location = '~/Temp/luigi/graphs/elo-by-weekday.pckl'
+        return LocalTarget(os.path.expanduser(file_location), format=Nop)
+
+    def run(self):
+        import pickle
+        import os
+        from pandas import read_pickle
+        from seaborn import set as sns_set
+
+        with self.input().open('r') as f:
+            df = read_pickle(f, compression=None)
+
+        df = df[df['time_control_category'] == 'blitz']
+        df['weekday_played'] = df['datetime_played'].dt.weekday
+
+        elo = (df.groupby('weekday_played')
+                 .agg({'player_elo': ['mean',
+                                      'std',
+                                      'min',
+                                      'max']}))
+        # drop the first index on columns
+        elo = (elo.T
+                  .reset_index(level=0, drop=True)
+                  .T
+                  .reset_index(drop=False))
+
+        sns_set(style='whitegrid')
+
+        # plot main line with standard deviation
+        ax = elo.plot(x='weekday_played',
+                      y='mean',
+                      yerr='std',
+                      color='#0000FF',
+                      title='Elo evolution by day of week',
+                      style=[''],
+                      legend=False,
+                      capsize=4,
+                      capthick=1,
+                      )
+
+        # plot min/maxes
+        elo.plot(x='weekday_played',
+                 y=['min', 'max'],
+                 color='#999999',
+                 style=['--', '--'],
+                 ax=ax,
+                 legend=False,
+                 xlim=[-0.05, 6.05],
+                 xticks=range(0, 7),
+                 )
+
+        min_last_day = elo[elo['weekday_played'] == 6]['min'].values
+        max_last_day = elo[elo['weekday_played'] == 6]['max'].values
+        mean_last_day = elo[elo['weekday_played'] == 6]['mean'].values
+
+        # annotate the lines individually
+        ax.annotate('min',
+                    xy=(6.05, min_last_day),
+                    color='#555555',
+                    )
+        ax.annotate('mean + std',
+                    xy=(6.05, mean_last_day),
+                    color='k',
+                    )
+        ax.annotate('max',
+                    xy=(6.05, max_last_day),
+                    color='#555555',
+                    )
+
+        # change the tick labels
+        ax.set_xticklabels(['Monday',
+                            'Tuesday',
+                            'Wednesday',
+                            'Thursday',
+                            'Friday',
+                            'Saturday',
+                            'Sunday',
+                            ],
+                           rotation=45)
+
+        ax.set_xlabel('Weekday')
+        ax.set_ylabel('Rating')
+
+        # save the figure
+        fig_loc = '~/Temp/luigi/graphs'
+        fig_loc = os.path.expanduser(fig_loc)
+        os.makedirs(fig_loc, exist_ok=True)
+        ax.get_figure().savefig(os.path.join(fig_loc, 'elo-by-weekday.png'),
+                                bbox_inches='tight')
+
+        max_elo = elo['max'].max()
+        min_elo = elo['min'].min()
+
+        text = ('This week, your highest elo in blitz was {}, and'
+                ' your lowest elo was {}. <br>'
+                '<img alt=\'Elo by weekday\' src='
+                '\'cid:elo-by-weekday\'><br>'
+                .format(max_elo,
+                        min_elo,
+                        ))
+
+        with self.output().open('w') as f:
+            pickle.dump(text, f, protocol=-1)
+
+
 @requires(WinRatioByColor)
 class CreateNewsletter(Task):
 

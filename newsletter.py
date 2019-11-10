@@ -122,7 +122,8 @@ class WinRatioByColor(Task):
         fig_loc = '~/Temp/luigi/graphs'
         fig_loc = os.path.expanduser(fig_loc)
         os.makedirs(fig_loc, exist_ok=True)
-        ax.get_figure().savefig(os.path.join(fig_loc, 'win-by-color.png'))
+        ax.get_figure().savefig(os.path.join(fig_loc, 'win-by-color.png'),
+                                bbox_inches='tight')
 
         text = ('You had a {:.2f}% win rate with {} in {}'
                 ' and a {:.2f}% win rate with {}. <br>'

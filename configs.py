@@ -25,6 +25,10 @@ class postgres_cfg(Config):
                         significant=False)
     database = Parameter(visibility=ParameterVisibility.PRIVATE,
                          significant=False)
+    read_user = Parameter(visibility=ParameterVisibility.PRIVATE,
+                          significant=False)
+    read_password = Parameter(visibility=ParameterVisibility.PRIVATE,
+                              significant=False)
 
 
 class lichess_token(Config):

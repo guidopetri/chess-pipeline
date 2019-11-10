@@ -62,6 +62,7 @@ class CreateNewsletter(Task):
     def run(self):
         import pickle
         import base64
+        import os
         from sendgrid.helpers import mail
         from bs4 import BeautifulSoup
 
@@ -71,59 +72,45 @@ class CreateNewsletter(Task):
                                         .format(self.player)),
                                )
 
-        img_loc = ''
-        with open(img_loc, 'rb') as f:
-            encoded_img = base64.b64encode(f.read()).decode('utf-8')
+        imgs_loc = os.path.expanduser('~/Temp/luigi/graphs/')
 
-        encoded_img_cid = 'classical'
-        attachment = mail.Attachment(file_content=encoded_img,
-                                     file_name='classical-coast.jpg',
-                                     file_type='image/jpeg',
-                                     disposition='inline',
-                                     content_id=encoded_img_cid
-                                     )
+        for file in os.listdir(imgs_loc):
+            if file.endswith('.png'):
+                with open(os.path.join(imgs_loc, file), 'rb') as f:
+                    encoded_img = base64.b64encode(f.read()).decode('utf-8')
 
-        newsletter.add_attachment(attachment)
+                attachment = mail.Attachment(file_content=encoded_img,
+                                             file_name=file,
+                                             file_type='image/png',
+                                             disposition='inline',
+                                             content_id=file[:-4],
+                                             )
 
-        message = ("""<html><body><p>this is a test. maybe i need to add a
-         few more words
-                    so that my spam filter doesn't pick up on this.
-                    i need about
-                    400-800 b ytes of words so maybe lorem ipsum this is a
-                    test
-                    The problem with CID embedded images is that they don’t
-                     always display properly in email clients. The rule of
-                     thumb I use is that CID embedding will work fine in the
-                     majority of desktop email clients, but most likely not at
-                     all in web based email clients such as Gmail, or Yahoo!
-                     Mail. Bummer.
-                    The problem with CID embedded images is that they don’t
-                    always display properly in email clients. The rule of
-                    thumb I use is that CID embedding will work fine in the
-                    majority of desktop email clients, but most likely not at
-                    all in web based email clients such as Gmail, or Yahoo!
-                    Mail. Bummer.
-                    The problem with CID embedded images is that they don’t
-                    always display properly in email clients. The rule of
-                    thumb I use is that CID embedding will work fine in the
-                    majority of desktop email clients, but most likely not at
-                    all in web based email clients such as Gmail, or Yahoo!
-                    Mail. Bummer.
-                    The problem with CID embedded images is that they don’t
-                    always display properly in email clients. The rule of
-                    thumb I use is that CID embedding will work fine in the
-                    majority of desktop email clients, but most likely not at
-                    all in web based email clients such as Gmail, or Yahoo!
-                    Mail. Bummer.</p>
-                   <img alt='Classical Coast'
-                   src='cid:{}'>
-                   </body></html>""".format(encoded_img_cid))
+                newsletter.add_attachment(attachment)
 
-        newsletter.add_content(message, 'text/html')
+        message = ['<html><body> Hi {},<br><br>'
+                   'This week you played chess! Here\'s your performance:'
+                   .format(self.player)
+                   ]
+
+        # for inp in self.input():
+        #     with inp.open('r') as f:
+        #         text = pickle.load(f)
+        #         message.append(text)
+
+        with self.input().open('r') as f:
+            text = pickle.load(f)
+            message.append(text)
+
+        message.append('</body></html>')
+
+        full_message = '<br>'.join(message)
+
+        newsletter.add_content(full_message, 'text/html')
 
         # add plaintext MIME to make it less likely to be categorized as spam
-        newsletter.add_content(BeautifulSoup(message,
-                                             parser='html.parser').get_text(),
+        newsletter.add_content(BeautifulSoup(full_message,
+                                             'html.parser').get_text(),
                                'text/plain')
 
         with self.output().open('w') as f:
@@ -151,8 +138,7 @@ class SendNewsletter(Task):
 
         client = SendGridAPIClient(sendgrid().apikey)
         response = client.send(newsletter)
-        print(response.status_code)
-        print(response.body, response.headers)
+
         self.result = response.status_code == 202
 
         filepath = os.path.expanduser('~/Temp/luigi')

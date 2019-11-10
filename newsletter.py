@@ -250,7 +250,7 @@ class EloByWeekday(Task):
             pickle.dump(text, f, protocol=-1)
 
 
-@requires(WinRatioByColor)
+@requires(WinRatioByColor, EloByWeekday)
 class CreateNewsletter(Task):
 
     receiver = Parameter()
@@ -289,16 +289,12 @@ class CreateNewsletter(Task):
                    .format(self.player)
                    ]
 
-        # for inp in self.input():
-        #     with inp.open('r') as f:
-        #         text = pickle.load(f)
-        #         message.append(text)
+        for inp in self.input():
+            with inp.open('r') as f:
+                text = pickle.load(f)
+                message.append(text)
 
-        with self.input().open('r') as f:
-            text = pickle.load(f)
-            message.append(text)
-
-        message.append('</body></html>')
+        message.append('Hope you do well this upcoming week!</body></html>')
 
         full_message = '<br>'.join(message)
 

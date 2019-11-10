@@ -214,6 +214,7 @@ class SendNewsletter(Task):
 
     def run(self):
         import os
+        import shutil
         import pickle
         from sendgrid import SendGridAPIClient
 
@@ -228,7 +229,11 @@ class SendNewsletter(Task):
         filepath = os.path.expanduser('~/Temp/luigi')
 
         for file in os.listdir(filepath):
-            os.remove(filepath + '/{}'.format(file))
+            full_path = os.path.join(filepath, file)
+            if os.path.isfile(full_path):
+                os.remove(full_path)
+            elif os.path.isdir(full_path):
+                shutil.rmtree(full_path)
 
     def complete(self):
         return self.result

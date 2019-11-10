@@ -235,10 +235,10 @@ class EloByWeekday(Task):
         ax.get_figure().savefig(os.path.join(fig_loc, 'elo-by-weekday.png'),
                                 bbox_inches='tight')
 
-        max_elo = elo['max'].max()
-        min_elo = elo['min'].min()
+        max_elo = int(elo['max'].max())
+        min_elo = int(elo['min'].min())
 
-        text = ('This week, your highest elo in blitz was {}, and'
+        text = ('This week, your highest elo in blitz was {} and'
                 ' your lowest elo was {}. <br>'
                 '<img alt=\'Elo by weekday\' src='
                 '\'cid:elo-by-weekday\'><br>'

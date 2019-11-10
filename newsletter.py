@@ -27,7 +27,7 @@ class GetData(Task):
             cursor = con.cursor()
 
             sql = """SELECT {} from chess_games
-                     WHERE player = {}
+                     WHERE player = '{}'
                      AND datetime_played >= now()::date - interval '7 days';
                   """
 

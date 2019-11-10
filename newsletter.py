@@ -62,6 +62,9 @@ class WinRatioByColor(Task):
         import os
         from pandas import read_pickle
         from seaborn import set as sns_set
+        from matplotlib import use
+
+        use('Agg')
 
         with self.input().open('r') as f:
             df = read_pickle(f, compression=None)
@@ -153,6 +156,9 @@ class EloByWeekday(Task):
         import os
         from pandas import read_pickle
         from seaborn import set as sns_set
+        from matplotlib import use
+
+        use('Agg')
 
         with self.input().open('r') as f:
             df = read_pickle(f, compression=None)

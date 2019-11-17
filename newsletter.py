@@ -87,6 +87,9 @@ class WinRatioByColor(Task):
         sns_set(style='whitegrid')
 
         # reorder columns
+        for col in ['Win', 'Draw', 'Loss']:
+            if col not in color_stats:
+                color_stats[col] = 0
         color_stats = color_stats[['Win', 'Draw', 'Loss']]
 
         ax = color_stats.plot(kind='bar',

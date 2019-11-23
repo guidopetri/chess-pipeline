@@ -54,8 +54,9 @@ class WinRatioByColor(Task):
     def output(self):
         import os
 
-        file_location = '~/Temp/luigi/graphs/win-by-color.pckl'
-        return LocalTarget(os.path.expanduser(file_location), format=Nop)
+        file_loc = '~/Temp/luigi/graphs/win-by-color-{}.pckl'
+        return LocalTarget(os.path.expanduser(file_loc.format(self.player)),
+                           format=Nop)
 
     def run(self):
         import pickle
@@ -127,8 +128,10 @@ class WinRatioByColor(Task):
         # save the figure
         fig_loc = '~/Temp/luigi/graphs'
         fig_loc = os.path.expanduser(fig_loc)
+        filename = 'win-by-color-{}.png'
         os.makedirs(fig_loc, exist_ok=True)
-        ax.get_figure().savefig(os.path.join(fig_loc, 'win-by-color.png'),
+        ax.get_figure().savefig(os.path.join(fig_loc,
+                                             filename.format(self.player)),
                                 bbox_inches='tight')
 
         text = ('You had a {:.2f}% win rate with {} in {}'
@@ -151,8 +154,9 @@ class EloByWeekday(Task):
     def output(self):
         import os
 
-        file_location = '~/Temp/luigi/graphs/elo-by-weekday.pckl'
-        return LocalTarget(os.path.expanduser(file_location), format=Nop)
+        file_loc = '~/Temp/luigi/graphs/elo-by-weekday-{}.pckl'
+        return LocalTarget(os.path.expanduser(file_loc.format(self.player)),
+                           format=Nop)
 
     def run(self):
         import pickle
@@ -240,8 +244,10 @@ class EloByWeekday(Task):
         # save the figure
         fig_loc = '~/Temp/luigi/graphs'
         fig_loc = os.path.expanduser(fig_loc)
+        filename = 'elo-by-weekday-{}.png'
         os.makedirs(fig_loc, exist_ok=True)
-        ax.get_figure().savefig(os.path.join(fig_loc, 'elo-by-weekday.png'),
+        ax.get_figure().savefig(os.path.join(fig_loc,
+                                             filename.format(self.player)),
                                 bbox_inches='tight')
 
         max_elo = int(elo['max'].max())
@@ -280,7 +286,7 @@ class CreateNewsletter(Task):
         imgs_loc = os.path.expanduser('~/Temp/luigi/graphs/')
 
         for file in os.listdir(imgs_loc):
-            if file.endswith('.png'):
+            if file.endswith('.png') and self.player in file:
                 with open(os.path.join(imgs_loc, file), 'rb') as f:
                     encoded_img = base64.b64encode(f.read()).decode('utf-8')
 
@@ -320,8 +326,9 @@ class CreateNewsletter(Task):
     def output(self):
         import os
 
-        file_location = '~/Temp/luigi/newsletter.pckl'
-        return LocalTarget(os.path.expanduser(file_location), format=Nop)
+        file_loc = '~/Temp/luigi/newsletter-{}.pckl'
+        return LocalTarget(os.path.expanduser(file_loc.format(self.player)),
+                           format=Nop)
 
 
 @requires(CreateNewsletter)

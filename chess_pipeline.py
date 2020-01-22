@@ -357,6 +357,12 @@ class GetGameInfos(Task):
 
         df['player'] = self.player
 
+        if 'black_rating_diff' not in df.columns:
+            df['black_rating_diff'] = 0
+
+        if 'white_rating_diff' not in df.columns:
+            df['white_rating_diff'] = 0
+
         # add two strings and remove the player name so that we don't
         # have to use pd.DataFrame.apply
         df['opponent'] = df['white'] + df['black']

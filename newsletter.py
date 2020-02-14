@@ -173,6 +173,8 @@ class EloByWeekday(Task):
         df = df[df['time_control_category'] == 'blitz']
         df['weekday_played'] = df['datetime_played'].dt.weekday
 
+        df['weekday_played'].replace(6, -1, inplace=True)
+
         elo = (df.groupby('weekday_played')
                  .agg({'player_elo': ['mean',
                                       'std',
@@ -228,13 +230,13 @@ class EloByWeekday(Task):
                     )
 
         # change the tick labels
-        ax.set_xticklabels(['Monday',
+        ax.set_xticklabels(['Sunday',
+                            'Monday',
                             'Tuesday',
                             'Wednesday',
                             'Thursday',
                             'Friday',
                             'Saturday',
-                            'Sunday',
                             ],
                            rotation=45)
 

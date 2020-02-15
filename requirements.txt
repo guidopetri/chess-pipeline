@@ -4,3 +4,4 @@ pandas>=0.25.0
 python-chess>=0.28.3
 python-lichess>=0.8
 sendgrid==6.0.5
+stockfish==3.5.0

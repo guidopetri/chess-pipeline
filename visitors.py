@@ -3,6 +3,7 @@
 from chess.pgn import BaseVisitor
 import chess
 import re
+import stockfish
 
 
 class EvalsVisitor(BaseVisitor):
@@ -73,3 +74,33 @@ class CastlingVisitor(BaseVisitor):
                 self.game.castling['black'] = 'queenside'
             elif move.to_square == chess.C1:
                 self.game.castling['white'] = 'queenside'
+
+class StockfishVisitor(BaseVisitor):
+
+    def __init__(self, gm, stockfish_loc, depth=10):
+        self.game = gm
+        self.game.eval_depth = depth
+        self.sf = stockfish.Stockfish(stockfish_loc,
+                                      depth=depth)
+
+    def visit_board(self, board):
+        self.sf.set_fen_position(board.fen())
+        self.sf.get_best_move()
+        rating_match = re.search(r'score (cp|mate) (.+?)(?: |$)',
+                                 self.sf.info)
+
+        if rating_match.group(1) == 'mate':
+            original_rating = int(rating_match.group(2))
+
+            # adjust ratings for checkmate sequences
+            if original_rating:
+                rating = 9999 * original_rating / abs(original_rating)
+            elif self.game.headers['Result'] == '1-0':
+                rating = 9999
+            else:
+                rating = -9999
+        else:
+            rating = int(rating_match.group(2))
+        if board.turn == chess.BLACK:
+            rating *= -1
+        self.game.evals.append(rating)

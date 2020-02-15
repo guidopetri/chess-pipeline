@@ -64,6 +64,7 @@ class FetchLichessApiPGN(Task):
 
         visitor_stats = {'clocks': 'clocks',
                          'evaluations': 'evals',
+                         'eval_depth': 'eval_depth',
                          'queen_exchange': 'queen_exchange',
                          'castling_sides': 'castling',
                          }
@@ -220,7 +221,7 @@ class ExplodeEvals(Task):
 
             return
 
-        df = df[['game_link', 'evaluations']]
+        df = df[['game_link', 'evaluations', 'eval_depth']]
 
         df = df.explode('evaluations')
         df.rename(columns={'evaluations': 'evaluation'},
@@ -556,6 +557,7 @@ class CopyGames(CopyWrapper):
              'columns': ['game_link',
                          'half_move',
                          'evaluation',
+                         'eval_depth',
                          ],
              'id_cols': ['game_link',
                          'half_move'],

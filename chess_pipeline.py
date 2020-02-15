@@ -30,7 +30,7 @@ class FetchLichessApiPGN(Task):
         from pandas import DataFrame
         from calendar import timegm
         from visitors import EvalsVisitor, ClocksVisitor, QueenExchangeVisitor
-        from visitors import CastlingVisitor
+        from visitors import CastlingVisitor, StockfishVisitor
 
         self.output().makedirs()
 

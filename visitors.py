@@ -11,6 +11,7 @@ class EvalsVisitor(BaseVisitor):
     def __init__(self, gm):
         self.game = gm
         self.game.evals = []
+        self.game.eval_depth = 20
 
     def visit_comment(self, comment):
         if 'eval' in comment:

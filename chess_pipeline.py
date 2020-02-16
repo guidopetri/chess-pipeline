@@ -2,12 +2,40 @@
 
 from luigi.parameter import Parameter, ListParameter, BoolParameter
 from luigi.parameter import DateParameter
+import psycopg2
 from luigi.util import requires, inherits
 from luigi.format import Nop
 from luigi import Task, LocalTarget
+from pandas import DataFrame
 from postgres_templates import CopyWrapper, HashableDict, TransactionFactTable
 from datetime import datetime, timedelta
-from configs import lichess_token, stockfish_cfg
+from configs import lichess_token, stockfish_cfg, postgres_cfg
+
+
+def query_for_column(table, column):
+    pg_cfg = postgres_cfg()
+    user = pg_cfg.user
+    password = pg_cfg.password
+    host = pg_cfg.host
+    port = pg_cfg.port
+    database = pg_cfg.database
+
+    db = psycopg2.connect(host=host,
+                          database=database,
+                          user=user,
+                          password=password,
+                          port=port,
+                          )
+
+    cursor = db.cursor()
+    sql = """SELECT DISTINCT {} FROM {};""".format(column, table)
+
+    cursor.execute(sql)
+
+    result = cursor.fetchall()
+
+    current_srs = DataFrame(result)[0]
+    return current_srs
 
 
 class FetchLichessApiPGN(Task):
@@ -75,13 +103,16 @@ class FetchLichessApiPGN(Task):
         counter = 0
         total_time = self.until - self.since
 
+        evals_finished = query_for_column('game_evals', 'game_link')
+
         for game in games:
             game_infos = {x: y for x, y in game.headers.items()}
             if game.headers['Variant'] == 'From Position':
                 game.headers['Variant'] = 'Standard'
             for visitor in visitors:
                 game.accept(visitor(game))
-            if not any(game.evals) and self.local_stockfish:
+            eval_done = evals_finished.isin([game.headers['Site']]).any()
+            if not any(game.evals) and self.local_stockfish and eval_done:
                 game.accept(StockfishVisitor(game,
                                              stockfish_params.location,
                                              stockfish_params.depth))

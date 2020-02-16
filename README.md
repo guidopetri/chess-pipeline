@@ -48,6 +48,19 @@ Optionally, you can also add a `lichess_token` section with the following key:
 
 - `lichess-token` is the lichess API token to be used for faster API calls
 
+### Local Stockfish
+
+Some games don't have server-side analyses available for them. To allow analysis of these games, a local stockfish can be used to analyze each position and create an evaluation for it. This requires the `stockfish` library for conversing with stockfish. Using local analysis is as simple as adding the flag:
+
+- `--local-stockfish`
+
+Additionally, you also need a `stockfish_cfg` section with the keys:
+
+- `depth`, the depth at which stockfish will analyze
+- `location`, the location of the stockfish executable
+
+Depending on the processing power of your machine, you might want to choose a low depth - analyzing all the positions takes a while. Server-side analyses are depth 20.
+
 ## Attributes
 
 For each chess game:
@@ -71,7 +84,7 @@ For each chess game:
   - opening name
   - opening ECO
   - move list
-  - move evaluations (server-side if available, otherwise with stockfish)
+  - move evaluations (server-side if available, otherwise with stockfish if enabled)
   - clock times per move
 
 and similar columns for opponent.

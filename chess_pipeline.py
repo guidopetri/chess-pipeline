@@ -252,6 +252,8 @@ class ExplodeEvals(Task):
         df['evaluation'] = to_numeric(df['evaluation'],
                                       errors='coerce')
 
+        df.dropna(inplace=True)
+
         df = df[list(self.columns)]
 
         with self.output().temporary_path() as temp_output_path:

@@ -96,7 +96,8 @@ class FetchLichessApiPGN(Task):
             if counter % 5 == 0:
                 current = '{} {}'.format(game_infos['UTCDate'],
                                          game_infos['UTCTime'])
-                time_parsed = datetime.strptime(current)
+                time_parsed = datetime.strptime(current,
+                                                '%Y.%m.%d %H:%M:%S')
                 unix_time_parsed = timegm(time_parsed.timetuple())
                 current_unix = int(unix_time_parsed * 1000)
 

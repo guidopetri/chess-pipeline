@@ -103,7 +103,7 @@ class FetchLichessApiPGN(Task):
 
                 current_progress = (self.until - current_unix) / total_time
                 self.set_status_message('Parsed until {}'.format(current))
-                self.set_progress_percentage(current_progress)
+                self.set_progress_percentage(round(current_progress * 100, 2))
 
         df = DataFrame(header_infos)
 

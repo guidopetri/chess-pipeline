@@ -112,7 +112,7 @@ class FetchLichessApiPGN(Task):
             for visitor in visitors:
                 game.accept(visitor(game))
             eval_done = evals_finished.isin([game.headers['Site']]).any()
-            if not any(game.evals) and self.local_stockfish and eval_done:
+            if not any(game.evals) and self.local_stockfish and not eval_done:
                 game.accept(StockfishVisitor(game,
                                              stockfish_params.location,
                                              stockfish_params.depth))

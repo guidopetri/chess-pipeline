@@ -22,7 +22,7 @@ class EvalsVisitor(BaseVisitor):
         # if it's a checkmate sequence
         if evaluation.startswith('#'):
             # if it's a checkmate for black, it'll be e.g. #-30
-            if evaluation.contains('-'):
+            if '-' in evaluation:
                 evaluation = -9999
             else:  # otherwise it's for white, e.g. #30
                 evaluation = 9999

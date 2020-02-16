@@ -7,7 +7,7 @@ from luigi.format import Nop
 from luigi import Task, LocalTarget
 from postgres_templates import CopyWrapper, HashableDict, TransactionFactTable
 from datetime import datetime, timedelta
-from configs import lichess_token
+from configs import lichess_token, stockfish_cfg
 
 
 class FetchLichessApiPGN(Task):
@@ -16,7 +16,6 @@ class FetchLichessApiPGN(Task):
     perf_type = Parameter(default='blitz')
     since = DateParameter(default=datetime.today().date() - timedelta(days=1))
     single_day = BoolParameter()
-    stockfish_loc = Parameter()
 
     def output(self):
         import os
@@ -45,6 +44,7 @@ class FetchLichessApiPGN(Task):
         self.since = int(1000 * unix_time_since)
 
         token = lichess_token().token
+        stockfish_params = stockfish_cfg()
 
         games = lichess.api.user_games(self.player,
                                        since=self.since,
@@ -77,7 +77,9 @@ class FetchLichessApiPGN(Task):
             for visitor in visitors:
                 game.accept(visitor(game))
             if not any(game.evals):
-                game.accept(StockfishVisitor(game, self.stockfish_loc))
+                game.accept(StockfishVisitor(game,
+                                             stockfish_params.location,
+                                             stockfish_params.depth))
             for k, v in visitor_stats.items():
                 game_infos[k] = getattr(game, v)
             game_infos['moves'] = [x.san() for x in game.mainline()]

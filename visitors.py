@@ -87,7 +87,7 @@ class CastlingVisitor(BaseVisitor):
 
 class StockfishVisitor(BaseVisitor):
 
-    def __init__(self, gm, stockfish_loc, depth=10):
+    def __init__(self, gm, stockfish_loc, depth):
         self.game = gm
         self.game.evals = []
         self.game.eval_depth = depth

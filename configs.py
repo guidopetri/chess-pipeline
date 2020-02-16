@@ -34,3 +34,9 @@ class postgres_cfg(Config):
 class lichess_token(Config):
     token = Parameter(visibility=ParameterVisibility.PRIVATE,
                       significant=False)
+
+
+class stockfish_cfg(Config):
+    depth = IntParameter()
+    location = Parameter(visibility=ParameterVisibility.PRIVATE,
+                         significant=False)

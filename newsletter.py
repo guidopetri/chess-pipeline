@@ -174,6 +174,7 @@ class EloByWeekday(Task):
         df['weekday_played'] = df['datetime_played'].dt.weekday
 
         df['weekday_played'].replace(6, -1, inplace=True)
+        df['weekday_played'] += 1  # what a dumb way of fixing this
 
         elo = (df.groupby('weekday_played')
                  .agg({'player_elo': ['mean',

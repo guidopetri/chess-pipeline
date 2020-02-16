@@ -16,6 +16,7 @@ class FetchLichessApiPGN(Task):
     perf_type = Parameter(default='blitz')
     since = DateParameter(default=datetime.today().date() - timedelta(days=1))
     single_day = BoolParameter()
+    local_stockfish = BoolParameter()
 
     def output(self):
         import os
@@ -76,7 +77,7 @@ class FetchLichessApiPGN(Task):
                 game.headers['Variant'] = 'Standard'
             for visitor in visitors:
                 game.accept(visitor(game))
-            if not any(game.evals):
+            if not any(game.evals) and self.local_stockfish:
                 game.accept(StockfishVisitor(game,
                                              stockfish_params.location,
                                              stockfish_params.depth))

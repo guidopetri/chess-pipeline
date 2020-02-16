@@ -71,6 +71,10 @@ class FetchLichessApiPGN(Task):
                          }
 
         header_infos = []
+
+        counter = 0
+        total_time = self.until - self.since
+
         for game in games:
             game_infos = {x: y for x, y in game.headers.items()}
             if game.headers['Variant'] == 'From Position':
@@ -85,6 +89,20 @@ class FetchLichessApiPGN(Task):
                 game_infos[k] = getattr(game, v)
             game_infos['moves'] = [x.san() for x in game.mainline()]
             header_infos.append(game_infos)
+
+            # progress bar stuff
+            counter += 1
+
+            if counter % 5 == 0:
+                current = '{} {}'.format(game_infos['UTCDate'],
+                                         game_infos['UTCTime'])
+                time_parsed = datetime.strptime(current)
+                unix_time_parsed = timegm(time_parsed.timetuple())
+                current_unix = int(unix_time_parsed * 1000)
+
+                current_progress = (self.until - current_unix) / total_time
+                self.set_status_message('Parsed until {}'.format(current))
+                self.set_progress_percentage(current_progress)
 
         df = DataFrame(header_infos)
 

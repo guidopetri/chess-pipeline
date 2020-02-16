@@ -71,7 +71,7 @@ For each chess game:
   - opening name
   - opening ECO
   - move list
-  - move evaluations
+  - move evaluations (server-side if available, otherwise with stockfish)
   - clock times per move
 
 and similar columns for opponent.
@@ -83,8 +83,6 @@ and similar columns for opponent.
 
 - Add signifier for tentative rating or not (is this even available?)
 - column for whether berserked or not in arena game
-- evals for checkmates (currently converting to nulls)
-  - how can we tell checkmate for black apart from checkmate for white?
 - More stats using python-chess `Visitors`
 - ~Use Lichess API directly (both JSON and PGN formats)?~
 - Add some of the Tableau graphs to the repo

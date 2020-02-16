@@ -18,6 +18,14 @@ class EvalsVisitor(BaseVisitor):
             evaluation = re.search(r'\[%eval ([^\]]+)', comment).group(1)
         else:
             evaluation = ''
+
+        # if it's a checkmate sequence
+        if evaluation.startswith('#'):
+            # if it's a checkmate for black, it'll be e.g. #-30
+            if evaluation.contains('-'):
+                evaluation = -9999
+            else:  # otherwise it's for white, e.g. #30
+                evaluation = 9999
         self.game.evals.append(evaluation)
 
 
@@ -75,6 +83,7 @@ class CastlingVisitor(BaseVisitor):
                 self.game.castling['black'] = 'queenside'
             elif move.to_square == chess.C1:
                 self.game.castling['white'] = 'queenside'
+
 
 class StockfishVisitor(BaseVisitor):
 

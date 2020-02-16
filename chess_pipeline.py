@@ -138,6 +138,9 @@ class FetchLichessApiPGN(Task):
 
         df = DataFrame(header_infos)
 
+        self.set_status_message('Parsed all games')
+        self.set_progress_percentage(100)
+
         with self.output().temporary_path() as temp_output_path:
             df.to_pickle(temp_output_path, compression=None)
 

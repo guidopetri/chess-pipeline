@@ -87,22 +87,24 @@ class StockfishVisitor(BaseVisitor):
 
     def visit_board(self, board):
         self.sf.set_fen_position(board.fen())
-        self.sf.get_best_move()
-        rating_match = re.search(r'score (cp|mate) (.+?)(?: |$)',
-                                 self.sf.info)
+        if self.sf.get_best_move() is not None:
+            rating_match = re.search(r'score (cp|mate) (.+?)(?: |$)',
+                                     self.sf.info)
 
-        if rating_match.group(1) == 'mate':
-            original_rating = int(rating_match.group(2))
+            if rating_match.group(1) == 'mate':
+                original_rating = int(rating_match.group(2))
 
-            # adjust ratings for checkmate sequences
-            if original_rating:
-                rating = 9999 * original_rating / abs(original_rating)
-            elif self.game.headers['Result'] == '1-0':
-                rating = 9999
+                # adjust ratings for checkmate sequences
+                if original_rating:
+                    rating = 9999 * original_rating / abs(original_rating)
+                elif self.game.headers['Result'] == '1-0':
+                    rating = 9999
+                else:
+                    rating = -9999
             else:
-                rating = -9999
+                rating = int(rating_match.group(2))
+            if board.turn == chess.BLACK:
+                rating *= -1
         else:
-            rating = int(rating_match.group(2))
-        if board.turn == chess.BLACK:
-            rating *= -1
+            rating = self.game.evals[-1]
         self.game.evals.append(rating)

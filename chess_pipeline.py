@@ -116,6 +116,8 @@ class FetchLichessApiPGN(Task):
                 game.accept(StockfishVisitor(game,
                                              stockfish_params.location,
                                              stockfish_params.depth))
+                # adjust for centipawn scale
+                game.evals = [x / 100 for x in game.evals]
             for k, v in visitor_stats.items():
                 game_infos[k] = getattr(game, v)
             game_infos['moves'] = [x.san() for x in game.mainline()]

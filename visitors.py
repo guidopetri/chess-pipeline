@@ -106,11 +106,11 @@ class StockfishVisitor(BaseVisitor):
 
                 # adjust ratings for checkmate sequences
                 if original_rating:
-                    rating = 9999 * original_rating / abs(original_rating)
+                    rating = 999900 * original_rating / abs(original_rating)
                 elif self.game.headers['Result'] == '1-0':
-                    rating = 9999
+                    rating = 999900
                 else:
-                    rating = -9999
+                    rating = -999900
             else:
                 rating = int(rating_match.group(2))
             if board.turn == chess.BLACK:

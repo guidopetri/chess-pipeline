@@ -4,7 +4,7 @@ from luigi import Task, LocalTarget
 from luigi.format import Nop
 from luigi.util import requires
 from luigi.parameter import Parameter, ListParameter
-from configs import sendgrid, newsletter_cfg, postgres_cfg
+from configs_lichess import sendgrid, newsletter_cfg, postgres_cfg
 
 
 class GetData(Task):

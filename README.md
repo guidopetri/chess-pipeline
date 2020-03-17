@@ -89,6 +89,12 @@ For each chess game:
 
 and similar columns for opponent.
 
+## Newsletter
+
+**TODO**
+
+Requirements: seaborn, beautifulsoup4, newsletter_cfg, sendgrid apikey
+
 ## TODO
 
 **bold**: currently working on it
@@ -99,3 +105,4 @@ and similar columns for opponent.
 - More stats using python-chess `Visitors`
 - ~Use Lichess API directly (both JSON and PGN formats)?~
 - Add some of the Tableau graphs to the repo
+- Fix newsletter EloByWeekday if no games on the last day of the week

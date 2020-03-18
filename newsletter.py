@@ -70,6 +70,14 @@ class WinRatioByColor(Task):
         with self.input().open('r') as f:
             df = read_pickle(f, compression=None)
 
+        if df.empty:
+            text = 'Wait a second, no you didn\'t!'
+
+            with self.output().open('w') as f:
+                pickle.dump(text, f, protocol=-1)
+
+            return
+
         color_stats = df.groupby(['time_control_category',
                                   'player_color',
                                   'player_result']).agg({'id': 'nunique'})
@@ -169,6 +177,14 @@ class EloByWeekday(Task):
 
         with self.input().open('r') as f:
             df = read_pickle(f, compression=None)
+
+        if df.empty:
+            text = '\n'
+
+            with self.output().open('w') as f:
+                pickle.dump(text, f, protocol=-1)
+
+            return
 
         df = df[df['time_control_category'] == 'blitz']
         df['weekday_played'] = df['datetime_played'].dt.weekday

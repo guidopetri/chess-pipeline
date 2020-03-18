@@ -186,6 +186,7 @@ class EloByWeekday(Task):
                   .reset_index(level=0, drop=True)
                   .T
                   .reset_index(drop=False))
+        elo.sort_values(by='weekday_played', inplace=True)
 
         sns_set(style='whitegrid')
 
@@ -212,9 +213,9 @@ class EloByWeekday(Task):
                  xticks=range(0, 7),
                  )
 
-        min_last_day = elo[elo['weekday_played'] == 6]['min'].values
-        max_last_day = elo[elo['weekday_played'] == 6]['max'].values
-        mean_last_day = elo[elo['weekday_played'] == 6]['mean'].values
+        min_last_day = elo[-1:]['min'].values
+        max_last_day = elo[-1:]['max'].values
+        mean_last_day = elo[-1:]['mean'].values
 
         # annotate the lines individually
         ax.annotate('min',

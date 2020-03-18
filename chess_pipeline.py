@@ -9,7 +9,7 @@ from luigi import Task, LocalTarget
 from pandas import DataFrame
 from postgres_templates import CopyWrapper, HashableDict, TransactionFactTable
 from datetime import datetime, timedelta
-from configs_lichess import lichess_token, stockfish_cfg, postgres_cfg
+from configs import lichess_token, stockfish_cfg, postgres_cfg
 
 
 def query_for_column(table, column):

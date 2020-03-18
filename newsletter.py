@@ -219,15 +219,15 @@ class EloByWeekday(Task):
 
         # annotate the lines individually
         ax.annotate('min',
-                    xy=(6.05, min_last_day),
+                    xy=(elo.shape[0] - 0.95, min_last_day),
                     color='#555555',
                     )
         ax.annotate('mean + std',
-                    xy=(6.05, mean_last_day),
+                    xy=(elo.shape[0] - 0.95, mean_last_day),
                     color='k',
                     )
         ax.annotate('max',
-                    xy=(6.05, max_last_day),
+                    xy=(elo.shape[0] - 0.95, max_last_day),
                     color='#555555',
                     )
 

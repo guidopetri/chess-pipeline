@@ -7,9 +7,10 @@ from luigi.util import requires, inherits
 from luigi.format import Nop
 from luigi import Task, LocalTarget
 from pandas import DataFrame
-from postgres_templates import CopyWrapper, HashableDict, TransactionFactTable
+from pipeline_import.postgres_templates import CopyWrapper, HashableDict
+from pipeline_import.postgres_templates import TransactionFactTable
 from datetime import datetime, timedelta
-from configs import lichess_token, stockfish_cfg, postgres_cfg
+from pipeline_import.configs import lichess_token, stockfish_cfg, postgres_cfg
 
 
 def query_for_column(table, column):
@@ -57,8 +58,9 @@ class FetchLichessApiPGN(Task):
         from lichess.format import PYCHESS
         from pandas import DataFrame
         from calendar import timegm
-        from visitors import EvalsVisitor, ClocksVisitor, QueenExchangeVisitor
-        from visitors import CastlingVisitor, StockfishVisitor
+        from pipeline_import.visitors import EvalsVisitor, ClocksVisitor
+        from pipeline_import.visitors import QueenExchangeVisitor
+        from pipeline_import.visitors import CastlingVisitor, StockfishVisitor
 
         self.output().makedirs()
 

@@ -13,7 +13,7 @@ class HashableDict(OrderedDict):
 
 
 class PostgresTable(postgres.CopyToTable):
-    from configs import postgres_cfg
+    from .configs import postgres_cfg
 
     pg_cfg = postgres_cfg()
     user = pg_cfg.user

@@ -6,7 +6,7 @@ import psycopg2
 from luigi.util import requires, inherits
 from luigi.format import Nop
 from luigi import Task, LocalTarget
-from pandas import DataFrame
+from pandas import DataFrame, date_range
 from pipeline_import.postgres_templates import CopyWrapper, HashableDict
 from pipeline_import.postgres_templates import TransactionFactTable
 from datetime import datetime, timedelta
@@ -46,8 +46,7 @@ class FetchLichessApiPGN(Task):
 
     player = Parameter(default='thibault')
     perf_type = Parameter(default='blitz')
-    since = DateParameter(default=datetime.today().date() - timedelta(days=1))
-    single_day = BoolParameter()
+    dl_day = DateParameter()
     local_stockfish = BoolParameter()
 
     def output(self):
@@ -67,14 +66,11 @@ class FetchLichessApiPGN(Task):
 
         self.output().makedirs()
 
-        if self.single_day:
-            unix_time_until = timegm((self.since
-                                      + timedelta(days=1)).timetuple())
-        else:
-            unix_time_until = timegm(datetime.today().date().timetuple())
+        unix_time_until = timegm((self.dl_day
+                                  + timedelta(days=1)).timetuple())
         self.until = int(1000 * unix_time_until)
 
-        unix_time_since = timegm(self.since.timetuple())
+        unix_time_since = timegm(self.dl_day.timetuple())
         self.since = int(1000 * unix_time_since)
 
         token = lichess_token().token
@@ -156,8 +152,7 @@ class FetchLichessApiJSON(Task):
 
     player = Parameter(default='thibault')
     perf_type = Parameter(default='blitz')
-    since = DateParameter(default=datetime.today().date() - timedelta(days=1))
-    single_day = BoolParameter()
+    dl_day = DateParameter()
 
     def output(self):
         import os
@@ -173,14 +168,11 @@ class FetchLichessApiJSON(Task):
 
         self.output().makedirs()
 
-        if self.single_day:
-            unix_time_until = timegm((self.since
-                                      + timedelta(days=1)).timetuple())
-        else:
-            unix_time_until = timegm(datetime.today().date().timetuple())
+        unix_time_until = timegm((self.dl_day
+                                  + timedelta(days=1)).timetuple())
         self.until = int(1000 * unix_time_until)
 
-        unix_time_since = timegm(self.since.timetuple())
+        unix_time_since = timegm(self.dl_day.timetuple())
         self.since = int(1000 * unix_time_since)
 
         token = lichess_token().token
@@ -579,75 +571,86 @@ class MoveList(TransactionFactTable):
 @inherits(FetchLichessApiPGN, ChessGames, MoveEvals)
 class CopyGames(CopyWrapper):
 
-    jobs = [{'table_type': ChessGames,
-             'fn':         GetGameInfos,
-             'table':      'chess_games',
-             'columns':    ['event_type',
-                            'result',
-                            'round',
-                            'game_link',
-                            'termination',
-                            'chess_variant',
-                            'black_elo_tentative',
-                            'white_elo_tentative',
-                            'player',
-                            'opponent',
-                            'player_color',
-                            'opponent_color',
-                            'player_rating_diff',
-                            'opponent_rating_diff',
-                            'player_result',
-                            'opponent_result',
-                            'time_control_category',
-                            'datetime_played',
-                            'starting_time',
-                            'increment',
-                            'in_arena',
-                            'rated_casual',
-                            'player_elo',
-                            'opponent_elo',
-                            'queen_exchange',
-                            'player_castling_side',
-                            'opponent_castling_side',
-                            'lichess_opening',
-                            'opening_played',
-                            ],
-             'id_cols':    ['player',
-                            'game_link'],
-             'date_cols':  ['datetime_played'],
-             'merge_cols': HashableDict()},
-            {'table_type': MoveEvals,
-             'fn': ExplodeEvals,
-             'table': 'game_evals',
-             'columns': ['game_link',
-                         'half_move',
-                         'evaluation',
-                         'eval_depth',
-                         ],
-             'id_cols': ['game_link',
-                         'half_move'],
-             'date_cols': [],
-             'merge_cols': HashableDict()},
-            {'table_type': MoveClocks,
-             'fn': ExplodeClocks,
-             'table': 'game_clocks',
-             'columns': ['game_link',
-                         'half_move',
-                         'clock',
-                         ],
-             'id_cols': ['game_link',
-                         'half_move'],
-             'date_cols': [],
-             'merge_cols': HashableDict()},
-            {'table_type': MoveList,
-             'fn': ExplodeMoves,
-             'table': 'game_moves',
-             'columns': ['game_link',
-                         'half_move',
-                         'move',
-                         ],
-             'id_cols': ['game_link',
-                         'half_move'],
-             'date_cols': [],
-             'merge_cols': HashableDict()},
-            ]
+    jobs = []
+
+    until = DateParameter(default=datetime.today().date() - timedelta(days=1))
+    days_range = date_range(start=until,
+                            end=datetime.today().date()).tolist()
+
+    for day in days_range:
+        jobs.extend([{'table_type': ChessGames,
+                      'fn':         GetGameInfos,
+                      'table':      'chess_games',
+                      'columns':    ['event_type',
+                                     'result',
+                                     'round',
+                                     'game_link',
+                                     'termination',
+                                     'chess_variant',
+                                     'black_elo_tentative',
+                                     'white_elo_tentative',
+                                     'player',
+                                     'opponent',
+                                     'player_color',
+                                     'opponent_color',
+                                     'player_rating_diff',
+                                     'opponent_rating_diff',
+                                     'player_result',
+                                     'opponent_result',
+                                     'time_control_category',
+                                     'datetime_played',
+                                     'starting_time',
+                                     'increment',
+                                     'in_arena',
+                                     'rated_casual',
+                                     'player_elo',
+                                     'opponent_elo',
+                                     'queen_exchange',
+                                     'player_castling_side',
+                                     'opponent_castling_side',
+                                     'lichess_opening',
+                                     'opening_played',
+                                     ],
+                      'id_cols':    ['player',
+                                     'game_link'],
+                      'date_cols':  ['datetime_played'],
+                      'merge_cols': HashableDict(),
+                      'dl_day': day},
+                     {'table_type': MoveEvals,
+                      'fn': ExplodeEvals,
+                      'table': 'game_evals',
+                      'columns': ['game_link',
+                                  'half_move',
+                                  'evaluation',
+                                  'eval_depth',
+                                  ],
+                      'id_cols': ['game_link',
+                                  'half_move'],
+                      'date_cols': [],
+                      'merge_cols': HashableDict(),
+                      'dl_day': day},
+                     {'table_type': MoveClocks,
+                      'fn': ExplodeClocks,
+                      'table': 'game_clocks',
+                      'columns': ['game_link',
+                                  'half_move',
+                                  'clock',
+                                  ],
+                      'id_cols': ['game_link',
+                                  'half_move'],
+                      'date_cols': [],
+                      'merge_cols': HashableDict(),
+                      'dl_day': day},
+                     {'table_type': MoveList,
+                      'fn': ExplodeMoves,
+                      'table': 'game_moves',
+                      'columns': ['game_link',
+                                  'half_move',
+                                  'move',
+                                  ],
+                      'id_cols': ['game_link',
+                                  'half_move'],
+                      'date_cols': [],
+                      'merge_cols': HashableDict(),
+                      'dl_day': day},
+                     ]

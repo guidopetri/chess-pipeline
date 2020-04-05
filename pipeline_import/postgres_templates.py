@@ -112,12 +112,7 @@ class CopyWrapper(Task):
 
     def requires(self):
         for job in self.jobs:
-            self.table = job['table']
-            self.fn = job['fn']
-            self.columns = job['columns']
-            self.id_cols = job['id_cols']
-            self.date_cols = job['date_cols']
-            self.merge_cols = job['merge_cols']
+            vars(self).update(job)
             yield self.clone(job['table_type'])
 
     def run(self):

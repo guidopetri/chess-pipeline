@@ -35,8 +35,11 @@ def query_for_column(table, column):
 
     result = cursor.fetchall()
 
-    current_srs = DataFrame(result)[0]
-    return current_srs
+    current_srs = DataFrame(result)
+
+    if current_srs.empty:
+        current_srs = DataFrame([0])
+    return current_srs[0]
 
 
 class FetchLichessApiPGN(Task):

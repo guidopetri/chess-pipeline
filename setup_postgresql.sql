@@ -22,6 +22,8 @@ create user luigi_user;
 --grant luigi user privileges on database
 alter default privileges in schema public grant select, insert, update, delete, truncate on tables to luigi_user;
 alter default privileges in schema public grant usage on sequences to luigi_user;
+grant select, insert, update, delete, truncate on all tables in schema public to luigi_user;
+grant usage on all sequences in schema public to luigi_user;
 
 -- the task history user
 create user task_history_user;

@@ -88,21 +88,3 @@ For each chess game:
   - clock times per move
 
 and similar columns for opponent.
-
-## Newsletter
-
-**TODO**
-
-Requirements: seaborn, beautifulsoup4, newsletter_cfg, sendgrid apikey
-
-## TODO
-
-**bold**: currently working on it
-*italic*: in testing
-
-- Add signifier for tentative rating or not (is this even available?)
-- column for whether berserked or not in arena game
-- More stats using python-chess `Visitors`
-- ~Use Lichess API directly (both JSON and PGN formats)?~
-- Add some of the Tableau graphs to the repo
-- Fix newsletter EloByWeekday if no games on the last day of the week

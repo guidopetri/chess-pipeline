@@ -13,7 +13,11 @@ create database chess_db;
 create database task_history_db;
 
 -- make sure you have this file in the folder you're in, or change the location
-\i chess_games.sql
+\i table-sql/chess_games.sql
+\i table-sql/eco_codes.sql
+\i table-sql/game_clocks.sql
+\i table-sql/game_evals.sql
+\i table-sql/game_moves.sql
 
 -- create the user that luigi will be using
 create user luigi_user;

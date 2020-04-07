@@ -47,3 +47,5 @@ grant select on all tables in schema public to read_access;
 alter default privileges in schema public grant select on tables to read_access;
 
 grant read_access to read_user;
+
+\i assorted-sql/copy_eco_codes.sql

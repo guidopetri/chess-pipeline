@@ -88,3 +88,26 @@ For each chess game:
   - clock times per move
 
 and similar columns for opponent.
+
+## Newsletter
+
+It's also possible to send out a newsletter with some simple graphs/metrics on how your chess games have been for the week. However, there are a few additional Python package requirements for this:
+
+- seaborn
+- beautifulSoup4
+
+Additionally, two config sections need to be added:
+
+- `newsletter_cfg`, with a sender email under the key `sender`
+- `sendgrid`, with an API key under the key `apikey`
+
+The newsletter can be sent with the following command:
+
+`luigi --module newsletter SendNewsletter`
+
+with the options:
+
+- `--player`, for the player whose games we're going to analyze
+- `--receiver`, for the email address to send to
+
+Currently, the newsletter sends out win rates (in %) for black/white in each time control category, as well as a rating progression chart by day, along with min/maxes for each day.

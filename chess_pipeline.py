@@ -52,7 +52,9 @@ class FetchLichessApiPGN(Task):
     def output(self):
         import os
 
-        file_location = '~/Temp/luigi/raw-games-%s-pgn.pckl' % self.player
+        file_location = '~/Temp/luigi/raw-games-%s-%s-pgn.pckl'
+        file_location = file_location % (self.player,
+                                         self.dl_day.strftime('%Y-%m-%d'))
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):
@@ -157,7 +159,9 @@ class FetchLichessApiJSON(Task):
     def output(self):
         import os
 
-        file_location = '~/Temp/luigi/raw-games-%s-json.pckl' % self.player
+        file_location = '~/Temp/luigi/raw-games-%s-%s-json.pckl'
+        file_location = file_location % (self.player,
+                                         self.dl_day.strftime('%Y-%m-%d'))
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):
@@ -200,7 +204,9 @@ class CleanChessDF(Task):
     def output(self):
         import os
 
-        file_location = '~/Temp/luigi/cleaned-games-%s.pckl' % self.player
+        file_location = '~/Temp/luigi/cleaned-games-%s-%s.pckl'
+        file_location = file_location % (self.player,
+                                         self.dl_day.strftime('%Y-%m-%d'))
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):
@@ -255,7 +261,9 @@ class ExplodeEvals(Task):
     def output(self):
         import os
 
-        file_location = '~/Temp/luigi/game-evals-%s.pckl' % self.player
+        file_location = '~/Temp/luigi/game-evals-%s-%s.pckl'
+        file_location = file_location % (self.player,
+                                         self.dl_day.strftime('%Y-%m-%d'))
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):
@@ -301,7 +309,9 @@ class ExplodeMoves(Task):
     def output(self):
         import os
 
-        file_location = '~/Temp/luigi/game-moves-%s.pckl' % self.player
+        file_location = '~/Temp/luigi/game-moves-%s-%s.pckl'
+        file_location = file_location % (self.player,
+                                         self.dl_day.strftime('%Y-%m-%d'))
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):
@@ -343,7 +353,9 @@ class ExplodeClocks(Task):
     def output(self):
         import os
 
-        file_location = '~/Temp/luigi/game-clocks-%s.pckl' % self.player
+        file_location = '~/Temp/luigi/game-clocks-%s-%s.pckl'
+        file_location = file_location % (self.player,
+                                         self.dl_day.strftime('%Y-%m-%d'))
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):
@@ -390,7 +402,9 @@ class GetGameInfos(Task):
     def output(self):
         import os
 
-        file_location = '~/Temp/luigi/game-infos-%s.pckl' % self.player
+        file_location = '~/Temp/luigi/game-infos-%s-%s.pckl'
+        file_location = file_location % (self.player,
+                                         self.dl_day.strftime('%Y-%m-%d'))
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):

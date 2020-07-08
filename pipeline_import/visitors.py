@@ -29,6 +29,9 @@ class EvalsVisitor(BaseVisitor):
 
         self.game.evals.append(evaluation)
 
+    def result(self):
+        return None
+
 
 class ClocksVisitor(BaseVisitor):
 
@@ -42,6 +45,9 @@ class ClocksVisitor(BaseVisitor):
         else:
             clock_time = ''
         self.game.clocks.append(clock_time)
+
+    def result(self):
+        return None
 
 
 class QueenExchangeVisitor(BaseVisitor):
@@ -61,6 +67,9 @@ class QueenExchangeVisitor(BaseVisitor):
             if self.captured_at == self.move_counter - 1:
                 self.game.queen_exchange = True
             self.captured_at = self.move_counter
+
+    def result(self):
+        return None
 
 
 class CastlingVisitor(BaseVisitor):
@@ -84,6 +93,9 @@ class CastlingVisitor(BaseVisitor):
                 self.game.castling['black'] = 'queenside'
             elif move.to_square == chess.C1:
                 self.game.castling['white'] = 'queenside'
+
+    def result(self):
+        return None
 
 
 class StockfishVisitor(BaseVisitor):
@@ -118,3 +130,6 @@ class StockfishVisitor(BaseVisitor):
         else:
             rating = self.game.evals[-1]
         self.game.evals.append(rating)
+
+    def result(self):
+        return None

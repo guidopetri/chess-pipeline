@@ -45,7 +45,7 @@ if __name__ == '__main__':
 
     plt.plot(range(10, 26), times)
     plt.title('How long does it take Stockfish to analyze a position'
-              'at a certain depth?')
+              ' at a certain depth?')
     plt.xlabel('Depth')
     plt.ylabel('Time in s')
     plt.yscale('log')

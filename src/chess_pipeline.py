@@ -105,7 +105,7 @@ class FetchLichessApiPGN(Task):
                          'castling_sides': 'castling',
                          'has_promotion': 'has_promotion',
                          'promotion_count': 'promotion_count',
-                         'promoted_to': 'promoted_to',
+                         'promoted_to': 'promotions',
                          }
 
         header_infos = []
@@ -618,7 +618,7 @@ class CopyGames(CopyWrapper):
                             'opening_played',
                             'has_promotion',
                             'promotion_count',
-                            'promoted_to',
+                            'promotions',
                             ],
              'id_cols':    ['player',
                             'game_link'],

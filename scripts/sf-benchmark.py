@@ -25,14 +25,30 @@ def run_benchmark(stockfish_location):
         times.append(time_taken)
 
     print(f'All times: {times}')
-    return
+
+    return times
 
 
 if __name__ == '__main__':
     import sys
+    import matplotlib.pyplot as plt
 
     if len(sys.argv) < 2:
         raise ValueError('Must provide stockfish executable location')
     stockfish_location = sys.argv[1]
 
-    run_benchmark(stockfish_location)
+    print('Running benchmark...')
+
+    times = run_benchmark(stockfish_location)
+
+    print('Plotting results...')
+
+    plt.plot(range(10, 26), times)
+    plt.title('How long does it take Stockfish to analyze a position'
+              'at a certain depth?')
+    plt.xlabel('Depth')
+    plt.ylabel('Time in s')
+    plt.yscale('log')
+    plt.savefig('benchmark_results.png')
+
+    print('Benchmark finished')

@@ -26,7 +26,7 @@ def run_benchmark(stockfish_location):
 if __name__ == '__main__':
     import sys
 
-    if len(sys) < 2:
+    if len(sys.argv) < 2:
         raise ValueError('Must provide stockfish executable location')
     stockfish_location = sys.argv[1]
 

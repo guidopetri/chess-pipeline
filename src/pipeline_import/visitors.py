@@ -155,3 +155,6 @@ class PromotionsVisitor(BaseVisitor):
     def end_game(self):
         self.gm.promoted_to.sort()
         self.gm.promoted_to = ''.join(self.gm.promoted_to)
+
+    def result(self):
+        return None

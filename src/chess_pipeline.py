@@ -64,6 +64,7 @@ class FetchLichessApiPGN(Task):
         from pipeline_import.visitors import EvalsVisitor, ClocksVisitor
         from pipeline_import.visitors import QueenExchangeVisitor
         from pipeline_import.visitors import CastlingVisitor, StockfishVisitor
+        from pipeline_import.visitors import PromotionsVisitor
 
         self.output().makedirs()
 
@@ -94,6 +95,7 @@ class FetchLichessApiPGN(Task):
                     ClocksVisitor,
                     QueenExchangeVisitor,
                     CastlingVisitor,
+                    PromotionsVisitor,
                     ]
 
         visitor_stats = {'clocks': 'clocks',
@@ -101,6 +103,9 @@ class FetchLichessApiPGN(Task):
                          'eval_depth': 'eval_depth',
                          'queen_exchange': 'queen_exchange',
                          'castling_sides': 'castling',
+                         'has_promotion': 'has_promotion',
+                         'promotion_count': 'promotion_count',
+                         'promoted_to': 'promoted_to',
                          }
 
         header_infos = []

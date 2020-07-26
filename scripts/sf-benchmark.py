@@ -13,9 +13,14 @@ def run_benchmark(stockfish_location):
         sf = stockfish.Stockfish(stockfish_location, depth=n)  # noqa
 
         statement = f'sf.set_fen_position("{fen}"); sf.get_best_move()'
-        time_taken = timeit.timeit(statement, number=100, globals=locals())
+        time_taken = min(timeit.repeat(statement,
+                                       repeat=5,
+                                       number=10,
+                                       globals=locals(),
+                                       )
+                         )
 
-        print(f'Time taken for depth {n}: {time_taken:.2e}')
+        print(f'Minimum time taken for depth {n}: {time_taken:.2e}')
 
         times.append(time_taken)
 

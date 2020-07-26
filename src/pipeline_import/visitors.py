@@ -133,3 +133,25 @@ class StockfishVisitor(BaseVisitor):
 
     def result(self):
         return None
+
+
+class PromotionsVisitor(BaseVisitor):
+
+    def __init__(self, gm):
+        self.gm = gm
+
+    def begin_game(self):
+        self.gm.has_promotion = False
+        self.gm.promotion_count = 0
+        self.gm.promoted_to = []
+
+    def visit_move(self, board, move):
+        if move.promotion is not None:
+            self.gm.has_promotion = True
+            self.gm.promotion_count += 1
+            piece_symbol = chess.piece_symbol(move.promotion)
+            self.gm.promoted_to.append(piece_symbol)
+
+    def end_game(self):
+        self.gm.promoted_to.sort()
+        self.gm.promoted_to = ''.join(self.gm.promoted_to)

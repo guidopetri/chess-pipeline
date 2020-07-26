@@ -28,5 +28,8 @@ create table chess_games(
     player_castling_side   text      not null,
     opponent_castling_side text      not null,
     lichess_opening        text      not null,
-    opening_played         text      not null
+    opening_played         text      not null,
+    has_promotion          boolean   not null,
+    promotion_count        smallint  not null,
+    promotions             text              
 );

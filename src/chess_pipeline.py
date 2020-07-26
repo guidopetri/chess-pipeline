@@ -104,8 +104,10 @@ class FetchLichessApiPGN(Task):
                          'queen_exchange': 'queen_exchange',
                          'castling_sides': 'castling',
                          'has_promotion': 'has_promotion',
-                         'promotion_count': 'promotion_count',
-                         'promoted_to': 'promotions',
+                         'promotion_count_white': 'promotion_count_white',
+                         'promotion_count_black': 'promotion_count_black',
+                         'promotions_white': 'promotions_white',
+                         'promotions_black': 'promotions_black',
                          }
 
         header_infos = []
@@ -617,8 +619,10 @@ class CopyGames(CopyWrapper):
                             'lichess_opening',
                             'opening_played',
                             'has_promotion',
-                            'promotion_count',
-                            'promotions',
+                            'promotion_count_white',
+                            'promotion_count_black',
+                            'promotions_white',
+                            'promotions_black',
                             ],
              'id_cols':    ['player',
                             'game_link'],

@@ -142,19 +142,30 @@ class PromotionsVisitor(BaseVisitor):
 
     def begin_game(self):
         self.gm.has_promotion = False
-        self.gm.promotion_count = 0
-        self.gm.promoted_to = []
+        self.gm.promotion_count = {chess.WHITE: 0,
+                                   chess.BLACK: 0,
+                                   }
+        self.gm.promotions = {chess.WHITE: [],
+                              chess.BLACK: [],
+                              }
 
     def visit_move(self, board, move):
         if move.promotion is not None:
             self.gm.has_promotion = True
-            self.gm.promotion_count += 1
+            self.gm.promotion_count[board.turn] += 1
+
             piece_symbol = chess.piece_symbol(move.promotion)
-            self.gm.promoted_to.append(piece_symbol)
+            self.gm.promotions[board.turn].append(piece_symbol)
 
     def end_game(self):
-        self.gm.promoted_to.sort()
-        self.gm.promoted_to = ''.join(self.gm.promoted_to)
+        self.gm.promotion_count_white = self.gm.promotion_count[chess.WHITE]
+        self.gm.promotion_count_black = self.gm.promotion_count[chess.BLACK]
+
+        self.gm.promotions_white = sorted(self.gm.promotions[chess.WHITE])
+        self.gm.promotions_white = ''.join(self.gm.promotions_white)
+
+        self.gm.promotions_black = sorted(self.gm.promotions[chess.BLACK])
+        self.gm.promotions_black = ''.join(self.gm.promotions_black)
 
     def result(self):
         return None

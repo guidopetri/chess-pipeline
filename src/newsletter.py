@@ -26,13 +26,12 @@ class GetData(Task):
                                                  pg_cfg.database)) as con:
             cursor = con.cursor()
 
-            sql = """SELECT * from chess_games
-                     WHERE player = '{}'
-                     AND datetime_played >= now()::date - interval '7 days';
-                  """
+            sql = f"""SELECT * from chess_games
+                      WHERE player = '{self.player}'
+                      AND datetime_played >= now()::date - interval '7 days';
+                   """
 
-            cursor.execute(sql.format(  # (', '.join(self.columns),
-                                       self.player))
+            cursor.execute(sql)
             colnames = [desc.name for desc in cursor.description]
             results = cursor.fetchall()
 
@@ -44,7 +43,7 @@ class GetData(Task):
     def output(self):
         import os
 
-        file_location = '~/Temp/luigi/week-data-{}.pckl'.format(self.player)
+        file_location = f'~/Temp/luigi/week-data-{self.player}.pckl'
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
 
@@ -54,9 +53,8 @@ class WinRatioByColor(Task):
     def output(self):
         import os
 
-        file_loc = '~/Temp/luigi/graphs/win-by-color-{}.pckl'
-        return LocalTarget(os.path.expanduser(file_loc.format(self.player)),
-                           format=Nop)
+        file_loc = f'~/Temp/luigi/graphs/win-by-color-{self.player}.pckl'
+        return LocalTarget(os.path.expanduser(file_loc), format=Nop)
 
     def run(self):
         import pickle
@@ -126,7 +124,7 @@ class WinRatioByColor(Task):
 
         for p in ax.patches:
             # place win% in the bar itself
-            ax.annotate('{:.2f}%'.format(100 * p.get_height()),
+            ax.annotate(f'{100 * p.get_height():.2f}%',
                         xy=(0.5, 0.5),
                         xycoords=p,
                         ha='center',
@@ -136,10 +134,9 @@ class WinRatioByColor(Task):
         # save the figure
         fig_loc = '~/Temp/luigi/graphs'
         fig_loc = os.path.expanduser(fig_loc)
-        filename = 'win-by-color-{}.png'
+        filename = f'win-by-color-{self.player}.png'
         os.makedirs(fig_loc, exist_ok=True)
-        ax.get_figure().savefig(os.path.join(fig_loc,
-                                             filename.format(self.player)),
+        ax.get_figure().savefig(os.path.join(fig_loc, filename),
                                 bbox_inches='tight')
 
         text = ('You had a {:.2f}% win rate with {} in {}'
@@ -162,9 +159,8 @@ class EloByWeekday(Task):
     def output(self):
         import os
 
-        file_loc = '~/Temp/luigi/graphs/elo-by-weekday-{}.pckl'
-        return LocalTarget(os.path.expanduser(file_loc.format(self.player)),
-                           format=Nop)
+        file_loc = f'~/Temp/luigi/graphs/elo-by-weekday-{self.player}.pckl'
+        return LocalTarget(os.path.expanduser(file_loc), format=Nop)
 
     def run(self):
         import pickle
@@ -264,22 +260,19 @@ class EloByWeekday(Task):
         # save the figure
         fig_loc = '~/Temp/luigi/graphs'
         fig_loc = os.path.expanduser(fig_loc)
-        filename = 'elo-by-weekday-{}.png'
+        filename = f'elo-by-weekday-{self.player}.png'
         os.makedirs(fig_loc, exist_ok=True)
-        ax.get_figure().savefig(os.path.join(fig_loc,
-                                             filename.format(self.player)),
+        ax.get_figure().savefig(os.path.join(fig_loc, filename),
                                 bbox_inches='tight')
 
         max_elo = int(elo['max'].max())
         min_elo = int(elo['min'].min())
 
-        text = ('This week, your highest elo in blitz was {} and'
-                ' your lowest elo was {}. <br>'
-                '<img alt=\'Elo by weekday\' src='
-                '\'cid:elo-by-weekday\'><br>'
-                .format(max_elo,
-                        min_elo,
-                        ))
+        text = (f'This week, your highest elo in blitz was {max_elo} and'
+                f' your lowest elo was {min_elo}. <br>'
+                f'<img alt=\'Elo by weekday\' src='
+                f'\'cid:elo-by-weekday\'><br>'
+                )
 
         with self.output().open('w') as f:
             pickle.dump(text, f, protocol=-1)
@@ -299,8 +292,7 @@ class CreateNewsletter(Task):
 
         newsletter = mail.Mail(from_email=newsletter_cfg().sender,
                                to_emails=self.receiver,
-                               subject=('Chess Newsletter - {}'
-                                        .format(self.player)),
+                               subject=f'Chess Newsletter - {self.player}',
                                )
 
         imgs_loc = os.path.expanduser('~/Temp/luigi/graphs/')
@@ -319,9 +311,8 @@ class CreateNewsletter(Task):
 
                 newsletter.add_attachment(attachment)
 
-        message = ['<html><body> Hi {},<br><br>'
-                   'This week you played chess! Here\'s your performance:'
-                   .format(self.player)
+        message = [f'<html><body> Hi {self.player},<br><br>'
+                   f'This week you played chess! Here\'s your performance:'
                    ]
 
         for inp in self.input():
@@ -346,9 +337,8 @@ class CreateNewsletter(Task):
     def output(self):
         import os
 
-        file_loc = '~/Temp/luigi/newsletter-{}.pckl'
-        return LocalTarget(os.path.expanduser(file_loc.format(self.player)),
-                           format=Nop)
+        file_loc = f'~/Temp/luigi/newsletter-{self.player}.pckl'
+        return LocalTarget(os.path.expanduser(file_loc), format=Nop)
 
 
 @requires(CreateNewsletter)

@@ -55,8 +55,7 @@ class TransactionFactTable(PostgresTable):
         connection = self.output().connect()
         cursor = connection.cursor()
 
-        sql = """SELECT %s FROM %s;""" % (', '.join(self.id_cols),
-                                          self.table)
+        sql = f"""SELECT {', '.join(self.id_cols)} FROM {self.table};"""
 
         cursor.execute(sql)
         results = cursor.fetchall()

@@ -29,7 +29,7 @@ def query_for_column(table, column):
                           )
 
     cursor = db.cursor()
-    sql = """SELECT DISTINCT {} FROM {};""".format(column, table)
+    sql = f"""SELECT DISTINCT {column} FROM {table};"""
 
     cursor.execute(sql)
 
@@ -53,7 +53,7 @@ class FetchLichessApiPGN(Task):
     def output(self):
         import os
 
-        file_location = '~/Temp/luigi/raw-games-%s-pgn.pckl' % self.player
+        file_location = f'~/Temp/luigi/raw-games-{self.player}-pgn.pckl'
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):
@@ -139,15 +139,14 @@ class FetchLichessApiPGN(Task):
             counter += 1
 
             if counter % 5 == 0:
-                current = '{} {}'.format(game_infos['UTCDate'],
-                                         game_infos['UTCTime'])
+                current = f'{game_infos["UTCDate"]} {game_infos["UTCTime"]}'
                 time_parsed = datetime.strptime(current,
                                                 '%Y.%m.%d %H:%M:%S')
                 unix_time_parsed = timegm(time_parsed.timetuple())
                 current_unix = int(unix_time_parsed * 1000)
 
                 current_progress = (self.until - current_unix) / total_time
-                self.set_status_message('Parsed until {}'.format(current))
+                self.set_status_message(f'Parsed until {current}')
                 self.set_progress_percentage(round(current_progress * 100, 2))
 
         df = DataFrame(header_infos)
@@ -169,7 +168,7 @@ class FetchLichessApiJSON(Task):
     def output(self):
         import os
 
-        file_location = '~/Temp/luigi/raw-games-%s-json.pckl' % self.player
+        file_location = f'~/Temp/luigi/raw-games-{self.player}-json.pckl'
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):
@@ -215,7 +214,7 @@ class CleanChessDF(Task):
     def output(self):
         import os
 
-        file_location = '~/Temp/luigi/cleaned-games-%s.pckl' % self.player
+        file_location = f'~/Temp/luigi/cleaned-games-{self.player}.pckl'
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):
@@ -270,7 +269,7 @@ class ExplodeEvals(Task):
     def output(self):
         import os
 
-        file_location = '~/Temp/luigi/game-evals-%s.pckl' % self.player
+        file_location = f'~/Temp/luigi/game-evals-{self.player}.pckl'
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):
@@ -316,7 +315,7 @@ class ExplodeMoves(Task):
     def output(self):
         import os
 
-        file_location = '~/Temp/luigi/game-moves-%s.pckl' % self.player
+        file_location = f'~/Temp/luigi/game-moves-{self.player}.pckl'
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):
@@ -358,7 +357,7 @@ class ExplodeClocks(Task):
     def output(self):
         import os
 
-        file_location = '~/Temp/luigi/game-clocks-%s.pckl' % self.player
+        file_location = f'~/Temp/luigi/game-clocks-{self.player}.pckl'
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):
@@ -405,7 +404,7 @@ class GetGameInfos(Task):
     def output(self):
         import os
 
-        file_location = '~/Temp/luigi/game-infos-%s.pckl' % self.player
+        file_location = f'~/Temp/luigi/game-infos-{self.player}.pckl'
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):

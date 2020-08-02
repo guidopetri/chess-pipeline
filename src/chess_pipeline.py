@@ -139,13 +139,12 @@ class FetchLichessApiPGN(Task):
             # progress bar stuff
             counter += 1
 
-            if counter % 5 == 0:
-                current = f'{game_infos["UTCDate"]} {game_infos["UTCTime"]}'
+            current = f'{game_infos["UTCDate"]} {game_infos["UTCTime"]}'
 
-                current_progress = counter / game_count
-                self.set_status_message(f'Parsed until {current}: '
-                                        f'{counter} / {game_count}')
-                self.set_progress_percentage(round(current_progress * 100, 2))
+            current_progress = counter / game_count
+            self.set_status_message(f'Parsed until {current} :: '
+                                    f'{counter} / {game_count}')
+            self.set_progress_percentage(round(current_progress * 100, 2))
 
         df = DataFrame(header_infos)
 

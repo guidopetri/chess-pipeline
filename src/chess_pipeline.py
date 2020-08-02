@@ -81,6 +81,8 @@ class FetchLichessApiPGN(Task):
         token = lichess_token().token
         stockfish_params = stockfish_cfg()
 
+        game_count = self.count_games(auth=token)
+
         games = lichess.api.user_games(self.player,
                                        since=self.since,
                                        until=self.until,
@@ -113,7 +115,6 @@ class FetchLichessApiPGN(Task):
         header_infos = []
 
         counter = 0
-        total_time = self.until - self.since
 
         evals_finished = query_for_column('game_evals', 'game_link')
 
@@ -140,13 +141,10 @@ class FetchLichessApiPGN(Task):
 
             if counter % 5 == 0:
                 current = f'{game_infos["UTCDate"]} {game_infos["UTCTime"]}'
-                time_parsed = datetime.strptime(current,
-                                                '%Y.%m.%d %H:%M:%S')
-                unix_time_parsed = timegm(time_parsed.timetuple())
-                current_unix = int(unix_time_parsed * 1000)
 
-                current_progress = (self.until - current_unix) / total_time
-                self.set_status_message(f'Parsed until {current}')
+                current_progress = counter / game_count
+                self.set_status_message(f'Parsed until {current}: '
+                                        f'{counter} / {game_count}')
                 self.set_progress_percentage(round(current_progress * 100, 2))
 
         df = DataFrame(header_infos)
@@ -156,6 +154,23 @@ class FetchLichessApiPGN(Task):
 
         with self.output().temporary_path() as temp_output_path:
             df.to_pickle(temp_output_path, compression=None)
+
+    def count_games(self, auth):
+        import lichess.api
+        from lichess.format import JSON
+
+        games = lichess.api.user_games(self.player,
+                                       since=self.since,
+                                       until=self.until,
+                                       perfType=self.perf_type,
+                                       auth=auth,
+                                       clocks='false',
+                                       evals='false',
+                                       opening='false',
+                                       format=JSON,
+                                       )
+
+        return len(list(games))
 
 
 class FetchLichessApiJSON(Task):

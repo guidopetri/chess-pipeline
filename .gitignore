@@ -6,3 +6,4 @@
 luigi.cfg
 /__pycache__/
 test_pipeline.bat
+res/content/win_probabilities.csv

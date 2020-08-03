@@ -4,6 +4,7 @@ from chess.pgn import BaseVisitor
 import chess
 import re
 import stockfish
+from api import get_cloud_eval
 
 
 class EvalsVisitor(BaseVisitor):
@@ -103,12 +104,20 @@ class StockfishVisitor(BaseVisitor):
     def __init__(self, gm, stockfish_loc, depth):
         self.game = gm
         self.game.evals = []
-        self.game.eval_depth = depth
+        self.depth = depth
         self.sf = stockfish.Stockfish(stockfish_loc,
                                       depth=depth)
 
     def visit_board(self, board):
-        self.sf.set_fen_position(board.fen())
+        fen = board.fen()
+        cloud_eval = get_cloud_eval(fen)
+
+        if 'depth' in cloud_eval:
+            self.game.evals.append(cloud_eval['evaluations'][0])
+            self.game.eval_depths.append(cloud_eval['depth'])
+            return
+
+        self.sf.set_fen_position(fen)
         if self.sf.get_best_move() is not None:
             rating_match = re.search(r'score (cp|mate) (.+?)(?: |$)',
                                      self.sf.info)
@@ -130,6 +139,7 @@ class StockfishVisitor(BaseVisitor):
         else:
             rating = self.game.evals[-1]
         self.game.evals.append(rating)
+        self.game.eval_depths.append(self.depth)
 
     def result(self):
         return None

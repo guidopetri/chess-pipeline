@@ -287,7 +287,7 @@ class ExplodeEvals(Task):
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):
-        from pandas import read_pickle, to_numeric
+        from pandas import read_pickle, to_numeric, concat
 
         self.output().makedirs()
 
@@ -304,10 +304,18 @@ class ExplodeEvals(Task):
 
             return
 
-        df = df[['game_link', 'evaluations', 'eval_depth']]
+        df = df[['game_link', 'evaluations', 'eval_depths']]
+        df.set_index('game_link', inplace=True)
 
-        df = df.explode('evaluations')
-        df.rename(columns={'evaluations': 'evaluation'},
+        # explode the two different list-likes separately, then concat
+        evals = df['evaluations'].explode()
+        depths = df['eval_depths'].explode()
+
+        df = concat([evals, depths], axis=1)
+        df.reset_index(drop=False, inplace=True)
+
+        df.rename(columns={'evaluations': 'evaluation',
+                           'eval_depths': 'eval_depth'},
                   inplace=True)
         df['half_move'] = df.groupby('game_link').cumcount() + 1
         df['evaluation'] = to_numeric(df['evaluation'],

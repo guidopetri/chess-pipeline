@@ -4,7 +4,7 @@ from chess.pgn import BaseVisitor
 import chess
 import re
 import stockfish
-from api import get_cloud_eval
+from pipeline_import.api import get_cloud_eval
 
 
 class EvalsVisitor(BaseVisitor):

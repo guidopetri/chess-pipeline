@@ -1,2 +1,4 @@
 *.sql linguist-language=SQL
 *.sql linguist-detectable=true
+*.ipynb linguist-detectable=false
+*.ipynb linguist-vendored

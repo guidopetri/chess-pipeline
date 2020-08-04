@@ -77,7 +77,7 @@ class FetchLichessApiPGN(Task):
         self.until = int(1000 * unix_time_until)
 
         unix_time_since = timegm(self.since.timetuple())
-        self.since = int(1000 * unix_time_since)
+        self.since_unix = int(1000 * unix_time_since)
 
         token = lichess_token().token
         stockfish_params = stockfish_cfg()
@@ -85,7 +85,7 @@ class FetchLichessApiPGN(Task):
         game_count = self.count_games(auth=token)
 
         games = lichess.api.user_games(self.player,
-                                       since=self.since,
+                                       since=self.since_unix,
                                        until=self.until,
                                        perfType=self.perf_type,
                                        auth=token,
@@ -165,7 +165,7 @@ class FetchLichessApiPGN(Task):
         from lichess.format import JSON
 
         games = lichess.api.user_games(self.player,
-                                       since=self.since,
+                                       since=self.since_unix,
                                        until=self.until,
                                        perfType=self.perf_type,
                                        auth=auth,
@@ -208,12 +208,12 @@ class FetchLichessApiJSON(Task):
         self.until = int(1000 * unix_time_until)
 
         unix_time_since = timegm(self.since.timetuple())
-        self.since = int(1000 * unix_time_since)
+        self.since_unix = int(1000 * unix_time_since)
 
         token = lichess_token().token
 
         games = lichess.api.user_games(self.player,
-                                       since=self.since,
+                                       since=self.since_unix,
                                        until=self.until,
                                        perfType=self.perf_type,
                                        auth=token,

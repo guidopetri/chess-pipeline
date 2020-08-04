@@ -212,7 +212,8 @@ class FetchLichessApiJSON(Task):
                                        until=self.until,
                                        perfType=self.perf_type,
                                        auth=token,
-                                       evals='true',
+                                       evals='false',
+                                       clocks='false',
                                        moves='false',
                                        format=JSON)
 
@@ -224,7 +225,7 @@ class FetchLichessApiJSON(Task):
             df.to_pickle(temp_output_path, compression=None)
 
 
-@requires(FetchLichessApiPGN)
+@requires(FetchLichessApiPGN, FetchLichessApiJSON)
 class CleanChessDF(Task):
 
     def output(self):
@@ -235,12 +236,20 @@ class CleanChessDF(Task):
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):
-        from pandas import read_pickle
+        from pandas import read_pickle, merge
 
         self.output().makedirs()
 
-        with self.input().open('r') as f:
-            df = read_pickle(f, compression=None)
+        with self.input()[0].open('r') as f:
+            pgn = read_pickle(f, compression=None)
+
+        with self.input()[1].open('r') as f:
+            json = read_pickle(f, compression=None)
+
+        json['Site'] = 'https://lichess.org/' + json['id']
+        json = json[['Site', 'speed', 'status']]
+
+        df = merge(pgn, json, on='Site')
 
         if df.empty:
 
@@ -517,7 +526,9 @@ class GetGameInfos(Task):
                                                    '0-1False': 'Win',
                                                    })
 
-        df['time_control_category'] = self.perf_type
+        df.rename(columns={'speed': 'time_control_category'},
+                  inplace=True)
+
         df['datetime_played'] = to_datetime(df['utc_date_played'].astype(str)
                                             + ' '
                                             + df['time_played'].astype(str))

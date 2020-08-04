@@ -102,7 +102,7 @@ class FetchLichessApiPGN(Task):
 
         visitor_stats = {'clocks': 'clocks',
                          'evaluations': 'evals',
-                         'eval_depth': 'eval_depth',
+                         'eval_depths': 'eval_depths',
                          'queen_exchange': 'queen_exchange',
                          'castling_sides': 'castling',
                          'has_promotion': 'has_promotion',

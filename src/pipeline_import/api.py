@@ -3,6 +3,7 @@
 
 def get_cloud_eval(fen, variation_count=1, variant='standard'):
     import requests
+    import time
 
     cloud_eval_url = 'https://lichess.org/api/cloud-eval'
     params = {'fen': fen,
@@ -10,7 +11,14 @@ def get_cloud_eval(fen, variation_count=1, variant='standard'):
               'variant': variant,
               }
 
-    r = requests.get(cloud_eval_url, params=params)
+    while True:
+        r = requests.get(cloud_eval_url, params=params)
+
+        if r.status_code == 429:
+            time.sleep(60)
+        elif r.status_code == 200:
+            break
+
     data = r.json()
 
     if 'error' in data:

@@ -134,6 +134,9 @@ class FetchLichessApiPGN(Task):
                 game.evals = [x / 100 for x in game.evals]
             elif any(game.evals):
                 game.eval_depths = [20] * len(game.evals)
+            elif not self.local_stockfish or eval_done:
+                game.evals = None
+                game.eval_depths = None
             for k, v in visitor_stats.items():
                 game_infos[k] = getattr(game, v)
             game_infos['moves'] = [x.san() for x in game.mainline()]

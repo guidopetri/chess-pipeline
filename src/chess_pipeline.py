@@ -361,9 +361,9 @@ class GetEvals(Task):
 
         if self.local_stockfish:
             no_evals = DataFrame(no_evals['positions'].explode())
-            no_evals['positions'] = (no_evals['position'].str.split()
-                                                         .str[:-1]
-                                                         .str.join(' '))
+            no_evals['positions'] = (no_evals['positions'].str.split()
+                                                          .str[:-1]
+                                                          .str.join(' '))
 
             local_evals = []
 

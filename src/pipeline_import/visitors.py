@@ -12,7 +12,7 @@ class EvalsVisitor(BaseVisitor):
     def __init__(self, gm):
         self.game = gm
         self.game.evals = []
-        self.game.eval_depth = 20
+        self.game.eval_depths = []
 
     def visit_comment(self, comment):
         if 'eval' in comment:
@@ -29,6 +29,7 @@ class EvalsVisitor(BaseVisitor):
             evaluation = None
 
         self.game.evals.append(evaluation)
+        self.game.eval_depths.append(20)
 
     def result(self):
         return None

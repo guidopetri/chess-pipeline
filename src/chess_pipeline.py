@@ -135,8 +135,6 @@ class FetchLichessApiPGN(Task):
                                              stockfish_params.depth))
                 # adjust for centipawn scale
                 game.evals = [x / 100 for x in game.evals]
-            elif any(game.evals):
-                game.eval_depths = [20] * len(game.evals)
             elif not self.local_stockfish or eval_done:
                 game.evals = None
                 game.eval_depths = None

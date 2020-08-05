@@ -477,7 +477,7 @@ class ExplodePositions(Task):
         df['half_move'] = df.groupby('game_link').cumcount() + 1
 
         # split, get all but last two elements of resulting list, then re-join
-        df['fen'] = df['position'].str.split().str[:-2].str.join('')
+        df['fen'] = df['position'].str.split().str[:-2].str.join(' ')
 
         df = df[list(self.columns)]
 

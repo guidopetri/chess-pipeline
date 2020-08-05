@@ -252,20 +252,21 @@ class CleanChessDF(Task):
         with self.input()[1].open('r') as f:
             json = read_pickle(f, compression=None)
 
-        json['Site'] = 'https://lichess.org/' + json['id']
-        json = json[['Site', 'speed', 'status']]
-
-        df = merge(pgn, json, on='Site')
-
-        if df.empty:
+        # hopefully, if pgn is empty so is json
+        if pgn.empty:
 
             def complete(self):
                 return True
 
             with self.output().temporary_path() as temp_output_path:
-                df.to_pickle(temp_output_path, compression=None)
+                pgn.to_pickle(temp_output_path, compression=None)
 
             return
+
+        json['Site'] = 'https://lichess.org/' + json['id']
+        json = json[['Site', 'speed', 'status']]
+
+        df = merge(pgn, json, on='Site')
 
         # rename columns
         df.rename(columns={'Black':           'black',

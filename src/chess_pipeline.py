@@ -371,7 +371,7 @@ class GetEvals(Task):
             position_count = len(no_evals['positions'])
 
             for position in no_evals['positions'].tolist():
-                if position in positions_evaluated:
+                if position in positions_evaluated.values:
                     evaluation = None
                 else:
                     evaluation = (get_sf_evaluation(position + ' 0',

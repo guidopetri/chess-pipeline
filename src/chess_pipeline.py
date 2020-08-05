@@ -741,7 +741,7 @@ class MoveList(TransactionFactTable):
     pass
 
 
-@inherits(FetchLichessApiPGN, ChessGames, MoveClocks)
+@inherits(FetchLichessApiPGN, ChessGames, MoveClocks, GetEvals)
 class CopyGames(CopyWrapper):
 
     jobs = [{'table_type': ChessGames,

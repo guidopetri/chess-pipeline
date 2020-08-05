@@ -325,7 +325,7 @@ class GetEvals(Task):
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):
-        from pandas import read_pickle, to_numeric, concat
+        from pandas import read_pickle, to_numeric, concat, DataFrame
 
         self.output().makedirs()
 
@@ -359,7 +359,7 @@ class GetEvals(Task):
 
         if self.local_stockfish:
             no_evals = df[~df['evaluations'].astype(bool)]
-            no_evals = no_evals['positions'].explode()
+            no_evals = DataFrame(no_evals['positions'].explode())
 
             local_evals = []
 

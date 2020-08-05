@@ -349,15 +349,16 @@ class GetEvals(Task):
         positions_evaluated = query_for_column('position_evals', 'fen')
 
         # explode the two different list-likes separately, then concat
+        no_evals = df[~df['evaluations'].astype(bool)]
         df = df[df['evaluations'].astype(bool)]
-        evals = df['evaluations'].explode()
-        depths = df['eval_depths'].explode()
-        positions = df['positions'].explode()
+
+        evals = df['evaluations'].explode().reset_index(drop=True)
+        depths = df['eval_depths'].explode().reset_index(drop=True)
+        positions = df['positions'].explode().reset_index(drop=True)
 
         df = concat([positions, evals, depths], axis=1, ignore_index=True)
 
         if self.local_stockfish:
-            no_evals = df[~df['evaluations'].astype(bool)]
             no_evals = DataFrame(no_evals['positions'].explode())
 
             local_evals = []

@@ -213,7 +213,7 @@ class FetchLichessApiJSON(Task):
     def run(self):
         import lichess.api
         from lichess.format import JSON
-        from pandas.io.json import json_normalize
+        from pandas import json_normalize
         from calendar import timegm
 
         self.output().makedirs()

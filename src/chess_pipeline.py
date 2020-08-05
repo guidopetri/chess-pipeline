@@ -440,6 +440,52 @@ class ExplodeClocks(Task):
 
 
 @requires(CleanChessDF)
+class ExplodePositions(Task):
+
+    columns = ListParameter()
+
+    def output(self):
+        import os
+
+        file_location = (f'~/Temp/luigi/{self.since}-game-positions-'
+                         f'{self.player}.pckl')
+        return LocalTarget(os.path.expanduser(file_location), format=Nop)
+
+    def run(self):
+        from pandas import read_pickle
+
+        self.output().makedirs()
+
+        with self.input().open('r') as f:
+            df = read_pickle(f, compression=None)
+
+        if df.empty:
+
+            def complete(self):
+                return True
+
+            with self.output().temporary_path() as temp_output_path:
+                df.to_pickle(temp_output_path, compression=None)
+
+            return
+
+        df = df[['game_link', 'positions']]
+
+        df = df.explode('positions')
+        df.rename(columns={'positions': 'position'},
+                  inplace=True)
+        df['half_move'] = df.groupby('game_link').cumcount() + 1
+
+        # split, get all but last two elements of resulting list, then re-join
+        df['position'] = df['position'].str.split().str[:-2].str.join('')
+
+        df = df[list(self.columns)]
+
+        with self.output().temporary_path() as temp_output_path:
+            df.to_pickle(temp_output_path, compression=None)
+
+
+@requires(CleanChessDF)
 class GetGameInfos(Task):
 
     columns = ListParameter()
@@ -618,6 +664,11 @@ class MoveEvals(TransactionFactTable):
     pass
 
 
+@requires(ExplodePositions)
+class GamePositions(TransactionFactTable):
+    pass
+
+
 @requires(ExplodeClocks)
 class MoveClocks(TransactionFactTable):
     pass
@@ -691,6 +742,17 @@ class CopyGames(CopyWrapper):
              'columns': ['game_link',
                          'half_move',
                          'clock',
+                         ],
+             'id_cols': ['game_link',
+                         'half_move'],
+             'date_cols': [],
+             'merge_cols': HashableDict()},
+            {'table_type': GamePositions,
+             'fn': ExplodePositions,
+             'table': 'game_positions',
+             'columns': ['game_link',
+                         'half_move',
+                         'position',
                          ],
              'id_cols': ['game_link',
                          'half_move'],

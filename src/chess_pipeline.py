@@ -66,6 +66,7 @@ class FetchLichessApiPGN(Task):
         from pipeline_import.visitors import QueenExchangeVisitor
         from pipeline_import.visitors import CastlingVisitor, StockfishVisitor
         from pipeline_import.visitors import PromotionsVisitor
+        from pipeline_import.visitors import PositionsVisitor
 
         self.output().makedirs()
 
@@ -99,6 +100,7 @@ class FetchLichessApiPGN(Task):
                     QueenExchangeVisitor,
                     CastlingVisitor,
                     PromotionsVisitor,
+                    PositionsVisitor,
                     ]
 
         visitor_stats = {'clocks': 'clocks',
@@ -111,6 +113,7 @@ class FetchLichessApiPGN(Task):
                          'promotion_count_black': 'promotion_count_black',
                          'promotions_white': 'promotions_white',
                          'promotions_black': 'promotions_black',
+                         'positions': 'positions',
                          }
 
         header_infos = []

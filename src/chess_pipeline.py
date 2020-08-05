@@ -344,8 +344,7 @@ class GetEvals(Task):
 
         stockfish_params = stockfish_cfg()
 
-        df = df[['game_link', 'evaluations', 'eval_depths', 'positions']]
-        df.set_index('game_link', inplace=True)
+        df = df[['evaluations', 'eval_depths', 'positions']]
 
         positions_evaluated = query_for_column('position_evals', 'fen')
 
@@ -355,7 +354,7 @@ class GetEvals(Task):
         depths = df['eval_depths'].explode()
         positions = df['positions'].explode()
 
-        df = concat([positions, evals, depths], axis=1)
+        df = concat([positions, evals, depths], axis=1, ignore_index=True)
 
         if self.local_stockfish:
             no_evals = df[~df['evaluations'].astype(bool)]

@@ -80,7 +80,6 @@ class FetchLichessApiPGN(Task):
     perf_type = Parameter(default='blitz')
     since = DateParameter(default=datetime.today().date() - timedelta(days=1))
     single_day = BoolParameter()
-    local_stockfish = BoolParameter()
 
     def output(self):
         import os
@@ -315,6 +314,7 @@ class CleanChessDF(Task):
 @requires(CleanChessDF)
 class GetEvals(Task):
 
+    local_stockfish = BoolParameter()
     columns = ListParameter()
 
     def output(self):
@@ -347,47 +347,51 @@ class GetEvals(Task):
         df = df[['game_link', 'evaluations', 'eval_depths', 'positions']]
         df.set_index('game_link', inplace=True)
 
-        no_evals = df[~df['evaluations'].astype(bool)]
-        no_evals = no_evals['positions'].explode()
-
-        local_evals = []
         positions_evaluated = query_for_column('position_evals', 'fen')
 
-        counter = 0
-        position_count = len(no_evals['positions'])
-
-        for position in no_evals['positions'].tolist():
-            if position in positions_evaluated:
-                evaluation = None
-            else:
-                evaluation = (get_sf_evaluation(position + ' 0',
-                                                stockfish_params.location,
-                                                stockfish_params.depth)
-                              or evaluation)
-            local_evals.append(evaluation)
-
-            # progress bar stuff
-            counter += 1
-
-            current_progress = counter / position_count
-            self.set_status_message(f'Analyzed :: '
-                                    f'{counter} / {position_count}')
-            self.set_progress_percentage(round(current_progress * 100, 2))
-
-        self.set_status_message(f'Analyzed all {position_count} positions')
-        self.set_progress_percentage(100)
-
-        no_evals['evaluations'] = local_evals
-        no_evals['eval_depths'] = stockfish_params.depth
-        no_evals.dropna(inplace=True)
-
         # explode the two different list-likes separately, then concat
+        df = df[df['evaluations'].astype(bool)]
         evals = df['evaluations'].explode()
         depths = df['eval_depths'].explode()
         positions = df['positions'].explode()
 
         df = concat([positions, evals, depths], axis=1)
-        df = concat([df, no_evals], axis=0, ignore_index=True)
+
+        if self.local_stockfish:
+            no_evals = df[~df['evaluations'].astype(bool)]
+            no_evals = no_evals['positions'].explode()
+
+            local_evals = []
+
+            counter = 0
+            position_count = len(no_evals['positions'])
+
+            for position in no_evals['positions'].tolist():
+                if position in positions_evaluated:
+                    evaluation = None
+                else:
+                    evaluation = (get_sf_evaluation(position + ' 0',
+                                                    stockfish_params.location,
+                                                    stockfish_params.depth)
+                                  or evaluation)
+                local_evals.append(evaluation)
+
+                # progress bar stuff
+                counter += 1
+
+                current_progress = counter / position_count
+                self.set_status_message(f'Analyzed :: '
+                                        f'{counter} / {position_count}')
+                self.set_progress_percentage(round(current_progress * 100, 2))
+
+            self.set_status_message(f'Analyzed all {position_count} positions')
+            self.set_progress_percentage(100)
+
+            no_evals['evaluations'] = local_evals
+            no_evals['eval_depths'] = stockfish_params.depth
+            no_evals.dropna(inplace=True)
+
+            df = concat([df, no_evals], axis=0, ignore_index=True)
 
         df = df[~df['positions'].isin(positions_evaluated)]
 

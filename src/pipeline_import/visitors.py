@@ -25,11 +25,8 @@ class EvalsVisitor(BaseVisitor):
                     evaluation = -9999
                 else:  # otherwise it's for white, e.g. #30
                     evaluation = 9999
-        else:
-            evaluation = None
-
-        self.game.evals.append(evaluation)
-        self.game.eval_depths.append(20)
+            self.game.evals.append(evaluation)
+            self.game.eval_depths.append(20)
 
     def result(self):
         return None

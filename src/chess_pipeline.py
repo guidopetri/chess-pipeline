@@ -11,6 +11,8 @@ from pipeline_import.postgres_templates import CopyWrapper, HashableDict
 from pipeline_import.postgres_templates import TransactionFactTable
 from datetime import datetime, timedelta
 from pipeline_import.configs import lichess_token, stockfish_cfg, postgres_cfg
+import stockfish
+import re
 
 
 def query_for_column(table, column):
@@ -42,6 +44,36 @@ def query_for_column(table, column):
     return current_srs[0]
 
 
+def get_sf_evaluation(fen, sf_location, sf_depth):
+    sf = stockfish.Stockfish(sf_location,
+                             depth=sf_depth)
+
+    sf.set_fen_position(fen)
+    if sf.get_best_move() is not None:
+        rating_match = re.search(r'score (cp|mate) (.+?)(?: |$)',
+                                 sf.info)
+
+        if rating_match.group(1) == 'mate':
+            original_rating = int(rating_match.group(2))
+
+            # adjust ratings for checkmate sequences
+            if original_rating:
+                rating = 999900 * original_rating / abs(original_rating)
+            elif ' w ' in fen:
+                rating = 999900
+            else:
+                rating = -999900
+        else:
+            rating = int(rating_match.group(2))
+        if ' b ' in fen:
+            rating *= -1
+        rating /= 100
+    else:
+        rating = None
+
+    return rating
+
+
 class FetchLichessApiPGN(Task):
 
     player = Parameter(default='thibault')
@@ -64,9 +96,8 @@ class FetchLichessApiPGN(Task):
         from calendar import timegm
         from pipeline_import.visitors import EvalsVisitor, ClocksVisitor
         from pipeline_import.visitors import QueenExchangeVisitor
-        from pipeline_import.visitors import CastlingVisitor, StockfishVisitor
+        from pipeline_import.visitors import CastlingVisitor, PositionsVisitor
         from pipeline_import.visitors import PromotionsVisitor
-        from pipeline_import.visitors import PositionsVisitor
 
         self.output().makedirs()
 
@@ -81,7 +112,6 @@ class FetchLichessApiPGN(Task):
         self.since_unix = int(1000 * unix_time_since)
 
         token = lichess_token().token
-        stockfish_params = stockfish_cfg()
 
         game_count = self.count_games(auth=token)
 
@@ -120,24 +150,12 @@ class FetchLichessApiPGN(Task):
 
         counter = 0
 
-        evals_finished = query_for_column('game_evals', 'game_link')
-
         for game in games:
             game_infos = {x: y for x, y in game.headers.items()}
             if game.headers['Variant'] == 'From Position':
                 game.headers['Variant'] = 'Standard'
             for visitor in visitors:
                 game.accept(visitor(game))
-            eval_done = evals_finished.isin([game.headers['Site']]).any()
-            if not any(game.evals) and self.local_stockfish and not eval_done:
-                game.accept(StockfishVisitor(game,
-                                             stockfish_params.location,
-                                             stockfish_params.depth))
-                # adjust for centipawn scale
-                game.evals = [x / 100 for x in game.evals]
-            elif not self.local_stockfish or eval_done:
-                game.evals = None
-                game.eval_depths = None
             for k, v in visitor_stats.items():
                 game_infos[k] = getattr(game, v)
             game_infos['moves'] = [x.san() for x in game.mainline()]
@@ -295,7 +313,7 @@ class CleanChessDF(Task):
 
 
 @requires(CleanChessDF)
-class ExplodeEvals(Task):
+class GetEvals(Task):
 
     columns = ListParameter()
 
@@ -324,20 +342,59 @@ class ExplodeEvals(Task):
 
             return
 
-        df = df[['game_link', 'evaluations', 'eval_depths']]
+        stockfish_params = stockfish_cfg()
+
+        df = df[['game_link', 'evaluations', 'eval_depths', 'positions']]
         df.set_index('game_link', inplace=True)
+
+        no_evals = df[~df['evaluations'].astype(bool)]
+        no_evals = no_evals['positions'].explode()
+
+        local_evals = []
+        positions_evaluated = query_for_column('position_evals', 'fen')
+
+        counter = 0
+        position_count = len(no_evals['positions'])
+
+        for position in no_evals['positions'].tolist():
+            if position in positions_evaluated:
+                evaluation = None
+            else:
+                evaluation = (get_sf_evaluation(position + ' 0',
+                                                stockfish_params.location,
+                                                stockfish_params.depth)
+                              or evaluation)
+            local_evals.append(evaluation)
+
+            # progress bar stuff
+            counter += 1
+
+            current_progress = counter / position_count
+            self.set_status_message(f'Analyzed :: '
+                                    f'{counter} / {position_count}')
+            self.set_progress_percentage(round(current_progress * 100, 2))
+
+        self.set_status_message(f'Analyzed all {position_count} positions')
+        self.set_progress_percentage(100)
+
+        no_evals['evaluations'] = local_evals
+        no_evals['eval_depths'] = stockfish_params.depth
+        no_evals.dropna(inplace=True)
 
         # explode the two different list-likes separately, then concat
         evals = df['evaluations'].explode()
         depths = df['eval_depths'].explode()
+        positions = df['positions'].explode()
 
-        df = concat([evals, depths], axis=1)
-        df.reset_index(drop=False, inplace=True)
+        df = concat([positions, evals, depths], axis=1)
+        df = concat([df, no_evals], axis=0, ignore_index=True)
+
+        df = df[~df['positions'].isin(positions_evaluated)]
 
         df.rename(columns={'evaluations': 'evaluation',
-                           'eval_depths': 'eval_depth'},
+                           'eval_depths': 'eval_depth',
+                           'positions': 'fen'},
                   inplace=True)
-        df['half_move'] = df.groupby('game_link').cumcount() + 1
         df['evaluation'] = to_numeric(df['evaluation'],
                                       errors='coerce')
 
@@ -477,8 +534,8 @@ class ExplodePositions(Task):
                   inplace=True)
         df['half_move'] = df.groupby('game_link').cumcount() + 1
 
-        # split, get all but last two elements of resulting list, then re-join
-        df['fen'] = df['position'].str.split().str[:-2].str.join(' ')
+        # split, get all but last element of resulting list, then re-join
+        df['fen'] = df['position'].str.split().str[:-1].str.join(' ')
 
         df = df[list(self.columns)]
 
@@ -660,8 +717,8 @@ class ChessGames(TransactionFactTable):
     pass
 
 
-@requires(ExplodeEvals)
-class MoveEvals(TransactionFactTable):
+@requires(GetEvals)
+class PositionEvals(TransactionFactTable):
     pass
 
 
@@ -680,7 +737,7 @@ class MoveList(TransactionFactTable):
     pass
 
 
-@inherits(FetchLichessApiPGN, ChessGames, MoveEvals)
+@inherits(FetchLichessApiPGN, ChessGames, MoveClocks)
 class CopyGames(CopyWrapper):
 
     jobs = [{'table_type': ChessGames,
@@ -725,16 +782,14 @@ class CopyGames(CopyWrapper):
                             'game_link'],
              'date_cols':  ['datetime_played'],
              'merge_cols': HashableDict()},
-            {'table_type': MoveEvals,
-             'fn': ExplodeEvals,
-             'table': 'game_evals',
-             'columns': ['game_link',
-                         'half_move',
+            {'table_type': PositionEvals,
+             'fn': GetEvals,
+             'table': 'position_evals',
+             'columns': ['fen',
                          'evaluation',
                          'eval_depth',
                          ],
-             'id_cols': ['game_link',
-                         'half_move'],
+             'id_cols': ['fen'],
              'date_cols': [],
              'merge_cols': HashableDict()},
             {'table_type': MoveClocks,

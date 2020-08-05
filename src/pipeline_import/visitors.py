@@ -147,6 +147,19 @@ class StockfishVisitor(BaseVisitor):
         return None
 
 
+class PositionsVisitor(BaseVisitor):
+
+    def __init__(self, game):
+        self.game = game
+        self.game.positions = []
+
+    def visit_board(self, board):
+        self.game.positions.append(board.fen())
+
+    def result(self):
+        return None
+
+
 class PromotionsVisitor(BaseVisitor):
 
     def __init__(self, gm):

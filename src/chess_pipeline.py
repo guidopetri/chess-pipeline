@@ -74,6 +74,59 @@ def get_sf_evaluation(fen, sf_location, sf_depth):
     return rating
 
 
+class FetchLichessApiJSON(Task):
+
+    player = Parameter(default='thibault')
+    perf_type = Parameter(default='blitz')
+    since = DateParameter(default=datetime.today().date() - timedelta(days=1))
+    single_day = BoolParameter()
+
+    def output(self):
+        import os
+
+        file_location = (f'~/Temp/luigi/{self.since}-raw-games-'
+                         f'{self.player}-json.pckl')
+        return LocalTarget(os.path.expanduser(file_location), format=Nop)
+
+    def run(self):
+        import lichess.api
+        from lichess.format import JSON
+        from pandas import json_normalize
+        from calendar import timegm
+
+        self.output().makedirs()
+
+        if self.single_day:
+            unix_time_until = timegm((self.since
+                                      + timedelta(days=1)).timetuple())
+        else:
+            unix_time_until = timegm(datetime.today().date().timetuple())
+        self.until = int(1000 * unix_time_until)
+
+        unix_time_since = timegm(self.since.timetuple())
+        self.since_unix = int(1000 * unix_time_since)
+
+        token = lichess_token().token
+
+        games = lichess.api.user_games(self.player,
+                                       since=self.since_unix,
+                                       until=self.until,
+                                       perfType=self.perf_type,
+                                       auth=token,
+                                       evals='false',
+                                       clocks='false',
+                                       moves='false',
+                                       format=JSON)
+
+        df = json_normalize([game
+                             for game in games],
+                            sep='_')
+
+        with self.output().temporary_path() as temp_output_path:
+            df.to_pickle(temp_output_path, compression=None)
+
+
+@requires(FetchLichessApiJSON)
 class FetchLichessApiPGN(Task):
 
     player = Parameter(default='thibault')
@@ -91,7 +144,7 @@ class FetchLichessApiPGN(Task):
     def run(self):
         import lichess.api
         from lichess.format import PYCHESS
-        from pandas import DataFrame
+        from pandas import DataFrame, read_pickle
         from calendar import timegm
         from pipeline_import.visitors import EvalsVisitor, ClocksVisitor
         from pipeline_import.visitors import QueenExchangeVisitor
@@ -99,6 +152,10 @@ class FetchLichessApiPGN(Task):
         from pipeline_import.visitors import PromotionsVisitor
 
         self.output().makedirs()
+
+        with self.input().open('r') as f:
+            json = read_pickle(f, compression=None)
+            game_count = len(json)
 
         if self.single_day:
             unix_time_until = timegm((self.since
@@ -111,8 +168,6 @@ class FetchLichessApiPGN(Task):
         self.since_unix = int(1000 * unix_time_since)
 
         token = lichess_token().token
-
-        game_count = self.count_games(auth=token)
 
         games = lichess.api.user_games(self.player,
                                        since=self.since_unix,
@@ -174,75 +229,6 @@ class FetchLichessApiPGN(Task):
 
         self.set_status_message('Parsed all games')
         self.set_progress_percentage(100)
-
-        with self.output().temporary_path() as temp_output_path:
-            df.to_pickle(temp_output_path, compression=None)
-
-    def count_games(self, auth):
-        import lichess.api
-        from lichess.format import JSON
-
-        games = lichess.api.user_games(self.player,
-                                       since=self.since_unix,
-                                       until=self.until,
-                                       perfType=self.perf_type,
-                                       auth=auth,
-                                       clocks='false',
-                                       evals='false',
-                                       opening='false',
-                                       format=JSON,
-                                       )
-
-        return len(list(games))
-
-
-class FetchLichessApiJSON(Task):
-
-    player = Parameter(default='thibault')
-    perf_type = Parameter(default='blitz')
-    since = DateParameter(default=datetime.today().date() - timedelta(days=1))
-    single_day = BoolParameter()
-
-    def output(self):
-        import os
-
-        file_location = (f'~/Temp/luigi/{self.since}-raw-games-'
-                         f'{self.player}-json.pckl')
-        return LocalTarget(os.path.expanduser(file_location), format=Nop)
-
-    def run(self):
-        import lichess.api
-        from lichess.format import JSON
-        from pandas import json_normalize
-        from calendar import timegm
-
-        self.output().makedirs()
-
-        if self.single_day:
-            unix_time_until = timegm((self.since
-                                      + timedelta(days=1)).timetuple())
-        else:
-            unix_time_until = timegm(datetime.today().date().timetuple())
-        self.until = int(1000 * unix_time_until)
-
-        unix_time_since = timegm(self.since.timetuple())
-        self.since_unix = int(1000 * unix_time_since)
-
-        token = lichess_token().token
-
-        games = lichess.api.user_games(self.player,
-                                       since=self.since_unix,
-                                       until=self.until,
-                                       perfType=self.perf_type,
-                                       auth=token,
-                                       evals='false',
-                                       clocks='false',
-                                       moves='false',
-                                       format=JSON)
-
-        df = json_normalize([game
-                             for game in games],
-                            sep='_')
 
         with self.output().temporary_path() as temp_output_path:
             df.to_pickle(temp_output_path, compression=None)

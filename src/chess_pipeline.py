@@ -198,6 +198,8 @@ class FetchLichessApiPGN(Task):
                          'promotions_white': 'promotions_white',
                          'promotions_black': 'promotions_black',
                          'positions': 'positions',
+                         'black_berserked': 'black_berserked',
+                         'white_berserked': 'white_berserked',
                          }
 
         header_infos = []
@@ -784,6 +786,8 @@ class CopyGames(CopyWrapper):
                             'promotion_count_black',
                             'promotions_white',
                             'promotions_black',
+                            'black_berserked',
+                            'white_berserked',
                             ],
              'id_cols':    ['player',
                             'game_link'],

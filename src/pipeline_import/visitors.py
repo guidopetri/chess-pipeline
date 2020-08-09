@@ -37,12 +37,26 @@ class ClocksVisitor(BaseVisitor):
     def __init__(self, gm):
         self.game = gm
         self.game.clocks = []
+        self.game.white_berserked = False
+        self.game.black_berserked = False
 
     def visit_comment(self, comment):
         if 'clk' in comment:
             clock_time = re.search(r'\[%clk ([^\]]+)', comment).group(1)
         else:
             clock_time = ''
+
+        # berserked games stuff
+        if len(self.game.clocks) == 0:
+            white_clock = int(clock_time)
+        if len(self.game.clocks) == 1:
+            black_clock = int(clock_time)
+        if len(self.game.clocks) == 2:
+            if black_clock > white_clock:
+                self.game.white_berserked = True
+            elif white_clock > black_clock:
+                self.game.black_berserked = True
+
         self.game.clocks.append(clock_time)
 
     def result(self):

@@ -3,8 +3,6 @@
 from chess.pgn import BaseVisitor
 import chess
 import re
-import stockfish
-from pipeline_import.api import get_cloud_eval
 from datetime import datetime
 from collections import Counter
 
@@ -108,53 +106,6 @@ class CastlingVisitor(BaseVisitor):
                 self.game.castling['black'] = 'queenside'
             elif move.to_square == chess.C1:
                 self.game.castling['white'] = 'queenside'
-
-    def result(self):
-        return None
-
-
-class StockfishVisitor(BaseVisitor):
-
-    def __init__(self, gm, stockfish_loc, depth):
-        self.game = gm
-        self.game.evals = []
-        self.game.eval_depths = []
-        self.depth = depth
-        self.sf = stockfish.Stockfish(stockfish_loc,
-                                      depth=depth)
-
-    def visit_board(self, board):
-        fen = board.fen()
-        cloud_eval = get_cloud_eval(fen)
-
-        if 'depth' in cloud_eval:
-            self.game.evals.append(cloud_eval['evaluations'][0])
-            self.game.eval_depths.append(cloud_eval['depth'])
-            return
-
-        self.sf.set_fen_position(fen)
-        if self.sf.get_best_move() is not None:
-            rating_match = re.search(r'score (cp|mate) (.+?)(?: |$)',
-                                     self.sf.info)
-
-            if rating_match.group(1) == 'mate':
-                original_rating = int(rating_match.group(2))
-
-                # adjust ratings for checkmate sequences
-                if original_rating:
-                    rating = 999900 * original_rating / abs(original_rating)
-                elif self.game.headers['Result'] == '1-0':
-                    rating = 999900
-                else:
-                    rating = -999900
-            else:
-                rating = int(rating_match.group(2))
-            if board.turn == chess.BLACK:
-                rating *= -1
-        else:
-            rating = self.game.evals[-1]
-        self.game.evals.append(rating)
-        self.game.eval_depths.append(self.depth)
 
     def result(self):
         return None

@@ -267,29 +267,46 @@ class CleanChessDF(Task):
             return
 
         json['Site'] = 'https://lichess.org/' + json['id']
-        json = json[['Site', 'speed', 'status']]
+
+        if 'players_black_provisional' in json.columns:
+            json['players_black_provisional'].fillna(False, inplace=True)
+        else:
+            json['players_black_provisional'] = False
+        if 'players_white_provisional' in json.columns:
+            json['players_white_provisional'].fillna(False, inplace=True)
+        else:
+            json['players_white_provisional'] = False
+
+        json = json[['Site',
+                     'speed',
+                     'status',
+                     'players_black_provisional',
+                     'players_white_provisional',
+                     ]]
 
         df = merge(pgn, json, on='Site')
 
         # rename columns
-        df.rename(columns={'Black':           'black',
-                           'BlackElo':        'black_elo',
-                           'BlackRatingDiff': 'black_rating_diff',
-                           'Date':            'date_played',
-                           'ECO':             'opening_played',
-                           'Event':           'event_type',
-                           'Result':          'result',
-                           'Round':           'round',
-                           'Site':            'game_link',
-                           'Termination':     'termination',
-                           'TimeControl':     'time_control',
-                           'UTCDate':         'utc_date_played',
-                           'UTCTime':         'time_played',
-                           'Variant':         'chess_variant',
-                           'White':           'white',
-                           'WhiteElo':        'white_elo',
-                           'WhiteRatingDiff': 'white_rating_diff',
-                           'Opening':         'lichess_opening'
+        df.rename(columns={'Black':                     'black',
+                           'BlackElo':                  'black_elo',
+                           'BlackRatingDiff':           'black_rating_diff',
+                           'Date':                      'date_played',
+                           'ECO':                       'opening_played',
+                           'Event':                     'event_type',
+                           'Result':                    'result',
+                           'Round':                     'round',
+                           'Site':                      'game_link',
+                           'Termination':               'termination',
+                           'TimeControl':               'time_control',
+                           'UTCDate':                   'utc_date_played',
+                           'UTCTime':                   'time_played',
+                           'Variant':                   'chess_variant',
+                           'White':                     'white',
+                           'WhiteElo':                  'white_elo',
+                           'WhiteRatingDiff':           'white_rating_diff',
+                           'Opening':                   'lichess_opening',
+                           'players_black_provisional': 'black_elo_tentative',
+                           'players_white_provisional': 'white_elo_tentative',
                            },
                   inplace=True)
 
@@ -567,10 +584,6 @@ class GetGameInfos(Task):
                 df.to_pickle(temp_output_path, compression=None)
 
             return
-
-        # add new columns
-        for column in ['black_elo', 'white_elo']:
-            df[column + '_tentative'] = 'Unknown'
 
         df['player'] = self.player
 

@@ -49,13 +49,13 @@ class ClocksVisitor(BaseVisitor):
 
         # berserked games stuff
         if len(self.game.clocks) == 0:
-            white_clock = datetime.strptime(clock_time, '%H:%M:%S')
+            self.white_clock = datetime.strptime(clock_time, '%H:%M:%S')
         elif len(self.game.clocks) == 1:
-            black_clock = datetime.strptime(clock_time, '%H:%M:%S')
+            self.black_clock = datetime.strptime(clock_time, '%H:%M:%S')
         elif len(self.game.clocks) == 2:
-            if black_clock > white_clock:
+            if self.black_clock > self.white_clock:
                 self.game.white_berserked = True
-            elif white_clock > black_clock:
+            elif self.white_clock > self.black_clock:
                 self.game.black_berserked = True
 
         self.game.clocks.append(clock_time)

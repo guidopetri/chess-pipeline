@@ -6,6 +6,7 @@ import re
 import stockfish
 from pipeline_import.api import get_cloud_eval
 from datetime import datetime
+from collections import Counter
 
 
 class EvalsVisitor(BaseVisitor):
@@ -203,6 +204,23 @@ class PromotionsVisitor(BaseVisitor):
 
         self.gm.promotions_black = sorted(self.gm.promotions[chess.BLACK])
         self.gm.promotions_black = ''.join(self.gm.promotions_black)
+
+    def result(self):
+        return None
+
+
+class MaterialVisitor(BaseVisitor):
+
+    def __init__(self, gm):
+        self.game = gm
+        self.game.material_by_move = []
+
+    def visit_board(self, board):
+        pieces = board.piece_map()
+        symbols = [v.symbol() for k, v in pieces.items()]
+
+        summary = Counter(symbols)
+        self.game.material_by_move.append(summary)
 
     def result(self):
         return None

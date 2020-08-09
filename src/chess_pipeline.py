@@ -590,8 +590,12 @@ class ExplodeMaterials(Task):
 
         df = df[['game_link', 'material_by_move']]
 
+        df = df.explode('material_by_move')
+
         df = concat([df['game_link'],
-                     df['material_by_move'].apply(Series)],
+                     df['material_by_move'].apply(Series)
+                                           .fillna(0)
+                                           .astype(int)],
                     axis=1)
         df.rename(columns={'r': 'rooks_black',
                            'n': 'knights_black',

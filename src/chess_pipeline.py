@@ -149,7 +149,7 @@ class FetchLichessApiPGN(Task):
         from pipeline_import.visitors import EvalsVisitor, ClocksVisitor
         from pipeline_import.visitors import QueenExchangeVisitor
         from pipeline_import.visitors import CastlingVisitor, PositionsVisitor
-        from pipeline_import.visitors import PromotionsVisitor
+        from pipeline_import.visitors import PromotionsVisitor, MaterialVisitor
 
         self.output().makedirs()
 
@@ -185,6 +185,7 @@ class FetchLichessApiPGN(Task):
                     CastlingVisitor,
                     PromotionsVisitor,
                     PositionsVisitor,
+                    MaterialVisitor,
                     ]
 
         visitor_stats = {'clocks': 'clocks',
@@ -200,6 +201,7 @@ class FetchLichessApiPGN(Task):
                          'positions': 'positions',
                          'black_berserked': 'black_berserked',
                          'white_berserked': 'white_berserked',
+                         'material_by_move': 'material_by_move',
                          }
 
         header_infos = []
@@ -557,6 +559,62 @@ class ExplodePositions(Task):
 
 
 @requires(CleanChessDF)
+class ExplodeMaterials(Task):
+
+    columns = ListParameter()
+
+    def output(self):
+        import os
+
+        file_location = (f'~/Temp/luigi/{self.since}-game-materials-'
+                         f'{self.player}.pckl')
+        return LocalTarget(os.path.expanduser(file_location), format=Nop)
+
+    def run(self):
+        from pandas import read_pickle, concat, Series
+
+        self.output().makedirs()
+
+        with self.input().open('r') as f:
+            df = read_pickle(f, compression=None)
+
+        if df.empty:
+
+            def complete(self):
+                return True
+
+            with self.output().temporary_path() as temp_output_path:
+                df.to_pickle(temp_output_path, compression=None)
+
+            return
+
+        df = df[['game_link', 'material_by_move']]
+
+        df = concat([df['game_link'],
+                     df['material_by_move'].apply(Series)],
+                    axis=1)
+        df.rename(columns={'r': 'rooks_black',
+                           'n': 'knights_black',
+                           'b': 'bishops_black',
+                           'q': 'queens_black',
+                           'p': 'pawns_black',
+                           'P': 'pawns_white',
+                           'R': 'rooks_white',
+                           'N': 'knights_white',
+                           'B': 'bishops_white',
+                           'Q': 'queens_white',
+                           },
+                  inplace=True)
+
+        df['half_move'] = df.groupby('game_link').cumcount() + 1
+
+        df = df[list(self.columns)]
+
+        with self.output().temporary_path() as temp_output_path:
+            df.to_pickle(temp_output_path, compression=None)
+
+
+@requires(CleanChessDF)
 class GetGameInfos(Task):
 
     columns = ListParameter()
@@ -736,6 +794,11 @@ class GamePositions(TransactionFactTable):
     pass
 
 
+@requires(ExplodeMaterials)
+class GameMaterials(TransactionFactTable):
+    pass
+
+
 @requires(ExplodeClocks)
 class MoveClocks(TransactionFactTable):
     pass
@@ -831,6 +894,26 @@ class CopyGames(CopyWrapper):
              'columns': ['game_link',
                          'half_move',
                          'move',
+                         ],
+             'id_cols': ['game_link',
+                         'half_move'],
+             'date_cols': [],
+             'merge_cols': HashableDict()},
+            {'table_type': GameMaterials,
+             'fn': ExplodeMaterials,
+             'table': 'game_materials',
+             'columns': ['game_link',
+                         'half_move',
+                         'pawns_white',
+                         'pawns_black',
+                         'bishops_white',
+                         'bishops_black',
+                         'knights_white',
+                         'knights_black',
+                         'rooks_white',
+                         'rooks_black',
+                         'queens_white',
+                         'queens_black',
                          ],
              'id_cols': ['game_link',
                          'half_move'],

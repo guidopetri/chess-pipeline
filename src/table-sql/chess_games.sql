@@ -31,5 +31,7 @@ create table chess_games(
     opening_played         text      not null,
     has_promotion          boolean   not null,
     promotion_count        smallint  not null,
-    promotions             text              
+    promotions             text              ,
+    black_berserked        boolean   not null,
+    white_berserked        boolean   not null
 );

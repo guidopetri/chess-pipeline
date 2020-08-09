@@ -5,6 +5,7 @@ import chess
 import re
 import stockfish
 from pipeline_import.api import get_cloud_eval
+from datetime import datetime
 
 
 class EvalsVisitor(BaseVisitor):
@@ -48,9 +49,9 @@ class ClocksVisitor(BaseVisitor):
 
         # berserked games stuff
         if len(self.game.clocks) == 0:
-            white_clock = int(clock_time)
+            white_clock = datetime.strptime(clock_time, '%H:%M:%S')
         if len(self.game.clocks) == 1:
-            black_clock = int(clock_time)
+            black_clock = datetime.strptime(clock_time, '%H:%M:%S')
         if len(self.game.clocks) == 2:
             if black_clock > white_clock:
                 self.game.white_berserked = True

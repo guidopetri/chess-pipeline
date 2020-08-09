@@ -50,9 +50,9 @@ class ClocksVisitor(BaseVisitor):
         # berserked games stuff
         if len(self.game.clocks) == 0:
             white_clock = datetime.strptime(clock_time, '%H:%M:%S')
-        if len(self.game.clocks) == 1:
+        elif len(self.game.clocks) == 1:
             black_clock = datetime.strptime(clock_time, '%H:%M:%S')
-        if len(self.game.clocks) == 2:
+        elif len(self.game.clocks) == 2:
             if black_clock > white_clock:
                 self.game.white_berserked = True
             elif white_clock > black_clock:

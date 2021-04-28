@@ -87,6 +87,16 @@ def parse_headers(game, visitors, visitor_stats):
     return game_infos
 
 
+def fix_provisional_columns(json):
+    for side in ['black', 'white']:
+        col = f'players_{side}_provisional'
+        if col in json.columns:
+            json[col].fillna(False, inplace=True)
+        else:
+            json[col] = False
+    return json
+
+
 class FetchLichessApiJSON(Task):
 
     player = Parameter(default='thibault')
@@ -278,14 +288,7 @@ class CleanChessDF(Task):
 
         json['Site'] = 'https://lichess.org/' + json['id']
 
-        if 'players_black_provisional' in json.columns:
-            json['players_black_provisional'].fillna(False, inplace=True)
-        else:
-            json['players_black_provisional'] = False
-        if 'players_white_provisional' in json.columns:
-            json['players_white_provisional'].fillna(False, inplace=True)
-        else:
-            json['players_white_provisional'] = False
+        json = fix_provisional_columns(json)
 
         json = json[['Site',
                      'speed',

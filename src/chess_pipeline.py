@@ -319,15 +319,13 @@ class GetEvals(Task):
         evals = df['evaluations'].explode().reset_index(drop=True)
         depths = df['eval_depths'].explode().reset_index(drop=True)
         positions = df['positions'].explode().reset_index(drop=True)
-        positions = positions.str.split().str[:-1].str.join(' ')
+        positions = get_clean_fens(positions)
 
         df = concat([positions, evals, depths], axis=1)
 
         if self.local_stockfish:
             no_evals = DataFrame(no_evals['positions'].explode())
-            no_evals['positions'] = (no_evals['positions'].str.split()
-                                                          .str[:-1]
-                                                          .str.join(' '))
+            no_evals['positions'] = get_clean_fens(no_evals['positions'])
 
             local_evals = []
 

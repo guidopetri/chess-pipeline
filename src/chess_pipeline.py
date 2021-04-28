@@ -107,6 +107,11 @@ def convert_clock_to_seconds(clocks):
     return clocks
 
 
+def get_clean_fens(positions):
+    # split, get all but last element of resulting list, then re-join
+    return positions.str.split().str[:-1].str.join(' ')
+
+
 class FetchLichessApiJSON(Task):
 
     player = Parameter(default='thibault')
@@ -564,8 +569,7 @@ class ExplodePositions(Task):
                   inplace=True)
         df['half_move'] = df.groupby('game_link').cumcount() + 1
 
-        # split, get all but last element of resulting list, then re-join
-        df['fen'] = df['position'].str.split().str[:-1].str.join(' ')
+        df['fen'] = get_clean_fens(df['position'])
 
         df = df[list(self.columns)]
 

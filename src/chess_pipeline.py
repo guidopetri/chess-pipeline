@@ -334,6 +334,7 @@ class GetEvals(Task):
 
             for position in no_evals['positions'].tolist():
                 if position in positions_evaluated.values:
+                    # position will be dropped later if evaluation is None
                     evaluation = None
                 else:
                     evaluation = (get_sf_evaluation(position + ' 0',

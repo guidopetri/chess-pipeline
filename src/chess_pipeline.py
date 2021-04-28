@@ -74,6 +74,19 @@ def get_sf_evaluation(fen, sf_location, sf_depth):
     return rating
 
 
+def parse_headers(game, visitors, visitor_stats):
+    game_infos = {x: y for x, y in game.headers.items()}
+    if game.headers['Variant'] == 'From Position':
+        game.headers['Variant'] = 'Standard'
+    for visitor in visitors:
+        game.accept(visitor(game))
+    for k, v in visitor_stats.items():
+        game_infos[k] = getattr(game, v)
+    game_infos['moves'] = [x.san() for x in game.mainline()]
+
+    return game_infos
+
+
 class FetchLichessApiJSON(Task):
 
     player = Parameter(default='thibault')
@@ -209,14 +222,7 @@ class FetchLichessApiPGN(Task):
         counter = 0
 
         for game in games:
-            game_infos = {x: y for x, y in game.headers.items()}
-            if game.headers['Variant'] == 'From Position':
-                game.headers['Variant'] = 'Standard'
-            for visitor in visitors:
-                game.accept(visitor(game))
-            for k, v in visitor_stats.items():
-                game_infos[k] = getattr(game, v)
-            game_infos['moves'] = [x.san() for x in game.mainline()]
+            game_infos = parse_headers(game, visitors, visitor_stats)
             header_infos.append(game_infos)
 
             # progress bar stuff

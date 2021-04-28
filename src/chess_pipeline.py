@@ -6,7 +6,7 @@ import psycopg2
 from luigi.util import requires, inherits
 from luigi.format import Nop
 from luigi import Task, LocalTarget
-from pandas import DataFrame
+from pandas import DataFrame, to_timedelta
 from pipeline_import.postgres_templates import CopyWrapper, HashableDict
 from pipeline_import.postgres_templates import TransactionFactTable
 from datetime import datetime, timedelta
@@ -95,6 +95,16 @@ def fix_provisional_columns(json):
         else:
             json[col] = False
     return json
+
+
+def convert_clock_to_seconds(clocks):
+    clocks = to_timedelta(clocks,
+                          errors='coerce')
+    clocks = clocks.dt.total_seconds()
+    clocks.fillna(-1.0, inplace=True)
+    clocks = clocks.astype(int)
+
+    return clocks
 
 
 class FetchLichessApiJSON(Task):
@@ -486,7 +496,7 @@ class ExplodeClocks(Task):
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):
-        from pandas import read_pickle, to_timedelta
+        from pandas import read_pickle
 
         self.output().makedirs()
 
@@ -509,11 +519,7 @@ class ExplodeClocks(Task):
         df.rename(columns={'clocks': 'clock'},
                   inplace=True)
         df['half_move'] = df.groupby('game_link').cumcount() + 1
-        df['clock'] = to_timedelta(df['clock'],
-                                   errors='coerce')
-        df['clock'] = df['clock'].dt.total_seconds()
-        df['clock'].fillna(-1.0, inplace=True)
-        df['clock'] = df['clock'].astype(int)
+        df['clock'] = convert_clock_to_seconds(df['clock'])
 
         df = df[list(self.columns)]
 

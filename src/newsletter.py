@@ -8,6 +8,7 @@ from pipeline_import.configs import sendgrid, newsletter_cfg, postgres_cfg
 from pipeline_import.transforms import get_color_stats, get_elo_by_weekday
 from pipeline_import.transforms import get_weekly_data
 from pipeline_import.plots import make_color_stats_plot
+from pipeline_import.plots import make_elo_by_weekday_plot
 
 
 class GetData(Task):
@@ -90,10 +91,6 @@ class EloByWeekday(Task):
         import pickle
         import os
         from pandas import read_pickle
-        from seaborn import set as sns_set
-        from matplotlib import use
-
-        use('Agg')
 
         with self.input().open('r') as f:
             df = read_pickle(f, compression=None)
@@ -108,70 +105,10 @@ class EloByWeekday(Task):
 
         elo = get_elo_by_weekday(df)
 
-        sns_set(style='whitegrid')
-
-        # plot main line with standard deviation
-        ax = elo.plot(x='weekday_played',
-                      y='mean',
-                      yerr='std',
-                      color='#0000FF',
-                      title='Elo evolution by day of week',
-                      style=[''],
-                      legend=False,
-                      capsize=4,
-                      capthick=1,
-                      )
-
-        # plot min/maxes
-        elo.plot(x='weekday_played',
-                 y=['min', 'max'],
-                 color='#999999',
-                 style=['--', '--'],
-                 ax=ax,
-                 legend=False,
-                 xlim=[-0.05, 6.05],
-                 xticks=range(0, 7),
-                 )
-
-        min_last_day = elo[-1:]['min'].values
-        max_last_day = elo[-1:]['max'].values
-        mean_last_day = elo[-1:]['mean'].values
-
-        # annotate the lines individually
-        ax.annotate('min',
-                    xy=(elo.shape[0] - 0.95, min_last_day),
-                    color='#555555',
-                    )
-        ax.annotate('mean + std',
-                    xy=(elo.shape[0] - 0.95, mean_last_day),
-                    color='k',
-                    )
-        ax.annotate('max',
-                    xy=(elo.shape[0] - 0.95, max_last_day),
-                    color='#555555',
-                    )
-
-        # change the tick labels
-        ax.set_xticklabels(['Sunday',
-                            'Monday',
-                            'Tuesday',
-                            'Wednesday',
-                            'Thursday',
-                            'Friday',
-                            'Saturday',
-                            ],
-                           rotation=45)
-
-        ax.set_xlabel('Weekday')
-        ax.set_ylabel('Rating')
-
-        # save the figure
         fig_loc = '~/Temp/luigi/graphs'
         fig_loc = os.path.expanduser(fig_loc)
         filename = f'elo-by-weekday-{self.player}.png'
-        os.makedirs(fig_loc, exist_ok=True)
-        ax.get_figure().savefig(os.path.join(fig_loc, filename),
-                                bbox_inches='tight')
+        make_elo_by_weekday_plot(elo, fig_loc=fig_loc, filename=filename)
 
         max_elo = int(elo['max'].max())
         min_elo = int(elo['min'].min())

@@ -5,6 +5,7 @@ from luigi.format import Nop
 from luigi.util import requires
 from luigi.parameter import Parameter, ListParameter
 from pipeline_import.configs import sendgrid, newsletter_cfg, postgres_cfg
+from pipeline_import.transforms import get_color_stats
 
 
 class GetData(Task):
@@ -76,28 +77,10 @@ class WinRatioByColor(Task):
 
             return
 
-        color_stats = df.groupby(['time_control_category',
-                                  'player_color',
-                                  'player_result']).agg({'id': 'nunique'})
-        color_stats.reset_index(drop=False, inplace=True)
-
-        # pivot so the columns are the player result
-        color_stats = color_stats.pivot_table(index=['time_control_category',
-                                                     'player_color'],
-                                              columns='player_result',
-                                              values='id')
-
-        # divide each row by the sum of the row
-        color_stats = color_stats.div(color_stats.sum(axis=1), axis=0)
+        color_stats = get_color_stats(df)
 
         # set seaborn style for plots
         sns_set(style='whitegrid')
-
-        # reorder columns
-        for col in ['Win', 'Draw', 'Loss']:
-            if col not in color_stats:
-                color_stats[col] = 0
-        color_stats = color_stats[['Win', 'Draw', 'Loss']]
 
         ax = color_stats.plot(kind='bar',
                               stacked=True,

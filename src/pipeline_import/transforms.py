@@ -203,3 +203,26 @@ def transform_game_data(df, player):
         df[column] = to_numeric(df[column])
 
     return df
+
+
+def get_color_stats(df):
+    color_stats = df.groupby(['time_control_category',
+                              'player_color',
+                              'player_result']).agg({'id': 'nunique'})
+    color_stats.reset_index(drop=False, inplace=True)
+
+    # pivot so the columns are the player result
+    color_stats = color_stats.pivot_table(index=['time_control_category',
+                                                 'player_color'],
+                                          columns='player_result',
+                                          values='id')
+
+    # divide each row by the sum of the row
+    color_stats = color_stats.div(color_stats.sum(axis=1), axis=0)
+
+    # reorder columns
+    for col in ['Win', 'Draw', 'Loss']:
+        if col not in color_stats:
+            color_stats[col] = 0
+    color_stats = color_stats[['Win', 'Draw', 'Loss']]
+    return color_stats

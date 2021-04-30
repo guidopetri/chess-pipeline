@@ -7,6 +7,7 @@ from luigi.parameter import Parameter, ListParameter
 from pipeline_import.configs import sendgrid, newsletter_cfg, postgres_cfg
 from pipeline_import.transforms import get_color_stats, get_elo_by_weekday
 from pipeline_import.transforms import get_weekly_data
+from pipeline_import.plots import make_color_stats_plot
 
 
 class GetData(Task):
@@ -41,10 +42,6 @@ class WinRatioByColor(Task):
         import pickle
         import os
         from pandas import read_pickle
-        from seaborn import set as sns_set
-        from matplotlib import use
-
-        use('Agg')
 
         with self.input().open('r') as f:
             df = read_pickle(f, compression=None)
@@ -59,48 +56,12 @@ class WinRatioByColor(Task):
 
         color_stats = get_color_stats(df)
 
-        # set seaborn style for plots
-        sns_set(style='whitegrid')
-
-        ax = color_stats.plot(kind='bar',
-                              stacked=True,
-                              color='gyr',
-                              ylim=(0, 1),
-                              rot=0,
-                              title='Win-loss ratio by color played',
-                              yticks=[0.0,
-                                      0.1,
-                                      0.2,
-                                      0.3,
-                                      0.4,
-                                      0.5,
-                                      0.6,
-                                      0.7,
-                                      0.8,
-                                      0.9,
-                                      1.0,
-                                      1.01],  # enforce two digits of precision
-                              )
-        ax.set_ylabel('Ratio')
-        ax.set_xlabel('Category / Color')
-        ax.legend().set_title('')  # remove title
-
-        for p in ax.patches:
-            # place win% in the bar itself
-            ax.annotate(f'{100 * p.get_height():.2f}%',
-                        xy=(0.5, 0.5),
-                        xycoords=p,
-                        ha='center',
-                        va='center',
-                        )
-
-        # save the figure
         fig_loc = '~/Temp/luigi/graphs'
         fig_loc = os.path.expanduser(fig_loc)
         filename = f'win-by-color-{self.player}.png'
-        os.makedirs(fig_loc, exist_ok=True)
-        ax.get_figure().savefig(os.path.join(fig_loc, filename),
-                                bbox_inches='tight')
+        make_color_stats_plot(color_stats,
+                              fig_loc=fig_loc,
+                              filename=filename)
 
         text = ('You had a {:.2f}% win rate with {} in {}'
                 ' and a {:.2f}% win rate with {}. <br>'

@@ -5,7 +5,7 @@ from luigi.format import Nop
 from luigi.util import requires
 from luigi.parameter import Parameter, ListParameter
 from pipeline_import.configs import sendgrid, newsletter_cfg, postgres_cfg
-from pipeline_import.transforms import get_color_stats
+from pipeline_import.transforms import get_color_stats, get_elo_by_weekday
 
 
 class GetData(Task):
@@ -165,23 +165,7 @@ class EloByWeekday(Task):
 
             return
 
-        df = df[df['time_control_category'] == 'blitz']
-        df['weekday_played'] = df['datetime_played'].dt.weekday
-
-        df['weekday_played'].replace(6, -1, inplace=True)
-        df['weekday_played'] += 1  # what a dumb way of fixing this
-
-        elo = (df.groupby('weekday_played')
-                 .agg({'player_elo': ['mean',
-                                      'std',
-                                      'min',
-                                      'max']}))
-        # drop the first index on columns
-        elo = (elo.T
-                  .reset_index(level=0, drop=True)
-                  .T
-                  .reset_index(drop=False))
-        elo.sort_values(by='weekday_played', inplace=True)
+        elo = get_elo_by_weekday(df)
 
         sns_set(style='whitegrid')
 

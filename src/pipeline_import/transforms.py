@@ -226,3 +226,25 @@ def get_color_stats(df):
             color_stats[col] = 0
     color_stats = color_stats[['Win', 'Draw', 'Loss']]
     return color_stats
+
+
+def get_elo_by_weekday(df):
+    df = df[df['time_control_category'] == 'blitz']
+    df['weekday_played'] = df['datetime_played'].dt.weekday
+
+    # change to sunday-first, not monday-first
+    df['weekday_played'].replace(6, -1, inplace=True)
+    df['weekday_played'] += 1  # what a dumb way of fixing this
+
+    elo = (df.groupby('weekday_played')
+             .agg({'player_elo': ['mean',
+                                  'std',
+                                  'min',
+                                  'max']}))
+    # drop the first index on columns
+    elo = (elo.T
+              .reset_index(level=0, drop=True)
+              .T
+              .reset_index(drop=False))
+    elo.sort_values(by='weekday_played', inplace=True)
+    return elo

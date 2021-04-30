@@ -1,7 +1,8 @@
 #! /usr/bin/env python3
 
 from pandas import to_timedelta, to_datetime, to_numeric
-from pandas import concat, Series, merge
+from pandas import concat, Series, merge, DataFrame
+from psycopg2 import connect
 import stockfish
 import re
 
@@ -248,3 +249,26 @@ def get_elo_by_weekday(df):
               .reset_index(drop=False))
     elo.sort_values(by='weekday_played', inplace=True)
     return elo
+
+
+def get_weekly_data(pg_cfg, player):
+    db_connection_string = 'postgresql://{}:{}@{}:{}/{}'
+
+    with connect(db_connection_string.format(pg_cfg.read_user,
+                                             pg_cfg.read_password,
+                                             pg_cfg.host,
+                                             pg_cfg.port,
+                                             pg_cfg.database)) as con:
+        cursor = con.cursor()
+
+        sql = f"""SELECT * from chess_games
+                  WHERE player = '{player}'
+                  AND datetime_played >= now()::date - interval '7 days';
+               """
+
+        cursor.execute(sql)
+        colnames = [desc.name for desc in cursor.description]
+        results = cursor.fetchall()
+
+    df = DataFrame.from_records(results, columns=colnames)
+    return df

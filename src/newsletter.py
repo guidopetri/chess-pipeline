@@ -6,6 +6,7 @@ from luigi.util import requires
 from luigi.parameter import Parameter, ListParameter
 from pipeline_import.configs import sendgrid, newsletter_cfg, postgres_cfg
 from pipeline_import.transforms import get_color_stats, get_elo_by_weekday
+from pipeline_import.transforms import get_weekly_data
 
 
 class GetData(Task):
@@ -14,29 +15,8 @@ class GetData(Task):
     columns = ListParameter(default=[])
 
     def run(self):
-        from psycopg2 import connect
-        from pandas import DataFrame
-
         pg_cfg = postgres_cfg()
-        db_connection_string = 'postgresql://{}:{}@{}:{}/{}'
-
-        with connect(db_connection_string.format(pg_cfg.read_user,
-                                                 pg_cfg.read_password,
-                                                 pg_cfg.host,
-                                                 pg_cfg.port,
-                                                 pg_cfg.database)) as con:
-            cursor = con.cursor()
-
-            sql = f"""SELECT * from chess_games
-                      WHERE player = '{self.player}'
-                      AND datetime_played >= now()::date - interval '7 days';
-                   """
-
-            cursor.execute(sql)
-            colnames = [desc.name for desc in cursor.description]
-            results = cursor.fetchall()
-
-        df = DataFrame.from_records(results, columns=colnames)
+        df = get_weekly_data(pg_cfg, self.player)
 
         with self.output().temporary_path() as temp_output_path:
             df.to_pickle(temp_output_path, compression=None)

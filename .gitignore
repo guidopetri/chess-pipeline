@@ -9,3 +9,4 @@ __pycache__/
 .pytest_cache/
 test_pipeline.bat
 res/content/win_probabilities.csv
+chess_pipeline.egg-info/

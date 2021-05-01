@@ -111,3 +111,11 @@ with the options:
 - `--receiver`, for the email address to send to
 
 Currently, the newsletter sends out win rates (in %) for black/white in each time control category, as well as a rating progression chart by day, along with min/maxes for each day.
+
+## Running the test suite
+
+The tests are written using `pytest`. To run the test suite, run the following from the root directory:
+
+```bash
+PYTHONPATH=src/ pytest
+```

@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-import pipeline_import.transforms as transforms
+from pipeline_import import transforms
 import pandas as pd
 
 

@@ -197,6 +197,21 @@ def test_get_sf_evaluation_shallow():
     assert rating == -0.52
 
 
+def test_get_sf_evaluation_deep():
+
+    fen = 'r1bq1rk1/1pp3b1/3p2np/nP2P1p1/4Pp2/PN3NP1/1B3PBP/R2Q1RK1 b - - 2 0'
+
+    cfg = ConfigParser()
+    cfg.read('luigi.cfg')
+    stockfish_loc = cfg['stockfish_cfg']['location']
+
+    depth = 20
+
+    rating = transforms.get_sf_evaluation(fen, stockfish_loc, depth)
+
+    assert rating == -0.89
+
+
 def test_convert_clock_to_seconds():
     data = pd.Series(['0:00:03', '0:01:00', '0:10:39', None, 'NotATimedelta'])
 

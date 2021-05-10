@@ -81,6 +81,9 @@ def test_fix_provisional_columns():
 
     pd.testing.assert_frame_equal(parsed, clean, check_like=True)
 
+
+def test_fix_provisional_columns_missing_both():
+
     data = pd.DataFrame([[0, 0], [0, 0]],
                         columns=['white_rating',
                                  'black_rating',

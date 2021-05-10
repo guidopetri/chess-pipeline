@@ -82,6 +82,46 @@ def test_fix_provisional_columns_missing_neither():
     pd.testing.assert_frame_equal(parsed, clean, check_like=True)
 
 
+def test_fix_provisional_columns_missing_black():
+
+    data = pd.DataFrame([[0, 0, False], [0, 0, False]],
+                        columns=['white_rating',
+                                 'black_rating',
+                                 'players_white_provisional',
+                                 ])
+
+    clean = pd.DataFrame([[0, 0, False, False], [0, 0, False, False]],
+                         columns=['white_rating',
+                                  'black_rating',
+                                  'players_black_provisional',
+                                  'players_white_provisional',
+                                  ])
+
+    parsed = transforms.fix_provisional_columns(data)
+
+    pd.testing.assert_frame_equal(parsed, clean, check_like=True)
+
+
+def test_fix_provisional_columns_missing_white():
+
+    data = pd.DataFrame([[0, 0, False], [0, 0, False]],
+                        columns=['white_rating',
+                                 'black_rating',
+                                 'players_black_provisional',
+                                 ])
+
+    clean = pd.DataFrame([[0, 0, False, False], [0, 0, False, False]],
+                         columns=['white_rating',
+                                  'black_rating',
+                                  'players_black_provisional',
+                                  'players_white_provisional',
+                                  ])
+
+    parsed = transforms.fix_provisional_columns(data)
+
+    pd.testing.assert_frame_equal(parsed, clean, check_like=True)
+
+
 def test_fix_provisional_columns_missing_both():
 
     data = pd.DataFrame([[0, 0], [0, 0]],

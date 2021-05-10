@@ -242,6 +242,21 @@ def test_get_sf_evaluation_checkmate_white():
     assert rating == 9999
 
 
+def test_get_sf_evaluation_in_checkmate():
+
+    fen = '4Rb1k/7Q/8/1p4N1/p7/8/1P4PK/8 b - - 4 0'
+
+    cfg = ConfigParser()
+    cfg.read('luigi.cfg')
+    stockfish_loc = cfg['stockfish_cfg']['location']
+
+    depth = 20
+
+    rating = transforms.get_sf_evaluation(fen, stockfish_loc, depth)
+
+    assert rating is None
+
+
 def test_convert_clock_to_seconds():
     data = pd.Series(['0:00:03', '0:01:00', '0:10:39', None, 'NotATimedelta'])
 

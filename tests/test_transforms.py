@@ -72,6 +72,22 @@ def test_parse_headers():
     assert headers == true_headers
 
 
+def test_parse_headers_position_variant():
+
+    pgn = """[Variant "From Position"]
+
+1. e4 e6 0-1"""
+
+    game = chess.pgn.read_game(io.StringIO(pgn))
+
+    visitors = []
+
+    visitor_stats = {}
+    headers = transforms.parse_headers(game, visitors, visitor_stats)
+
+    assert headers['Variant'] == 'Standard'
+
+
 def test_fix_provisional_columns_missing_neither():
 
     data = pd.DataFrame([[False, None], [None, True]],

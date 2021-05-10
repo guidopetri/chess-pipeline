@@ -65,7 +65,7 @@ def test_parse_headers():
     assert headers is False
 
 
-def test_fix_provisional_columns():
+def test_fix_provisional_columns_missing_neither():
 
     data = pd.DataFrame([[False, None], [None, True]],
                         columns=['players_white_provisional',

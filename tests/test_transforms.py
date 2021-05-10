@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 
 from pipeline_import import transforms
+from configparser import ConfigParser
 import pandas as pd
 import io
 import chess
@@ -181,8 +182,19 @@ def test_fix_provisional_columns_full_data():
     pd.testing.assert_frame_equal(parsed, clean, check_like=True)
 
 
-def test_get_sf_evaluation():
-    assert False
+def test_get_sf_evaluation_shallow():
+
+    fen = 'r1bq1rk1/1pp3b1/3p2np/nP2P1p1/4Pp2/PN3NP1/1B3PBP/R2Q1RK1 b - - 2 0'
+
+    cfg = ConfigParser()
+    cfg.read('luigi.cfg')
+    stockfish_loc = cfg['stockfish_cfg']['location']
+
+    depth = 10
+
+    rating = transforms.get_sf_evaluation(fen, stockfish_loc, depth)
+
+    assert rating == -0.52
 
 
 def test_convert_clock_to_seconds():

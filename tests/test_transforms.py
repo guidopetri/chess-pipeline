@@ -257,6 +257,27 @@ def test_get_sf_evaluation_in_checkmate():
     assert rating is None
 
 
+def test_get_sf_evaluation_double_checkmate():
+
+    fen = '6k1/4pppp/6r1/3b4/4r3/8/1Q5P/1R5K w - - 0 0'
+
+    cfg = ConfigParser()
+    cfg.read('luigi.cfg')
+    stockfish_loc = cfg['stockfish_cfg']['location']
+
+    depth = 20
+
+    rating = transforms.get_sf_evaluation(fen, stockfish_loc, depth)
+
+    assert rating == 9999
+
+    fen = '6k1/4pppp/6r1/3b4/4r3/8/1Q5P/1R5K b - - 0 0'
+
+    rating = transforms.get_sf_evaluation(fen, stockfish_loc, depth)
+
+    assert rating == -9999
+
+
 def test_convert_clock_to_seconds():
     data = pd.Series(['0:00:03', '0:01:00', '0:10:39', None, 'NotATimedelta'])
 

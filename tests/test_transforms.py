@@ -388,3 +388,7 @@ def test_get_weekly_data():
             ]
 
     assert all([col in data.columns for col in cols])
+
+    timedeltas = pd.Timestamp.now() - data['datetime_played']
+
+    assert (timedeltas <= pd.Timedelta('7 days')).all()

@@ -141,6 +141,23 @@ def test_fix_provisional_columns_missing_both():
     pd.testing.assert_frame_equal(parsed, clean, check_like=True)
 
 
+def test_fix_provisional_columns_full_data():
+
+    data = pd.DataFrame([[False, True], [True, True]],
+                        columns=['players_white_provisional',
+                                 'players_black_provisional',
+                                 ])
+
+    clean = pd.DataFrame([[False, True], [True, True]],
+                         columns=['players_white_provisional',
+                                  'players_black_provisional',
+                                  ])
+
+    parsed = transforms.fix_provisional_columns(data)
+
+    pd.testing.assert_frame_equal(parsed, clean, check_like=True)
+
+
 def test_get_sf_evaluation():
     assert False
 

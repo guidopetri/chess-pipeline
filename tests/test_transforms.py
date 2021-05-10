@@ -335,7 +335,10 @@ def test_get_weekly_data():
     cfg.read('luigi.cfg')
     cfg = cfg['postgres_cfg']
 
-    pg_cfg = lambda: None  # create empty object  # noqa
+    class EmptyObj:
+        pass
+
+    pg_cfg = EmptyObj()  # create empty object
     pg_cfg.read_user = cfg['read_user']
     pg_cfg.read_password = cfg['read_password']
     pg_cfg.host = cfg['host']

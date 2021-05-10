@@ -194,7 +194,14 @@ def test_get_sf_evaluation_shallow():
 
     rating = transforms.get_sf_evaluation(fen, stockfish_loc, depth)
 
-    assert rating == -0.52
+    if '10' in stockfish_loc:
+        assert rating == -0.52
+    elif '11' in stockfish_loc:
+        assert rating == -0.89
+    elif '12' in stockfish_loc:
+        assert rating == -0.89
+    elif '13' in stockfish_loc:
+        assert rating == -0.89
 
 
 def test_get_sf_evaluation_deep():
@@ -209,7 +216,14 @@ def test_get_sf_evaluation_deep():
 
     rating = transforms.get_sf_evaluation(fen, stockfish_loc, depth)
 
-    assert rating == -0.89
+    if '10' in stockfish_loc:
+        assert rating == -0.89
+    elif '11' in stockfish_loc:
+        assert rating == -0.89
+    elif '12' in stockfish_loc:
+        assert rating == -0.89
+    elif '13' in stockfish_loc:
+        assert rating == -0.89
 
 
 def test_get_sf_evaluation_checkmate_black():

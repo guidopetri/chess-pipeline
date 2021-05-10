@@ -212,6 +212,36 @@ def test_get_sf_evaluation_deep():
     assert rating == -0.89
 
 
+def test_get_sf_evaluation_checkmate_black():
+
+    fen = '8/5q1k/7p/4Q2r/P3P3/4R1P1/7p/3R1r1K w - - 3 0'
+
+    cfg = ConfigParser()
+    cfg.read('luigi.cfg')
+    stockfish_loc = cfg['stockfish_cfg']['location']
+
+    depth = 20
+
+    rating = transforms.get_sf_evaluation(fen, stockfish_loc, depth)
+
+    assert rating == -9999
+
+
+def test_get_sf_evaluation_checkmate_white():
+
+    fen = '5rk1/4Q1b1/8/pp6/8/7N/1P2R1PK/8 w - - 1 0'
+
+    cfg = ConfigParser()
+    cfg.read('luigi.cfg')
+    stockfish_loc = cfg['stockfish_cfg']['location']
+
+    depth = 20
+
+    rating = transforms.get_sf_evaluation(fen, stockfish_loc, depth)
+
+    assert rating == 9999
+
+
 def test_convert_clock_to_seconds():
     data = pd.Series(['0:00:03', '0:01:00', '0:10:39', None, 'NotATimedelta'])
 

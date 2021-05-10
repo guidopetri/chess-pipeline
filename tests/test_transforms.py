@@ -163,7 +163,13 @@ def test_get_sf_evaluation():
 
 
 def test_convert_clock_to_seconds():
-    assert False
+    data = pd.Series(['0:00:03', '0:01:00', '0:10:39', None, 'NotATimedelta'])
+
+    clean = pd.Series([3, 60, 639, -1, -1], dtype=int)
+
+    parsed = transforms.convert_clock_to_seconds(data)
+
+    pd.testing.assert_series_equal(parsed, clean)
 
 
 def test_get_clean_fens():

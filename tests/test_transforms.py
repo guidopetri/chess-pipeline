@@ -79,11 +79,18 @@ def test_convert_clock_to_seconds():
 
 def test_get_clean_fens():
     fen = 'r3rnk1/ppq2ppn/2pb4/3pN1p1/3P1P1B/2PB4/PPQ3PP/R3R1K1 w - - 0 19'
-    clean_fen = 'r3rnk1/ppq2ppn/2pb4/3pN1p1/3P1P1B/2PB4/PPQ3PP/R3R1K1 w - - 0'
+    clean = 'r3rnk1/ppq2ppn/2pb4/3pN1p1/3P1P1B/2PB4/PPQ3PP/R3R1K1 w - - 0'
 
     fen = pd.Series([fen])
-    clean_fen = pd.Series([clean_fen])
-    assert (transforms.get_clean_fens(fen) == clean_fen).all()
+    clean = pd.Series([clean])
+    assert (transforms.get_clean_fens(fen) == clean).all()
+
+    fen = 'r1bqkbnr/pp3ppp/2n1p3/2ppP3/3P4/3B1N2/PPP2PPP/RNBQK2R b KQkq - 2 5'
+    clean = 'r1bqkbnr/pp3ppp/2n1p3/2ppP3/3P4/3B1N2/PPP2PPP/RNBQK2R b KQkq - 2'
+
+    fen = pd.Series([fen])
+    clean = pd.Series([clean])
+    assert (transforms.get_clean_fens(fen) == clean).all()
 
 
 def test_transform_game_data():

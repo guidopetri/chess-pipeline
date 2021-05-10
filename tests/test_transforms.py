@@ -66,7 +66,36 @@ def test_parse_headers():
 
 
 def test_fix_provisional_columns():
-    assert False
+
+    data = pd.DataFrame([[False, None], [None, True]],
+                        columns=['players_white_provisional',
+                                 'players_black_provisional',
+                                 ])
+
+    clean = pd.DataFrame([[False, False], [False, True]],
+                         columns=['players_white_provisional',
+                                  'players_black_provisional',
+                                  ])
+
+    parsed = transforms.fix_provisional_columns(data)
+
+    pd.testing.assert_frame_equal(parsed, clean, check_like=True)
+
+    data = pd.DataFrame([[0, 0], [0, 0]],
+                        columns=['white_rating',
+                                 'black_rating',
+                                 ])
+
+    clean = pd.DataFrame([[0, 0, False, False], [0, 0, False, False]],
+                         columns=['white_rating',
+                                  'black_rating',
+                                  'players_black_provisional',
+                                  'players_white_provisional',
+                                  ])
+
+    parsed = transforms.fix_provisional_columns(data)
+
+    pd.testing.assert_frame_equal(parsed, clean, check_like=True)
 
 
 def test_get_sf_evaluation():

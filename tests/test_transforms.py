@@ -331,4 +331,57 @@ def test_get_elo_by_weekday():
 
 
 def test_get_weekly_data():
-    assert False
+    cfg = ConfigParser()
+    cfg.read('luigi.cfg')
+    cfg = cfg['postgres_cfg']
+
+    pg_cfg = lambda: None  # create empty object  # noqa
+    pg_cfg.read_user = cfg['read_user']
+    pg_cfg.read_password = cfg['read_password']
+    pg_cfg.host = cfg['host']
+    pg_cfg.port = cfg['port']
+    pg_cfg.database = cfg['database']
+
+    player = 'thibault'
+
+    data = transforms.get_weekly_data(pg_cfg, player)
+
+    cols = ['event_type',
+            'result',
+            'round',
+            'game_link',
+            'termination',
+            'chess_variant',
+            'black_elo_tentative',
+            'white_elo_tentative',
+            'player',
+            'opponent',
+            'player_color',
+            'opponent_color',
+            'player_rating_diff',
+            'opponent_rating_diff',
+            'player_result',
+            'opponent_result',
+            'time_control_category',
+            'datetime_played',
+            'starting_time',
+            'increment',
+            'in_arena',
+            'rated_casual',
+            'player_elo',
+            'opponent_elo',
+            'queen_exchange',
+            'player_castling_side',
+            'opponent_castling_side',
+            'lichess_opening',
+            'opening_played',
+            'has_promotion',
+            'promotion_count_white',
+            'promotion_count_black',
+            'promotions_white',
+            'promotions_black',
+            'black_berserked',
+            'white_berserked',
+            ]
+
+    assert all([col in data.columns for col in cols])

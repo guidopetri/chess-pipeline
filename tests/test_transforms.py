@@ -585,7 +585,45 @@ def test_get_color_stats():
 
 
 def test_get_elo_by_weekday():
-    assert False
+
+    # disable SettingWithCopy warning
+    pd.options.mode.chained_assignment = None
+
+    # make sure we get sundays + mondays
+    data = pd.DataFrame([[13, 'blitz', '2021-05-10', 1680],
+                         [14, 'blitz', '2021-05-10', 1690],
+                         [15, 'blitz', '2021-05-09', 1666],
+                         [16, 'blitz', '2021-05-08', 1660],
+                         [17, 'blitz', '2021-05-08', 1665],
+                         [18, 'bullet', '2021-05-10', 2800],
+                         ],
+                        columns=['id',
+                                 'time_control_category',
+                                 'datetime_played',
+                                 'player_elo',
+                                 ])
+    data['datetime_played'] = pd.to_datetime(data['datetime_played'])
+
+    parsed = transforms.get_elo_by_weekday(data)
+
+    true = pd.DataFrame([[0, 1666, 0, 1666.0, 1666.0],
+                         [1, 1685, 7.071, 1680.0, 1690.0],
+                         [6, 1662.5, 3.536, 1660.0, 1665.0]],
+                        columns=['weekday_played',
+                                 'mean',
+                                 'std',
+                                 'min',
+                                 'max'],
+                        )
+
+    pd.testing.assert_frame_equal(parsed,
+                                  true,
+                                  check_like=True,
+                                  atol=1e-2,
+                                  )
+
+    # re-enable SettingWithCopy warning
+    pd.options.mode.chained_assignment = 'warn'
 
 
 def test_get_weekly_data():

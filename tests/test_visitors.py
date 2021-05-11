@@ -43,7 +43,38 @@ def test_queen_exchange_visitor():
 
 
 def test_castling_visitor():
-    assert False
+    pgn = """[Site "https://lichess.org/TTYLmSUX"]
+
+1. e4 c5 2. f4 d6 3. Nf3 Nf6 4. d3 g6 5. c3 Bg7 6. e5 dxe5 7. fxe5 Nd5 8. d4 cxd4 9. cxd4 O-O 10. Nc3 Nc6 11. Nxd5 Qxd5 12. Be3 Bg4 13. Be2 Bxf3 14. Bxf3 Qa5+ 15. Bd2 Qb5 16. Bc3 Rad8 17. Be2 Qb6 18. d5 Nxe5 19. Bxe5 Bxe5 20. Qd3 Qxb2 21. O-O Qd4+ 1-0"""  # noqa
+
+    game = chess.pgn.read_game(io.StringIO(pgn))
+
+    game.accept(visitors.CastlingVisitor(game))
+
+    assert game.castling['white'] == 'kingside'
+    assert game.castling['black'] == 'kingside'
+
+    pgn = """[Site "https://lichess.org/TTYLmSUX"]
+
+1. e4 c5 2. f4 d6 1-0"""  # noqa
+
+    game = chess.pgn.read_game(io.StringIO(pgn))
+
+    game.accept(visitors.CastlingVisitor(game))
+
+    assert game.castling['white'] is None
+    assert game.castling['black'] is None
+
+    pgn = """[Site "https://lichess.org/oUMAQzs2"]
+
+1. d4 Nf6 2. c4 c5 3. d5 g6 4. Nc3 d6 5. Bg5 Bg7 6. Qd2 O-O 7. Bh6 Qb6 8. Bxg7 Kxg7 9. h4 h5 10. f3 e6 11. g4 exd5 12. cxd5 Nbd7 13. e3 Ne5 14. Be2 Qa5 15. f4 Nexg4 16. Bxg4 Nxg4 17. O-O-O Bf5 1-0"""  # noqa
+
+    game = chess.pgn.read_game(io.StringIO(pgn))
+
+    game.accept(visitors.CastlingVisitor(game))
+
+    assert game.castling['white'] == 'queenside'
+    assert game.castling['black'] == 'kingside'
 
 
 def test_positions_visitor():

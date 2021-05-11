@@ -220,6 +220,7 @@ def get_color_stats(df):
 
     # divide each row by the sum of the row
     color_stats = color_stats.div(color_stats.sum(axis=1), axis=0)
+    color_stats.fillna(0, inplace=True)
 
     # reorder columns
     for col in ['Win', 'Draw', 'Loss']:

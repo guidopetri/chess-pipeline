@@ -131,4 +131,21 @@ def test_promotions_visitor():
 
 
 def test_materials_visitor():
-    assert False
+
+    pgn = """1. d4 e5 2. dxe5"""  # noqa
+
+    game = chess.pgn.read_game(io.StringIO(pgn))
+
+    game.accept(visitors.MaterialVisitor(game))
+
+    materials = [{'p': 8, 'b': 2, 'r': 2, 'q': 1, 'k': 1, 'n': 2,
+                  'P': 8, 'B': 2, 'R': 2, 'Q': 1, 'K': 1, 'N': 2},
+                 {'p': 8, 'b': 2, 'r': 2, 'q': 1, 'k': 1, 'n': 2,
+                  'P': 8, 'B': 2, 'R': 2, 'Q': 1, 'K': 1, 'N': 2},
+                 {'p': 8, 'b': 2, 'r': 2, 'q': 1, 'k': 1, 'n': 2,
+                  'P': 8, 'B': 2, 'R': 2, 'Q': 1, 'K': 1, 'N': 2},
+                 {'p': 7, 'b': 2, 'r': 2, 'q': 1, 'k': 1, 'n': 2,
+                  'P': 8, 'B': 2, 'R': 2, 'Q': 1, 'K': 1, 'N': 2},
+                 ]
+
+    assert game.material_by_move == materials

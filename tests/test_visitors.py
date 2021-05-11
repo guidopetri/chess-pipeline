@@ -97,7 +97,37 @@ def test_positions_visitor():
 
 
 def test_promotions_visitor():
-    assert False
+    pgn = """[Site "https://lichess.org/TTYLmSUX"]
+
+1. e4 c5 2. f4 d6 1-0"""  # noqa
+
+    game = chess.pgn.read_game(io.StringIO(pgn))
+
+    game.accept(visitors.PromotionsVisitor(game))
+
+    assert not game.has_promotion
+    assert game.promotion_count == {chess.WHITE: 0, chess.BLACK: 0}
+    assert game.promotions == {chess.WHITE: [], chess.BLACK: []}
+    assert game.promotion_count_white == 0
+    assert game.promotion_count_black == 0
+    assert game.promotions_white == ''
+    assert game.promotions_black == ''
+
+    pgn = """[Site "https://lichess.org/vepGKt97"]
+
+1. d4 d5 2. Bf4 Bf5 3. c4 e6 4. Nc3 c6 5. Qb3 Qb6 6. Qxb6 axb6 7. Nf3 Nd7 8. e3 Ngf6 9. cxd5 exd5 10. h3 Be7 11. g4 Bg6 12. g5 Ne4 13. Nxe4 Bxe4 14. Bg2 O-O 15. h4 Ra4 16. O-O Rfa8 17. a3 b5 18. Ne5 Nxe5 19. Bxe5 Bxg2 20. Kxg2 b4 21. Bc7 bxa3 22. bxa3 Rxa3 23. Rxa3 Rxa3 24. Rb1 b5 25. Bb6 Ra6 26. Bc5 Bxc5 27. dxc5 Kf8 28. Kf3 Ra4 29. Kg3 Ke7 30. f4 Ke6 31. Kf3 Kf5 32. Rd1 Rc4 33. h5 Rxc5 34. Rd4 Rc4 35. e4+ dxe4+ 36. Ke3 Rxd4 37. Kxd4 b4 38. Kc5 e3 39. Kxb4 e2 40. Kc5 e1=Q 41. Kxc6 Qe4+ 42. Kd7 Qxf4 43. h6 gxh6 44. Ke7 Qxg5+ 45. Kf8 h5 46. Kxf7 h4 47. Kf8 h3 48. Kf7 h2 49. Kf8 h1=Q 50. Ke8 Qb7 51. Kf8 Qgg7+ 52. Ke8 Qg8# 0-1"""  # noqa
+
+    game = chess.pgn.read_game(io.StringIO(pgn))
+
+    game.accept(visitors.PromotionsVisitor(game))
+
+    assert game.has_promotion
+    assert game.promotion_count == {chess.WHITE: 0, chess.BLACK: 2}
+    assert game.promotions == {chess.WHITE: [], chess.BLACK: ['q', 'q']}
+    assert game.promotion_count_white == 0
+    assert game.promotion_count_black == 2
+    assert game.promotions_white == ''
+    assert game.promotions_black == 'qq'
 
 
 def test_materials_visitor():

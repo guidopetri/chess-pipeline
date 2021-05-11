@@ -35,3 +35,35 @@ def test_color_stats_plot():
     assert md5 == true_md5
 
     os.remove(file_loc)
+
+
+def test_elo_by_weekday_plot():
+    elo = pd.DataFrame([[0, 1666, 0, 1666.0, 1666.0],
+                        [1, 1685, 7.071, 1680.0, 1690.0],
+                        [2, 1685, 7.071, 1680.0, 1690.0],
+                        [3, 1685, 7.071, 1680.0, 1690.0],
+                        [4, 1685, 7.071, 1680.0, 1690.0],
+                        [5, 1685, 7.071, 1680.0, 1690.0],
+                        [6, 1662.5, 3.536, 1660.0, 1665.0]],
+                       columns=['weekday_played',
+                                'mean',
+                                'std',
+                                'min',
+                                'max'],
+                       )
+
+    fig_loc = '.'
+    filename = 'elo_by_weekday_test.png'
+
+    plots.make_elo_by_weekday_plot(elo, fig_loc, filename)
+
+    file_loc = os.path.join(fig_loc, filename)
+
+    with open(file_loc, 'rb') as f:
+        md5 = hashlib.md5(f.read()).hexdigest()
+
+    true_md5 = 'fec2b35e4c7d987098cdac371c3ace73'
+
+    assert md5 == true_md5
+
+    os.remove(file_loc)

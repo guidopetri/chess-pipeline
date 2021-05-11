@@ -319,7 +319,237 @@ def test_get_clean_fens():
 
 
 def test_transform_game_data():
-    assert False
+
+    # disable SettingWithCopy warning
+    pd.options.mode.chained_assignment = None
+
+    player = 'thibault'
+
+    # fake game, this is dummy data anyway
+    headers = {'event_type': 'Rated Bullet game',
+               'round': '?',
+               'game_link': 'https://lichess.org/31AU67ZY',
+               'date_played': '2020.05.01',
+               'white': 'Kastorcito',
+               'black': 'thibault',
+               'result': '0-1',
+               'utc_date_played': '2021.05.01',
+               'time_played': '02:34:14',
+               'white_elo': '2685',
+               'black_elo': '2561',
+               'white_rating_diff': '-8',
+               'black_rating_diff': '+8',
+               'chess_variant': 'Standard',
+               'time_control': '60+0',
+               'opening_played': 'C02',
+               'lichess_opening': 'French Defense',
+               'termination': 'Normal',
+               'players_black_provisional': False,
+               'players_white_provisional': False,
+               'queen_exchange': True,
+               'castling_sides': None,
+               'speed': 'bullet',
+               }
+
+    df = pd.DataFrame(headers, index=[0])
+
+    df['castling_sides'][0] = {'black': 'kingside', 'white': 'queenside'}
+
+    parsed = transforms.transform_game_data(df, player)
+
+    true_headers = {'event_type': 'Rated Bullet game',
+                    'round': '?',
+                    'game_link': 'https://lichess.org/31AU67ZY',
+                    'white': 'Kastorcito',
+                    'black': 'thibault',
+                    'result': '0-1',
+                    'utc_date_played': pd.to_datetime('2021.05.01'),
+                    'time_played': '02:34:14',
+                    'white_elo': '2685',
+                    'black_elo': '2561',
+                    'white_rating_diff': '-8',
+                    'black_rating_diff': '+8',
+                    'chess_variant': 'Standard',
+                    'time_control': '60+0',
+                    'opening_played': 'C02',
+                    'lichess_opening': 'French Defense',
+                    'termination': 'Normal',
+                    'players_black_provisional': False,
+                    'players_white_provisional': False,
+                    'castling_sides': None,
+                    'queen_exchange': 'Queen exchange',
+                    'player_castling_side': 'kingside',
+                    'opponent_castling_side': 'queenside',
+                    'player': player,
+                    'opponent': 'Kastorcito',
+                    'player_color': 'black',
+                    'opponent_color': 'white',
+                    'player_elo': 2561,
+                    'opponent_elo': 2685,
+                    'player_rating_diff': 8,
+                    'opponent_rating_diff': -8,
+                    'player_result': 'Win',
+                    'opponent_result': 'Loss',
+                    'time_control_category': 'bullet',
+                    'datetime_played': pd.to_datetime('2021-05-01 02:34:14'),
+                    'starting_time': '60',
+                    'increment': '0',
+                    'in_arena': 'Not in arena',
+                    'rated_casual': 'Rated',
+                    'date_played': pd.to_datetime('2020-05-01'),
+                    }
+
+    true = pd.DataFrame(true_headers, index=[0])
+
+    true['castling_sides'][0] = {'black': 'kingside', 'white': 'queenside'}
+
+    pd.testing.assert_frame_equal(parsed, true, check_like=True)
+
+    #####################################
+
+    # test rating diff insertion
+    del headers['black_rating_diff']
+    del headers['white_rating_diff']
+
+    df = pd.DataFrame(headers, index=[0])
+
+    df['castling_sides'][0] = {'black': 'kingside', 'white': 'queenside'}
+
+    parsed = transforms.transform_game_data(df, player)
+
+    true_headers['white_rating_diff'] = 0
+    true_headers['player_rating_diff'] = 0
+    true_headers['black_rating_diff'] = 0
+    true_headers['opponent_rating_diff'] = 0
+
+    true = pd.DataFrame(true_headers, index=[0])
+
+    true['castling_sides'][0] = {'black': 'kingside', 'white': 'queenside'}
+
+    pd.testing.assert_frame_equal(parsed, true, check_like=True)
+
+    #####################################
+
+    # test draw
+    headers['result'] = '1/2-1/2'
+
+    df = pd.DataFrame(headers, index=[0])
+
+    df['castling_sides'][0] = {'black': 'kingside', 'white': 'queenside'}
+
+    parsed = transforms.transform_game_data(df, player)
+
+    true_headers['result'] = '1/2-1/2'
+    true_headers['player_result'] = 'Draw'
+    true_headers['opponent_result'] = 'Draw'
+
+    true = pd.DataFrame(true_headers, index=[0])
+
+    true['castling_sides'][0] = {'black': 'kingside', 'white': 'queenside'}
+
+    pd.testing.assert_frame_equal(parsed, true, check_like=True)
+
+    #####################################
+
+    # test arena
+    headers['event_type'] = 'Rated Bullet Arena'
+
+    df = pd.DataFrame(headers, index=[0])
+
+    df['castling_sides'][0] = {'black': 'kingside', 'white': 'queenside'}
+
+    parsed = transforms.transform_game_data(df, player)
+
+    true_headers['event_type'] = 'Rated Bullet Arena'
+    true_headers['in_arena'] = 'In arena'
+
+    true = pd.DataFrame(true_headers, index=[0])
+
+    true['castling_sides'][0] = {'black': 'kingside', 'white': 'queenside'}
+
+    pd.testing.assert_frame_equal(parsed, true, check_like=True)
+
+    #####################################
+
+    # test rated/casual
+    headers['event_type'] = 'Casual Bullet Arena'
+
+    df = pd.DataFrame(headers, index=[0])
+
+    df['castling_sides'][0] = {'black': 'kingside', 'white': 'queenside'}
+
+    parsed = transforms.transform_game_data(df, player)
+
+    true_headers['event_type'] = 'Casual Bullet Arena'
+    true_headers['rated_casual'] = 'Casual'
+
+    true = pd.DataFrame(true_headers, index=[0])
+
+    true['castling_sides'][0] = {'black': 'kingside', 'white': 'queenside'}
+
+    pd.testing.assert_frame_equal(parsed, true, check_like=True)
+
+    #####################################
+
+    # test queen exchange
+    headers['queen_exchange'] = False
+
+    df = pd.DataFrame(headers, index=[0])
+
+    df['castling_sides'][0] = {'black': 'kingside', 'white': 'queenside'}
+
+    parsed = transforms.transform_game_data(df, player)
+
+    true_headers['queen_exchange'] = 'No queen exchange'
+
+    true = pd.DataFrame(true_headers, index=[0])
+
+    true['castling_sides'][0] = {'black': 'kingside', 'white': 'queenside'}
+
+    pd.testing.assert_frame_equal(parsed, true, check_like=True)
+
+    #####################################
+
+    # test castling side
+    df = pd.DataFrame(headers, index=[0])
+
+    df['castling_sides'][0] = {'black': 'queenside', 'white': None}
+
+    parsed = transforms.transform_game_data(df, player)
+
+    true_headers['player_castling_side'] = 'queenside'
+    true_headers['opponent_castling_side'] = 'No castling'
+
+    true = pd.DataFrame(true_headers, index=[0])
+
+    true['castling_sides'][0] = {'black': 'queenside', 'white': None}
+
+    pd.testing.assert_frame_equal(parsed, true, check_like=True)
+
+    #####################################
+
+    # test anonymous player ratings
+
+    headers['white_elo'] = '?'
+
+    df = pd.DataFrame(headers, index=[0])
+
+    df['castling_sides'][0] = {'black': 'queenside', 'white': None}
+
+    parsed = transforms.transform_game_data(df, player)
+
+    true_headers['white_elo'] = '?'
+    true_headers['opponent_elo'] = 1500
+    true_headers['opponent_rating_diff'] = 0
+
+    true = pd.DataFrame(true_headers, index=[0])
+
+    true['castling_sides'][0] = {'black': 'queenside', 'white': None}
+
+    pd.testing.assert_frame_equal(parsed, true, check_like=True)
+
+    # re-enable SettingWithCopy warning
+    pd.options.mode.chained_assignment = 'warn'
 
 
 def test_get_color_stats():

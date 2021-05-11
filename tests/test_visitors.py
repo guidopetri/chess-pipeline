@@ -105,7 +105,31 @@ def test_clocks_visitor():
 
 
 def test_queen_exchange_visitor():
-    assert False
+    pgn = """[Event "Rated Bullet game"]
+[Site "https://lichess.org/TTYLmSUX"]
+[Date "2020.08.02"]
+[White "Daddy_007"]
+[Black "siddhartha13"]
+[Result "1-0"]
+[UTCDate "2020.08.02"]
+[UTCTime "04:38:18"]
+[WhiteElo "1883"]
+[BlackElo "1965"]
+[WhiteRatingDiff "+7"]
+[BlackRatingDiff "-7"]
+[Variant "Standard"]
+[TimeControl "60+0"]
+[ECO "B21"]
+[Opening "Sicilian Defense: McDonnell Attack"]
+[Termination "Time forfeit"]
+
+1. e4 c5 2. f4 d6 3. Nf3 Nf6 4. d3 g6 5. c3 Bg7 6. e5 dxe5 7. fxe5 Nd5 8. d4 cxd4 9. cxd4 O-O 10. Nc3 Nc6 11. Nxd5 Qxd5 12. Be3 Bg4 13. Be2 Bxf3 14. Bxf3 Qa5+ 15. Bd2 Qb5 16. Bc3 Rad8 17. Be2 Qb6 18. d5 Nxe5 19. Bxe5 Bxe5 20. Qd3 Qxb2 21. O-O Qd4+ 22. Kh1 Qxd3 23. Bxd3 Bxa1 24. Rxa1 Rxd5 25. Bc4 Rd4 26. Bb3 Rfd8 27. Rf1 Rd2 28. h3 Rb2 29. Bxf7+ Kg7 30. Bb3 Rdd2 31. Rg1 b5 32. Kh2 a5 33. Be6 a4 34. Kg3 Kf6 35. Bd7 Rxa2 36. Bc6 Ke5 37. Bxb5 Kd4 38. Re1 e5 39. Bc6 Ra3+ 40. Kh2 Raa2 41. Bf3 Kc3 42. Re4 a3 43. Re3+ Kb4 44. Re4+ Kb3 45. Re3+ Kb2 46. Rxe5 Ra1 47. Re3 Rc2 48. Bd5 a2 49. Rb3+ Kc1 50. Ra3 1-0"""  # noqa
+
+    game = chess.pgn.read_game(io.StringIO(pgn))
+
+    game.accept(visitors.QueenExchangeVisitor(game))
+
+    assert game.queen_exchange
 
 
 def test_castling_visitor():

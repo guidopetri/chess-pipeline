@@ -78,7 +78,22 @@ def test_castling_visitor():
 
 
 def test_positions_visitor():
-    assert False
+    pgn = """[Site "https://lichess.org/TTYLmSUX"]
+
+1. e4 c5 2. f4 d6 1-0"""  # noqa
+
+    game = chess.pgn.read_game(io.StringIO(pgn))
+
+    game.accept(visitors.PositionsVisitor(game))
+
+    true = ['rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+            'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1',
+            'rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2',
+            'rnbqkbnr/pp1ppppp/8/2p5/4PP2/8/PPPP2PP/RNBQKBNR b KQkq - 0 2',
+            'rnbqkbnr/pp2pppp/3p4/2p5/4PP2/8/PPPP2PP/RNBQKBNR w KQkq - 0 3',
+            ]
+
+    assert game.positions == true
 
 
 def test_promotions_visitor():

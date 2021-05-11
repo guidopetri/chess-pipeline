@@ -22,10 +22,10 @@ class EvalsVisitor(BaseVisitor):
             if evaluation.startswith('#'):
                 # if it's a checkmate for black, it'll be e.g. #-30
                 if '-' in evaluation:
-                    evaluation = -9999
+                    evaluation = '-9999'
                 else:  # otherwise it's for white, e.g. #30
-                    evaluation = 9999
-            self.game.evals.append(evaluation)
+                    evaluation = '9999'
+            self.game.evals.append(float(evaluation))
             self.game.eval_depths.append(20)
 
     def result(self):

@@ -243,6 +243,7 @@ def get_elo_by_weekday(df):
                                   'std',
                                   'min',
                                   'max']}))
+    elo.fillna(0, inplace=True)
     # drop the first index on columns
     elo = (elo.T
               .reset_index(level=0, drop=True)

@@ -80,14 +80,14 @@ if __name__ == '__main__':
     for p in processes.values():
         p.start()
 
-    for p in processes.values():
-        p.join()
-
     with open('results.csv', 'w') as f:
         while True:
             try:
-                evaluation = evals_queue.get(timeout=5)
+                evaluation = evals_queue.get(timeout=15)
             except queue.Empty:
                 break
 
             f.write(','.join(evaluation) + '\n')
+
+    for p in processes.values():
+        p.join()

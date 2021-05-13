@@ -81,6 +81,8 @@ class WinRatioByColor(Task):
 @requires(GetData)
 class EloByWeekday(Task):
 
+    category = Parameter(default='blitz')
+
     def output(self):
         import os
 
@@ -103,7 +105,7 @@ class EloByWeekday(Task):
 
             return
 
-        elo = get_elo_by_weekday(df)
+        elo = get_elo_by_weekday(df, category=self.category)
 
         fig_loc = '~/Temp/luigi/graphs'
         fig_loc = os.path.expanduser(fig_loc)
@@ -113,8 +115,8 @@ class EloByWeekday(Task):
         max_elo = int(elo['max'].max())
         min_elo = int(elo['min'].min())
 
-        text = (f'This week, your highest elo in blitz was {max_elo} and'
-                f' your lowest elo was {min_elo}. <br>'
+        text = (f'This week, your highest elo in {self.category} was '
+                f'{max_elo} and your lowest elo was {min_elo}. <br>'
                 f'<img alt=\'Elo by weekday\' src='
                 f'\'cid:elo-by-weekday\'><br>'
                 )

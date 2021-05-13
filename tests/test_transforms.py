@@ -602,11 +602,27 @@ def test_get_elo_by_weekday():
                                  ])
     data['datetime_played'] = pd.to_datetime(data['datetime_played'])
 
-    parsed = transforms.get_elo_by_weekday(data)
+    parsed = transforms.get_elo_by_weekday(data, category='blitz')
 
     true = pd.DataFrame([[0, 1666, 0, 1666.0, 1666.0],
                          [1, 1685, 7.071, 1680.0, 1690.0],
                          [6, 1662.5, 3.536, 1660.0, 1665.0]],
+                        columns=['weekday_played',
+                                 'mean',
+                                 'std',
+                                 'min',
+                                 'max'],
+                        )
+
+    pd.testing.assert_frame_equal(parsed,
+                                  true,
+                                  check_like=True,
+                                  atol=1e-2,
+                                  )
+
+    parsed = transforms.get_elo_by_weekday(data, category='bullet')
+
+    true = pd.DataFrame([[1, 2800.0, 0.0, 2800.0, 2800.0]],
                         columns=['weekday_played',
                                  'mean',
                                  'std',

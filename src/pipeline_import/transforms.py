@@ -228,8 +228,8 @@ def get_color_stats(df):
     return color_stats
 
 
-def get_elo_by_weekday(df):
-    df = df[df['time_control_category'] == 'blitz']
+def get_elo_by_weekday(df, category='blitz'):
+    df = df[df['time_control_category'] == category]
     df['weekday_played'] = df['datetime_played'].dt.weekday
 
     # change to sunday-first, not monday-first

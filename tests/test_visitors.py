@@ -14,8 +14,8 @@ def test_evals_visitor():
 
     game.accept(visitors.EvalsVisitor(game))
 
-    assert game.evals == [0.05, 0.32, 9999, -9999]
-    assert all([x == 20 for x in game.eval_depths])
+    assert game.headers.evaluations == [0.05, 0.32, 9999, -9999]
+    assert all([x == 20 for x in game.headers.eval_depths])
 
 
 def test_clocks_visitor():
@@ -27,7 +27,7 @@ def test_clocks_visitor():
 
     game.accept(visitors.ClocksVisitor(game))
 
-    assert game.clocks == ['0:01:00', '0:01:00', '0:00:59', '0:01:00']
+    assert game.headers.clocks == ['0:01:00', '0:01:00', '0:00:59', '0:01:00']
 
 
 def test_queen_exchange_visitor():
@@ -39,7 +39,7 @@ def test_queen_exchange_visitor():
 
     game.accept(visitors.QueenExchangeVisitor(game))
 
-    assert game.queen_exchange
+    assert game.headers.queen_exchange
 
 
 def test_castling_visitor():
@@ -51,8 +51,8 @@ def test_castling_visitor():
 
     game.accept(visitors.CastlingVisitor(game))
 
-    assert game.castling['white'] == 'kingside'
-    assert game.castling['black'] == 'kingside'
+    assert game.headers.castling_sides['white'] == 'kingside'
+    assert game.headers.castling_sides['black'] == 'kingside'
 
     pgn = """[Site "https://lichess.org/TTYLmSUX"]
 
@@ -62,8 +62,8 @@ def test_castling_visitor():
 
     game.accept(visitors.CastlingVisitor(game))
 
-    assert game.castling['white'] is None
-    assert game.castling['black'] is None
+    assert game.headers.castling_sides['white'] is None
+    assert game.headers.castling_sides['black'] is None
 
     pgn = """[Site "https://lichess.org/oUMAQzs2"]
 
@@ -73,8 +73,8 @@ def test_castling_visitor():
 
     game.accept(visitors.CastlingVisitor(game))
 
-    assert game.castling['white'] == 'queenside'
-    assert game.castling['black'] == 'kingside'
+    assert game.headers.castling_sides['white'] == 'queenside'
+    assert game.headers.castling_sides['black'] == 'kingside'
 
 
 def test_positions_visitor():
@@ -93,7 +93,7 @@ def test_positions_visitor():
             'rnbqkbnr/pp2pppp/3p4/2p5/4PP2/8/PPPP2PP/RNBQKBNR w KQkq - 0 3',
             ]
 
-    assert game.positions == true
+    assert game.headers.positions == true
 
 
 def test_promotions_visitor():
@@ -105,13 +105,13 @@ def test_promotions_visitor():
 
     game.accept(visitors.PromotionsVisitor(game))
 
-    assert not game.has_promotion
-    assert game.promotion_count == {chess.WHITE: 0, chess.BLACK: 0}
-    assert game.promotions == {chess.WHITE: [], chess.BLACK: []}
-    assert game.promotion_count_white == 0
-    assert game.promotion_count_black == 0
-    assert game.promotions_white == ''
-    assert game.promotions_black == ''
+    assert not game.headers.has_promotion
+    assert game.headers.promotion_count == {chess.WHITE: 0, chess.BLACK: 0}
+    assert game.headers.promotions == {chess.WHITE: [], chess.BLACK: []}
+    assert game.headers.promotion_count_white == 0
+    assert game.headers.promotion_count_black == 0
+    assert game.headers.promotions_white == ''
+    assert game.headers.promotions_black == ''
 
     pgn = """[Site "https://lichess.org/vepGKt97"]
 
@@ -121,13 +121,14 @@ def test_promotions_visitor():
 
     game.accept(visitors.PromotionsVisitor(game))
 
-    assert game.has_promotion
-    assert game.promotion_count == {chess.WHITE: 0, chess.BLACK: 2}
-    assert game.promotions == {chess.WHITE: [], chess.BLACK: ['q', 'q']}
-    assert game.promotion_count_white == 0
-    assert game.promotion_count_black == 2
-    assert game.promotions_white == ''
-    assert game.promotions_black == 'qq'
+    assert game.headers.has_promotion
+    assert game.headers.promotion_count == {chess.WHITE: 0, chess.BLACK: 2}
+    assert game.headers.promotions == {chess.WHITE: [],
+                                       chess.BLACK: ['q', 'q']}
+    assert game.headers.promotion_count_white == 0
+    assert game.headers.promotion_count_black == 2
+    assert game.headers.promotions_white == ''
+    assert game.headers.promotions_black == 'qq'
 
 
 def test_materials_visitor():
@@ -148,4 +149,4 @@ def test_materials_visitor():
                   'P': 8, 'B': 2, 'R': 2, 'Q': 1, 'K': 1, 'N': 2},
                  ]
 
-    assert game.material_by_move == materials
+    assert game.headers.material_by_move == materials

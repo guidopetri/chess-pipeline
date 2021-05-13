@@ -35,8 +35,7 @@ def test_parse_headers():
 
     visitors = []
 
-    visitor_stats = {}
-    headers = transforms.parse_headers(game, visitors, visitor_stats)
+    headers = transforms.parse_headers(game, visitors)
 
     moves = ['e4', 'e6', 'Nf3', 'd5', 'e5', 'c5', 'd4', 'Nc6', 'Bd3',
              'cxd4', 'O-O', 'Qb6', 'a3', 'Nge7', 'b4', 'Ng6', 'Qe2',
@@ -83,8 +82,7 @@ def test_parse_headers_position_variant():
 
     visitors = []
 
-    visitor_stats = {}
-    headers = transforms.parse_headers(game, visitors, visitor_stats)
+    headers = transforms.parse_headers(game, visitors)
 
     assert headers['Variant'] == 'Standard'
 

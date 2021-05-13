@@ -155,28 +155,12 @@ class FetchLichessApiPGN(Task):
                     MaterialVisitor,
                     ]
 
-        visitor_stats = {'clocks': 'clocks',
-                         'evaluations': 'evals',
-                         'eval_depths': 'eval_depths',
-                         'queen_exchange': 'queen_exchange',
-                         'castling_sides': 'castling',
-                         'has_promotion': 'has_promotion',
-                         'promotion_count_white': 'promotion_count_white',
-                         'promotion_count_black': 'promotion_count_black',
-                         'promotions_white': 'promotions_white',
-                         'promotions_black': 'promotions_black',
-                         'positions': 'positions',
-                         'black_berserked': 'black_berserked',
-                         'white_berserked': 'white_berserked',
-                         'material_by_move': 'material_by_move',
-                         }
-
         header_infos = []
 
         counter = 0
 
         for game in games:
-            game_infos = parse_headers(game, visitors, visitor_stats)
+            game_infos = parse_headers(game, visitors)
             header_infos.append(game_infos)
 
             # progress bar stuff

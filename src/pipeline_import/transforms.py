@@ -37,14 +37,12 @@ def get_sf_evaluation(fen, sf_location, sf_depth):
     return rating
 
 
-def parse_headers(game, visitors, visitor_stats):
+def parse_headers(game, visitors):
     if game.headers['Variant'] == 'From Position':
         game.headers['Variant'] = 'Standard'
-    game_infos = {x: y for x, y in game.headers.items()}
     for visitor in visitors:
         game.accept(visitor(game))
-    for k, v in visitor_stats.items():
-        game_infos[k] = getattr(game, v)
+    game_infos = {x: y for x, y in game.headers.items()}
     game_infos['moves'] = [x.san() for x in game.mainline()]
 
     return game_infos

@@ -50,17 +50,14 @@ class TransactionFactTable(PostgresTable):
         return self.clone(self.fn)
 
     def rows(self):
-        from pandas import read_pickle, DataFrame
+        from pandas import read_pickle, read_sql_query
 
         connection = self.output().connect()
-        cursor = connection.cursor()
 
         sql = f"""SELECT {', '.join(self.id_cols)} FROM {self.table};"""
 
-        cursor.execute(sql)
-        results = cursor.fetchall()
-
-        current_df = DataFrame(results, columns=self.id_cols)
+        current_df = read_sql_query(sql, connection)
+        current_df.columns = self.id_cols
 
         with self.input().open('r') as f:
             df = read_pickle(f, compression=None)

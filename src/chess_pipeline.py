@@ -6,7 +6,7 @@ import psycopg2
 from luigi.util import requires, inherits
 from luigi.format import Nop
 from luigi import Task, LocalTarget
-from pandas import DataFrame
+from pandas import DataFrame, read_sql_query
 from pipeline_import.postgres_templates import CopyWrapper, HashableDict
 from pipeline_import.postgres_templates import TransactionFactTable
 from datetime import datetime, timedelta
@@ -32,14 +32,9 @@ def query_for_column(table, column):
                           port=port,
                           )
 
-    cursor = db.cursor()
     sql = f"""SELECT DISTINCT {column} FROM {table};"""
 
-    cursor.execute(sql)
-
-    result = cursor.fetchall()
-
-    current_srs = DataFrame(result)
+    current_srs = read_sql_query(sql, db)
 
     if current_srs.empty:
         current_srs = DataFrame([0])

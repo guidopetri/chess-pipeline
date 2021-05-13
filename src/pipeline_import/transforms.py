@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 
 from pandas import to_timedelta, to_datetime, to_numeric
-from pandas import concat, Series, merge, DataFrame
+from pandas import concat, Series, merge, read_sql_query
 from psycopg2 import connect
 import stockfish
 import re
@@ -261,16 +261,11 @@ def get_weekly_data(pg_cfg, player):
                                              pg_cfg.host,
                                              pg_cfg.port,
                                              pg_cfg.database)) as con:
-        cursor = con.cursor()
 
         sql = f"""SELECT * from chess_games
                   WHERE player = '{player}'
                   AND datetime_played >= now()::date - interval '7 days';
                """
 
-        cursor.execute(sql)
-        colnames = [desc.name for desc in cursor.description]
-        results = cursor.fetchall()
-
-    df = DataFrame.from_records(results, columns=colnames)
+        df = read_sql_query(sql, con)
     return df

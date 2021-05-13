@@ -30,8 +30,10 @@ create table chess_games(
     lichess_opening        text      not null,
     opening_played         text      not null,
     has_promotion          boolean   not null,
-    promotion_count        smallint  not null,
-    promotions             text              ,
+    promotion_count_white  smallint  not null,
+    promotion_count_black  smallint  not null,
+    promotions_white       text              ,
+    promotions_black       text              ,
     black_berserked        boolean   not null,
     white_berserked        boolean   not null
 );

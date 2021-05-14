@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-from pipeline_import import transforms
+from pipeline_import import transforms, visitors
 from configparser import ConfigParser
 import pandas as pd
 import io
@@ -98,6 +98,29 @@ def test_parse_headers_no_variant_header():
     headers = transforms.parse_headers(game, visitors)
 
     assert headers['Variant'] == 'Standard'
+
+
+def test_parse_headers_visitor():
+
+    pgn = """1. d4 e5 2. dxe5"""
+
+    game = chess.pgn.read_game(io.StringIO(pgn))
+
+    visitor = [visitors.MaterialVisitor]
+
+    headers = transforms.parse_headers(game, visitor)
+
+    materials = [{'p': 8, 'b': 2, 'r': 2, 'q': 1, 'k': 1, 'n': 2,
+                  'P': 8, 'B': 2, 'R': 2, 'Q': 1, 'K': 1, 'N': 2},
+                 {'p': 8, 'b': 2, 'r': 2, 'q': 1, 'k': 1, 'n': 2,
+                  'P': 8, 'B': 2, 'R': 2, 'Q': 1, 'K': 1, 'N': 2},
+                 {'p': 8, 'b': 2, 'r': 2, 'q': 1, 'k': 1, 'n': 2,
+                  'P': 8, 'B': 2, 'R': 2, 'Q': 1, 'K': 1, 'N': 2},
+                 {'p': 7, 'b': 2, 'r': 2, 'q': 1, 'k': 1, 'n': 2,
+                  'P': 8, 'B': 2, 'R': 2, 'Q': 1, 'K': 1, 'N': 2},
+                 ]
+
+    assert headers['material_by_move'] == materials
 
 
 def test_fix_provisional_columns_missing_neither():

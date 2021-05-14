@@ -6,7 +6,7 @@ import psycopg2
 from luigi.util import requires, inherits
 from luigi.format import Nop
 from luigi import Task, LocalTarget
-from pandas import DataFrame, read_sql_query
+from pandas import read_sql_query
 from pipeline_import.postgres_templates import CopyWrapper, HashableDict
 from pipeline_import.postgres_templates import TransactionFactTable
 from datetime import datetime, timedelta
@@ -36,9 +36,7 @@ def query_for_column(table, column):
 
     current_srs = read_sql_query(sql, db)
 
-    if current_srs.empty:
-        current_srs = DataFrame([0])
-    return current_srs[0]
+    return current_srs[column]
 
 
 class FetchLichessApiJSON(Task):

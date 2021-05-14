@@ -38,7 +38,7 @@ def get_sf_evaluation(fen, sf_location, sf_depth):
 
 
 def parse_headers(game, visitors):
-    if game.headers['Variant'] == 'From Position':
+    if getattr(game.headers, 'Variant', '') in ['From Position', '']:
         game.headers['Variant'] = 'Standard'
     for visitor in visitors:
         game.accept(visitor(game))

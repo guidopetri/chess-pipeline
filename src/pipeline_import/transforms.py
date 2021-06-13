@@ -3,11 +3,23 @@
 from pandas import to_timedelta, to_datetime, to_numeric
 from pandas import concat, Series, merge, read_sql_query
 from psycopg2 import connect
+import lichess.api
 import stockfish
 import re
 
 
 def get_sf_evaluation(fen, sf_location, sf_depth):
+
+    # get cloud eval if available
+    try:
+        cloud_eval = lichess.api.cloud_eval(fen=fen, multiPv=1)
+        rating = cloud_eval['pvs'][0]['cp'] / 100
+        return rating
+    except lichess.api.ApiHttpError:
+        # continue execution
+        pass
+
+    # implicit else
     sf = stockfish.Stockfish(sf_location,
                              depth=sf_depth)
 

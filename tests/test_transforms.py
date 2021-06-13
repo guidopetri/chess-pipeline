@@ -216,6 +216,17 @@ def test_fix_provisional_columns_full_data():
     pd.testing.assert_frame_equal(parsed, clean, check_like=True)
 
 
+def test_get_sf_evaluation_cloud():
+
+    # this specific FEN is already evaluated by lichess
+    fen = 'r1bqkb1r/pp1ppppp/2n2n2/2p5/8/1P3NP1/PBPPPP1P/RN1QKB1R b KQkq - 0 1'
+
+    # loc/depth don't matter
+    rating = transforms.get_sf_evaluation(fen, '', 1)
+
+    assert rating == -0.29
+
+
 def test_get_sf_evaluation_shallow():
 
     fen = 'r1bq1rk1/1pp3b1/3p2np/nP2P1p1/4Pp2/PN3NP1/1B3PBP/R2Q1RK1 b - - 2 0'

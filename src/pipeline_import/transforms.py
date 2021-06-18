@@ -13,7 +13,13 @@ def get_sf_evaluation(fen, sf_location, sf_depth):
     # get cloud eval if available
     try:
         cloud_eval = lichess.api.cloud_eval(fen=fen, multiPv=1)
-        rating = cloud_eval['pvs'][0]['cp'] / 100
+        rating = cloud_eval['pvs'][0]
+        if 'cp' in rating:
+            rating = rating['cp'] / 100
+        elif 'mate' in rating:
+            rating = -9999 if rating['mate'] < 0 else 9999
+        else:
+            raise KeyError(f'{fen}, {rating}')
         return rating
     except lichess.api.ApiHttpError:
         # continue execution

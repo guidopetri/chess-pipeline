@@ -227,6 +227,17 @@ def test_get_sf_evaluation_cloud():
     assert rating == -0.29
 
 
+def test_get_sf_evaluation_cloud_mate_in_x():
+
+    # this specific FEN is already evaluated by lichess
+    fen = '8/8/6k1/8/6KP/6P1/8/8 b - - 0 1'
+
+    # loc/depth don't matter
+    rating = transforms.get_sf_evaluation(fen, '', 1)
+
+    assert rating == 9999
+
+
 def test_get_sf_evaluation_shallow():
 
     fen = 'r1bq1rk1/1pp3b1/3p2np/nP2P1p1/4Pp2/PN3NP1/1B3PBP/R2Q1RK1 b - - 2 0'

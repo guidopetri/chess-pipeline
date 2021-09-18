@@ -3,6 +3,7 @@
 import psycopg2
 import pandas as pd
 from getpass import getpass
+import os
 
 pd.options.display.max_columns = 999
 
@@ -40,4 +41,6 @@ print(f'Raw dataset shape: {df.shape}')
 print('Example rows from dataset:')
 print(df.head())
 
-df.to_csv('../../../data/raw/dataset.csv', index=False)
+os.makedirs('../../../data/raw/v1', exist_ok=True)
+
+df.to_csv('../../../data/raw/v1/dataset.csv', index=False)

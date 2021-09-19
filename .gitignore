@@ -13,3 +13,4 @@ chess_pipeline.egg-info/
 *.env
 *.csv
 *.pckl
+plots/

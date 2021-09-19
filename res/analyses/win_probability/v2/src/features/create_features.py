@@ -54,16 +54,20 @@ df = pd.merge(df,
               )
 
 # set min time to 1, max time to initial time
-df['clock_pct'] = np.clip(df['clock'], a_min=1) / df['initial_clock']
-df['clock_pct'] = np.clip(df['clock_pct'], a_max=1)
+df['clock_pct'] = (np.clip(df['clock'], a_min=1, a_max=None)
+                   / df['initial_clock'])
+df['clock_pct'] = np.clip(df['clock_pct'], a_min=None, a_max=1)
 
 # reverse sigmoid transform
 df['sig_clock_pct'] = np.log(df['clock_pct'] / (1.00001 - df['clock_pct']))
 
 # same for opponent
-df['opponent_clock_pct'] = (np.clip(df['opponent_clock'], a_min=1)
+df['opponent_clock_pct'] = (np.clip(df['opponent_clock'], a_min=1, a_max=None)
                             / df['opponent_initial_clock'])
-df['opponent_clock_pct'] = np.clip(df['opponent_clock_pct'], a_max=1)
+df['opponent_clock_pct'] = np.clip(df['opponent_clock_pct'],
+                                   a_min=None,
+                                   a_max=1,
+                                   )
 df['opponent_sig_clock_pct'] = (np.log(df['opponent_clock_pct']
                                 / (1.00001 - df['opponent_clock_pct'])))
 

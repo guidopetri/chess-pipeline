@@ -38,6 +38,7 @@ cols = ['elo_diff',
         ]
 
 print('Predicting using LR...')
+print(f'Classes: {lr.classes_}')
 print(f'Intercept: {lr.intercept_}')
 print(f'Coefs: {lr.coef_}')
 X['y_pred_lr'] = lr.predict_proba(X[cols]) @ [0, 0.5, 1]

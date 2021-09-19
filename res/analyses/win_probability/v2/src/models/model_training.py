@@ -35,15 +35,15 @@ print(f'Test shape: {x_test.shape}')
 
 print('Removing outliers in evaluation...')
 
-p25 = np.percentile(x_train, 25)
-p75 = np.percentile(x_train, 75)
+p25 = np.percentile(x_train['evaluation'], 25)
+p75 = np.percentile(x_train['evaluation'], 75)
 iqr = p75 - p25
 
 print(f'Pre-outlier removal size: {x_train.shape}')
-y_train = y_train[x_train > p25 - 1.5 * iqr]
-y_train = y_train[x_train < p75 + 1.5 * iqr]
-x_train = x_train[x_train > p25 - 1.5 * iqr]
-x_train = x_train[x_train < p75 + 1.5 * iqr]
+y_train = y_train[x_train['evaluation'] > p25 - 1.5 * iqr]
+y_train = y_train[x_train['evaluation'] < p75 + 1.5 * iqr]
+x_train = x_train[x_train['evaluation'] > p25 - 1.5 * iqr]
+x_train = x_train[x_train['evaluation'] < p75 + 1.5 * iqr]
 print(f'Post-outlier removal size: {x_train.shape}')
 
 x_train.to_csv('../../data/processed/x_train_no_outliers.csv', index=False)

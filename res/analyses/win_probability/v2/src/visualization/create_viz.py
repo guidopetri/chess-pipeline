@@ -15,14 +15,14 @@ points_per_eval = pd.read_csv('../../data/processed/points_per_eval.csv')
 x_train = pd.read_csv('../../data/processed/x_train.csv')
 
 plt.figure()
-sns.boxplot(data=x_train.values)
+sns.boxplot(data=x_train['evaluation'])
 plt.title('Pawn evaluations boxplot before outlier removal')
 plt.savefig('../../report/plots/pre_outlier_removal_boxplot.png')
 
 x_train = pd.read_csv('../../data/processed/x_train_no_outliers.csv')
 
 plt.figure()
-sns.boxplot(data=x_train.values)
+sns.boxplot(data=x_train['evaluation'])
 plt.title('Pawn evaluations boxplot after outlier removal')
 plt.savefig('../../report/plots/post_outlier_removal_boxplot.png')
 

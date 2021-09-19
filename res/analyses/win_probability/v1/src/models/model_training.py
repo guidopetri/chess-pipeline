@@ -7,7 +7,7 @@ import numpy as np
 import pickle
 from model_definitions import tumblr_model, leela_model, wiki_model
 
-df = pd.read_csv('../../data/processed/dataset.csv', index=False)
+df = pd.read_csv('../../data/processed/dataset.csv')
 
 # # # # # #                    TRAIN TEST SPLIT                    # # # # # #
 

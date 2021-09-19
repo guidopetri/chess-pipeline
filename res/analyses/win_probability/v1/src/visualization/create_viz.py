@@ -16,14 +16,14 @@ points_per_eval = pd.read_csv('../../data/processed/points_per_eval.csv')
 x_train = pd.read_csv('../../data/processed/x_train.csv')
 
 plt.figure()
-sns.boxplot(x_train)
+sns.boxplot(data=x_train.values)
 plt.title('Pawn evaluations boxplot before outlier removal')
 plt.savefig('../../report/plots/pre_outlier_removal_boxplot.png')
 
 x_train = pd.read_csv('../../data/processed/x_train_no_outliers.csv')
 
 plt.figure()
-sns.boxplot(x_train)
+sns.boxplot(data=x_train.values)
 plt.title('Pawn evaluations boxplot after outlier removal')
 plt.savefig('../../report/plots/post_outlier_removal_boxplot.png')
 
@@ -51,7 +51,7 @@ for split, model in product(splits, models):
     print(f'{model.capitalize()} performance in {split} split')
     print(f'Brier score: {brier[(split, model)]:.4f},\n'
           f'AUC: {auc[(split, model)]:.4f},\n'
-          f'Log loss: {log[(split, model)]:.4f}\n\n')
+          f'Log loss: {log[(split, model)]:.4f}\n')
 
 metrics_df = pd.DataFrame.from_dict({'Brier score': brier,
                                      'AUC': auc,

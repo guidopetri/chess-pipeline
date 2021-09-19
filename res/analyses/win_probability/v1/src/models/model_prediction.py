@@ -34,17 +34,23 @@ X = pd.concat([x_train, x_val, x_test, x],
               axis=0,
               ignore_index=True,
               )
-X['y_true'] = pd.concat([y_train, y_val, y_test, np.zeros(x.shape)],
+
+X['y_true'] = pd.concat([y_train,
+                         y_val,
+                         y_test,
+                         pd.DataFrame(np.zeros(x.shape[0]),
+                                      columns=['result_points']),
+                         ],
                         axis=0,
                         ignore_index=True,
                         )
 
 print('Predicting using LR...')
-X['y_pred_lr'] = (lr.predict_proba(X['evaluation'].values.reshape(-1, 1)).T
+X['y_pred_lr'] = (lr.predict_proba(X['evaluation'].values.reshape(-1, 1))
                   @ [0, 0.5, 1])
 
 print('Predicting using Tumblr model...')
-print(', '.join([f'{k}: {v:.2f}' for k, v in tumblr.coefs]))
+print(', '.join([f'{k}: {v:.2f}' for k, v in tumblr.coefs().items()]))
 X['y_pred_tumblr'] = tumblr.predict(X['evaluation'])
 
 print('Predicting using wiki model...')

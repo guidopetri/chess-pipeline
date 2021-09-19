@@ -2,15 +2,18 @@
 
 import psycopg2
 import pandas as pd
-from getpass import getpass
+from dotenv import load_dotenv, find_dotenv
+import os
 
 pd.options.display.max_columns = 999
 
-user = getpass()
-password = getpass()
-ip = getpass()
-port = getpass()
-dbname = getpass()
+load_dotenv(find_dotenv())
+
+user = os.environ.get('CHESS_PIPELINE_USER')
+password = os.environ.get('CHESS_PIPELINE_PASSWORD')
+ip = os.environ.get('CHESS_PIPELINE_HOST')
+port = os.environ.get('CHESS_PIPELINE_PORT')
+dbname = os.environ.get('CHESS_PIPELINE_DB')
 
 db_connection_string = 'postgresql://{}:{}@{}:{}/{}'
 

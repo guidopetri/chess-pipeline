@@ -2,12 +2,12 @@
 
 import pandas as pd
 import pickle
+import statsmodels.api as sm
 
 with open('../../models/lr_model.pckl', 'rb') as f:
     lr = pickle.load(f)
 
-with open('../../models/logit_model.pckl', 'rb') as f:
-    logit = pickle.load(f)
+logit = sm.load('../../models/logit_model.pckl')
 
 x_train = pd.read_csv('../../data/processed/x_train.csv')
 x_val = pd.read_csv('../../data/processed/x_val.csv')

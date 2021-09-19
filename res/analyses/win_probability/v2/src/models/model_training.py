@@ -75,5 +75,4 @@ logit = logit.fit()
 with open('../../models/lr_model.pckl', 'wb') as f:
     pickle.dump(lr, f)
 
-with open('../../models/logit_model.pckl', 'wb') as f:
-    pickle.dump(logit, f)
+logit.save('../../models/logit_model.pckl')

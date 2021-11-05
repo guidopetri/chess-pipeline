@@ -4,7 +4,7 @@ from collections import OrderedDict
 from luigi.contrib import postgres
 from luigi.parameter import Parameter, ListParameter, DictParameter
 from luigi.parameter import TaskParameter
-from luigi import Task
+from luigi import Task, LocalTarget
 
 
 class HashableDict(OrderedDict):
@@ -116,6 +116,9 @@ class CopyWrapper(Task):
         import shutil
 
         for target in self.input():
+            if not isinstance(target, LocalTarget):
+                # if it's not a local target but e.g. a postgres target, skip
+                continue
             if os.path.isfile(target.path):
                 os.remove(target.path)
             elif os.path.isdir(target.path):

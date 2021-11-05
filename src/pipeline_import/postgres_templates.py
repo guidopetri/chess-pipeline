@@ -142,7 +142,9 @@ class CopyWrapper(Task):
         if not os.path.exists(filepath):
             return False
 
-        existing_files = os.listdir(filepath)
+        if any(os.path.isfile(local_file) for local_file in self.local_files):
+            return False
+
         finished_tasks = [inp.exists() for inp in self.input()]
 
-        return (existing_files == []) and (any(finished_tasks))
+        return all(finished_tasks)

@@ -115,7 +115,8 @@ class CopyWrapper(Task):
         import os
         import shutil
 
-        for target in self.input():
+        for job in self.jobs:
+            target = job['fn']().output()
             if not isinstance(target, LocalTarget):
                 # if it's not a local target but e.g. a postgres target, skip
                 continue

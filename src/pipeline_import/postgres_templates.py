@@ -105,25 +105,34 @@ class CopyWrapper(Task):
     """
 
     jobs = []
+    _local_files = []
 
     def requires(self):
         for job in self.jobs:
             vars(self).update(job)
             yield self.clone(job['table_type'])
 
+    @property
+    def local_files(self):
+        # if we haven't processed the local targets yet
+        if not self._local_files:
+            for job in self.jobs:
+                vars(self).update(job)
+                target = self.clone(job['fn']).output()
+                if isinstance(target, LocalTarget):
+                    self._local_files.append(target.path)
+
+        return self._local_files
+
     def run(self):
         import os
         import shutil
 
-        for job in self.jobs:
-            target = job['fn']().output()
-            if not isinstance(target, LocalTarget):
-                # if it's not a local target but e.g. a postgres target, skip
-                continue
-            if os.path.isfile(target.path):
-                os.remove(target.path)
-            elif os.path.isdir(target.path):
-                shutil.rmtree(target.path)
+        for local_file in self.local_files:
+            if os.path.isfile(local_file):
+                os.remove(local_file)
+            elif os.path.isdir(local_file):
+                shutil.rmtree(local_file)
 
     def complete(self):
         import os

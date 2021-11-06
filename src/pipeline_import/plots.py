@@ -65,34 +65,47 @@ def make_elo_by_weekday_plot(elo, fig_loc, filename):
                   capthick=1,
                   )
 
-    # plot min/maxes
-    elo.plot(x='weekday_played',
-             y=['min', 'max'],
-             color='#999999',
-             style=['--', '--'],
-             ax=ax,
-             legend=False,
-             xlim=[-0.05, 6.05],
-             xticks=range(0, 7),
-             )
+    if not elo.empty:
+        # plot min/maxes
+        elo.plot(x='weekday_played',
+                 y=['min', 'max'],
+                 color='#999999',
+                 style=['--', '--'],
+                 ax=ax,
+                 legend=False,
+                 xlim=[-0.05, 6.05],
+                 xticks=range(0, 7),
+                 )
 
-    min_last_day = elo[-1:]['min'].values
-    max_last_day = elo[-1:]['max'].values
-    mean_last_day = elo[-1:]['mean'].values
+        min_last_day = elo[-1:]['min'].values
+        max_last_day = elo[-1:]['max'].values
+        mean_last_day = elo[-1:]['mean'].values
 
-    # annotate the lines individually
-    ax.annotate('min',
-                xy=(elo.shape[0] - 0.95, min_last_day),
-                color='#555555',
-                )
-    ax.annotate('mean + std',
-                xy=(elo.shape[0] - 0.95, mean_last_day),
-                color='k',
-                )
-    ax.annotate('max',
-                xy=(elo.shape[0] - 0.95, max_last_day),
-                color='#555555',
-                )
+        # annotate the lines individually
+        ax.annotate('min',
+                    xy=(elo.shape[0] - 0.95, min_last_day),
+                    color='#555555',
+                    )
+        ax.annotate('mean + std',
+                    xy=(elo.shape[0] - 0.95, mean_last_day),
+                    color='k',
+                    )
+        ax.annotate('max',
+                    xy=(elo.shape[0] - 0.95, max_last_day),
+                    color='#555555',
+                    )
+    else:
+        ax.annotate('No games played',
+                    xy=(0.5, 0.5),
+                    xycoords='axes fraction',
+                    color='k',
+                    ha='center',
+                    fontsize='large',
+                    fontweight='bold',
+                    )
+
+    ax.set_xticks(range(7))
+    ax.set_xlim(-0.05, 6.05)
 
     # change the tick labels
     ax.set_xticklabels(['Sunday',

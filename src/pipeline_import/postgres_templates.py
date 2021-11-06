@@ -5,6 +5,7 @@ from luigi.contrib import postgres
 from luigi.parameter import Parameter, ListParameter, DictParameter
 from luigi.parameter import TaskParameter
 from luigi import Task, LocalTarget
+from luigi.task import flatten
 
 
 class HashableDict(OrderedDict):
@@ -118,11 +119,19 @@ class CopyWrapper(Task):
         if not self._local_files:
             for job in self.jobs:
                 vars(self).update(job)
-                target = self.clone(job['fn']).output()
-                if isinstance(target, LocalTarget):
-                    self._local_files.append(target.path)
+                task = self.clone(job['fn'])
+                targets = self.get_local_files(task)
+                for target in targets:
+                    if isinstance(target, LocalTarget):
+                        self._local_files.append(target.path)
 
         return self._local_files
+
+    def get_local_files(self, task):
+        r = flatten(task.output())
+        for dependency in flatten(task.requires()):
+            r += self.get_local_files(dependency)
+        return r
 
     def run(self):
         import os

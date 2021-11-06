@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-from pipeline_import import plots
+from pipeline_import import plots, newsletter_utils
 import pandas as pd
 import os
 import hashlib
@@ -97,3 +97,65 @@ def test_elo_by_weekday_without_games():
     assert md5 == true_md5
 
     os.remove(file_loc)
+
+
+def test_color_stats_text_generic():
+
+    multiindex = pd.MultiIndex.from_arrays([['blitz', 'blitz', 'bullet'],
+                                            ['white', 'black', 'black']],
+                                           names=('time_control_category',
+                                                  'player_color'))
+
+    color_stats = pd.DataFrame([[1 / 3, 1 / 3, 1 / 3],
+                                [1, 0, 0],
+                                [1, 0, 0]],
+                               columns=['Win', 'Draw', 'Loss'],
+                               index=multiindex,
+                               )
+
+    win_rate_str = newsletter_utils.get_color_stats_text(color_stats)
+
+    true_win_rate_str = ('You had a 33.33% win rate with white in blitz and'
+                         ' a 100.00% win rate with black.')
+
+    assert win_rate_str == true_win_rate_str
+
+
+def test_color_stats_text_only_one_color():
+
+    multiindex = pd.MultiIndex.from_arrays([['blitz'],
+                                            ['black']],
+                                           names=('time_control_category',
+                                                  'player_color'))
+
+    color_stats = pd.DataFrame([[1 / 3, 1 / 3, 1 / 3]],
+                               columns=['Win', 'Draw', 'Loss'],
+                               index=multiindex,
+                               )
+
+    win_rate_str = newsletter_utils.get_color_stats_text(color_stats)
+
+    true_win_rate_str = 'You had a 33.33% win rate with black in blitz.'
+
+    assert win_rate_str == true_win_rate_str
+
+
+def test_color_stats_text_multiple_categories():
+
+    multiindex = pd.MultiIndex.from_arrays([['blitz', 'bullet'],
+                                            ['black', 'black']],
+                                           names=('time_control_category',
+                                                  'player_color'))
+
+    color_stats = pd.DataFrame([[1 / 3, 1 / 3, 1 / 3],
+                                [1, 0, 0]],
+                               columns=['Win', 'Draw', 'Loss'],
+                               index=multiindex,
+                               )
+
+    win_rate_str = newsletter_utils.get_color_stats_text(color_stats)
+
+    true_win_rate_str = ('You had a 33.33% win rate with black in blitz and'
+                         ' a 100.00% win rate with black in bullet.')
+
+    assert win_rate_str == true_win_rate_str

@@ -67,3 +67,33 @@ def test_elo_by_weekday_plot():
     assert md5 == true_md5
 
     os.remove(file_loc)
+
+
+def test_elo_by_weekday_without_games():
+
+    empty_elo = pd.DataFrame([],
+                             columns=['weekday_played',
+                                      'mean',
+                                      'std',
+                                      'min',
+                                      'max'],
+                             # enforce float dtypes,
+                             # otherwise the error doesn't show up
+                             dtype=float,
+                             )
+
+    fig_loc = '.'
+    filename = 'elo_by_weekday_test.png'
+
+    plots.make_elo_by_weekday_plot(empty_elo, fig_loc, filename)
+
+    file_loc = os.path.join(fig_loc, filename)
+
+    with open(file_loc, 'rb') as f:
+        md5 = hashlib.md5(f.read()).hexdigest()
+
+    true_md5 = '10c2ae2d3f298f2dd3f16ce626ac427c'
+
+    assert md5 == true_md5
+
+    os.remove(file_loc)

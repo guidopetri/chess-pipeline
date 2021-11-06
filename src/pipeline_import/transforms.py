@@ -79,7 +79,7 @@ def fix_provisional_columns(json):
 def convert_clock_to_seconds(clocks):
     clocks = to_timedelta(clocks,
                           errors='coerce')
-    clocks = clocks.dt.total_seconds()
+    clocks = clocks.dt.total_seconds().copy()
     clocks.fillna(-1.0, inplace=True)
     clocks = clocks.astype(int)
 

@@ -124,10 +124,13 @@ class CopyWrapper(Task):
                 for target in targets:
                     if isinstance(target, LocalTarget):
                         self._local_files.append(target.path)
+            # deduplicate items
+            self._local_files = list(set(self._local_files))
 
         return self._local_files
 
     def get_local_files(self, task):
+        # recursively gets local files from each task's requires()
         r = flatten(task.output())
         for dependency in flatten(task.requires()):
             r += self.get_local_files(dependency)

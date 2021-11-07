@@ -599,7 +599,17 @@ class EstimateWinProbabilities(Task):
                            'opponent_elo',
                            ]
 
-        df = merge(evals, game_positions, on='fen')
+        # evals isn't always populated
+        df = merge(game_positions, evals, on='fen', how='left')
+
+        # if there are missing evals, set to 0 so it doesn't influence the WP
+        if not self.local_stockfish:
+            df['evaluation'].fillna(0)
+            # this is actually kind of incorrect - evaluation was never scaled
+            # so the mean isn't 0, but rather something like 0.2 probably.
+            # since the LR model inputs weren't scaled in the first place,
+            # i am just ignoring this for now
+
         df = merge(df, game_clocks, on=['game_link', 'half_move'])
         df = merge(df,
                    game_infos[game_infos_cols],

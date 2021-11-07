@@ -3,10 +3,12 @@
 import pickle
 import numpy as np
 import pandas as pd
+import os
 
 
 def load_win_probability_model():
-    with open('wp_model.pckl', 'rb') as f:
+    file_path = os.path.join(os.path.dirname(__file__), 'wp_model.pckl')
+    with open(file_path, 'rb') as f:
         model = pickle.load(f)
     return model
 

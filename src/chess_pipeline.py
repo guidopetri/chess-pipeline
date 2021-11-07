@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 
 from luigi.parameter import Parameter, ListParameter, BoolParameter
-from luigi.parameter import DateParameter
+from luigi.parameter import DateParameter, ParameterVisibility
 import psycopg2
 from luigi.util import requires, inherits
 from luigi.format import Nop
@@ -590,7 +590,9 @@ class GetGameInfos(Task):
 @requires(GetEvals, ExplodePositions, ExplodeClocks, GetGameInfos)
 class EstimateWinProbabilities(Task):
 
-    columns = ListParameter(significant=False)
+    columns = ListParameter(significant=False,
+                            visibility=ParameterVisibility.PRIVATE,
+                            )
 
     def output(self):
         import os

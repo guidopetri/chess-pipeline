@@ -15,6 +15,7 @@ from pipeline_import.transforms import get_sf_evaluation, parse_headers
 from pipeline_import.transforms import fix_provisional_columns, get_clean_fens
 from pipeline_import.transforms import convert_clock_to_seconds
 from pipeline_import.transforms import transform_game_data
+from pipeline_import.models import predict_wp
 
 
 def query_for_column(table, column):
@@ -586,6 +587,69 @@ class GetGameInfos(Task):
             df.to_pickle(temp_output_path, compression=None)
 
 
+@requires(GetEvals, ExplodePositions, ExplodeClocks, GetGameInfos)
+class EstimateWinProbabilities(Task):
+
+    columns = ListParameter()
+
+    def output(self):
+        import os
+
+        file_location = (f'~/Temp/luigi/{self.since}-win-probs-'
+                         f'{self.player}-{self.perf_type}.pckl')
+        return LocalTarget(os.path.expanduser(file_location), format=Nop)
+
+    def run(self):
+        from pandas import read_pickle, merge
+        import hashlib
+
+        self.output().makedirs()
+
+        with self.input()[0].open('r') as f:
+            evals = read_pickle(f, compression=None)
+
+        with self.input()[1].open('r') as f:
+            game_positions = read_pickle(f, compression=None)
+
+        with self.input()[2].open('r') as f:
+            game_clocks = read_pickle(f, compression=None)
+
+        with self.input()[3].open('r') as f:
+            game_infos = read_pickle(f, compression=None)
+
+        game_infos['has_increment'] = (game_infos['increment'] > 0).astype(int)
+
+        game_infos_cols = ['game_link',
+                           'has_increment',
+                           'player_color',
+                           'player_elo',
+                           'opponent_elo',
+                           ]
+
+        df = merge(evals, game_positions, on='fen')
+        df = merge(df, game_clocks, on=['game_link', 'half_move'])
+        df = merge(df,
+                   game_infos[game_infos_cols],
+                   on='game_link',
+                   )
+
+        win, draw, loss = predict_wp(df)
+
+        df['win_probability_white'] = win
+        df['draw_probability'] = draw
+        df['win_probability_black'] = loss
+
+        with open('./pipeline_import/wp_model.pckl', 'rb') as f:
+            md5 = hashlib.md5(f.read()).hexdigest()
+
+        df['win_prob_model_version'] = md5[:7]
+
+        df = df[list(self.columns)]
+
+        with self.output().temporary_path() as temp_output_path:
+            df.to_pickle(temp_output_path, compression=None)
+
+
 @requires(GetGameInfos)
 class ChessGames(TransactionFactTable):
     pass
@@ -613,6 +677,11 @@ class MoveClocks(TransactionFactTable):
 
 @requires(ExplodeMoves)
 class MoveList(TransactionFactTable):
+    pass
+
+
+@requires(EstimateWinProbabilities)
+class WinProbs(TransactionFactTable):
     pass
 
 
@@ -721,6 +790,20 @@ class CopyGames(CopyWrapper):
                          'rooks_black',
                          'queens_white',
                          'queens_black',
+                         ],
+             'id_cols': ['game_link',
+                         'half_move'],
+             'date_cols': [],
+             'merge_cols': HashableDict()},
+            {'table_type': WinProbs,
+             'fn': EstimateWinProbabilities,
+             'table': 'win_probabilities',
+             'columns': ['game_link',
+                         'half_move',
+                         'win_probability_white',
+                         'draw_probability',
+                         'win_probability_black',
+                         'win_prob_model_version',
                          ],
              'id_cols': ['game_link',
                          'half_move'],

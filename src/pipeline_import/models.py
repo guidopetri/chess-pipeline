@@ -1,12 +1,13 @@
 #! /usr/bin/env python3
 
-import statsmodels.api as sm
+import pickle
 import numpy as np
 import pandas as pd
 
 
 def load_win_probability_model():
-    model = sm.load('wp_model.pckl')
+    with open('wp_model.pckl', 'rb') as f:
+        model = pickle.load(f)
     return model
 
 

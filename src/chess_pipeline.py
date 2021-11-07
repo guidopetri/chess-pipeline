@@ -1,9 +1,9 @@
 #! /usr/bin/env python3
 
 from luigi.parameter import Parameter, ListParameter, BoolParameter
-from luigi.parameter import DateParameter, ParameterVisibility
+from luigi.parameter import DateParameter
 import psycopg2
-from luigi.util import requires, inherits
+from luigi.util import requires, inherits, common_params
 from luigi.format import Nop
 from luigi import Task, LocalTarget
 from pandas import read_sql_query
@@ -587,12 +587,18 @@ class GetGameInfos(Task):
             df.to_pickle(temp_output_path, compression=None)
 
 
-@requires(GetEvals, ExplodePositions, ExplodeClocks, GetGameInfos)
+@inherits(GetEvals, ExplodePositions, ExplodeClocks, GetGameInfos)
 class EstimateWinProbabilities(Task):
 
-    columns = ListParameter(significant=False,
-                            visibility=ParameterVisibility.PRIVATE,
-                            )
+    columns = ListParameter(significant=False)
+
+    def requires(self):
+        for job in [GetEvals, ExplodePositions, ExplodeClocks, GetGameInfos]:
+            params = common_params(self, job)
+            # remove the columns param so it doesn't update downstream
+            del params['columns']
+
+            yield job(**params)
 
     def output(self):
         import os

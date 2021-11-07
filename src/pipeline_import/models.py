@@ -106,6 +106,6 @@ def predict_wp(df):
             'has_increment',
             ]
 
-    win_probabilities = model.predict(df[cols]).round(6)
+    probs = model.predict(df[cols]).round(6)
 
-    return win_probabilities
+    return probs[:, 0], probs[:, 1], probs[:, 2]

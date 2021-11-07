@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 
 from luigi.parameter import Parameter, ListParameter, BoolParameter
-from luigi.parameter import DateParameter, ParameterVisibility
+from luigi.parameter import DateParameter
 import psycopg2
 from luigi.util import requires, inherits
 from luigi.format import Nop
@@ -590,10 +590,6 @@ class GetGameInfos(Task):
 @requires(GetEvals, ExplodePositions, ExplodeClocks, GetGameInfos)
 class EstimateWinProbabilities(Task):
 
-    columns = ListParameter(significant=False,
-                            visibility=ParameterVisibility.PRIVATE,
-                            )
-
     def output(self):
         import os
 
@@ -645,8 +641,6 @@ class EstimateWinProbabilities(Task):
             md5 = hashlib.md5(f.read()).hexdigest()
 
         df['win_prob_model_version'] = md5[:7]
-
-        df = df[list(self.columns)]
 
         with self.output().temporary_path() as temp_output_path:
             df.to_pickle(temp_output_path, compression=None)

@@ -1,7 +1,6 @@
 #! /usr/bin/env python3
 
-from luigi.parameter import Parameter, ListParameter, BoolParameter
-from luigi.parameter import DateParameter
+from luigi.parameter import Parameter, DateParameter, BoolParameter
 import psycopg2
 from luigi.util import requires, inherits
 from luigi.format import Nop
@@ -258,7 +257,6 @@ class CleanChessDF(Task):
 class GetEvals(Task):
 
     local_stockfish = BoolParameter()
-    columns = ListParameter(significant=False)
 
     def output(self):
         import os
@@ -350,16 +348,12 @@ class GetEvals(Task):
 
         df.dropna(inplace=True)
 
-        df = df[list(self.columns)]
-
         with self.output().temporary_path() as temp_output_path:
             df.to_pickle(temp_output_path, compression=None)
 
 
 @requires(CleanChessDF)
 class ExplodeMoves(Task):
-
-    columns = ListParameter(significant=False)
 
     def output(self):
         import os
@@ -393,16 +387,12 @@ class ExplodeMoves(Task):
                   inplace=True)
         df['half_move'] = df.groupby('game_link').cumcount() + 1
 
-        df = df[list(self.columns)]
-
         with self.output().temporary_path() as temp_output_path:
             df.to_pickle(temp_output_path, compression=None)
 
 
 @requires(CleanChessDF)
 class ExplodeClocks(Task):
-
-    columns = ListParameter(significant=False)
 
     def output(self):
         import os
@@ -437,16 +427,12 @@ class ExplodeClocks(Task):
         df['half_move'] = df.groupby('game_link').cumcount() + 1
         df['clock'] = convert_clock_to_seconds(df['clock'])
 
-        df = df[list(self.columns)]
-
         with self.output().temporary_path() as temp_output_path:
             df.to_pickle(temp_output_path, compression=None)
 
 
 @requires(CleanChessDF)
 class ExplodePositions(Task):
-
-    columns = ListParameter(significant=False)
 
     def output(self):
         import os
@@ -482,16 +468,12 @@ class ExplodePositions(Task):
 
         df['fen'] = get_clean_fens(df['position'])
 
-        df = df[list(self.columns)]
-
         with self.output().temporary_path() as temp_output_path:
             df.to_pickle(temp_output_path, compression=None)
 
 
 @requires(CleanChessDF)
 class ExplodeMaterials(Task):
-
-    columns = ListParameter(significant=False)
 
     def output(self):
         import os
@@ -542,16 +524,12 @@ class ExplodeMaterials(Task):
 
         df['half_move'] = df.groupby('game_link').cumcount() + 1
 
-        df = df[list(self.columns)]
-
         with self.output().temporary_path() as temp_output_path:
             df.to_pickle(temp_output_path, compression=None)
 
 
 @requires(CleanChessDF)
 class GetGameInfos(Task):
-
-    columns = ListParameter(significant=False)
 
     def output(self):
         import os
@@ -579,9 +557,6 @@ class GetGameInfos(Task):
             return
 
         df = transform_game_data(df, self.player)
-
-        # filter unnecessary columns out
-        df = df[list(self.columns)]
 
         with self.output().temporary_path() as temp_output_path:
             df.to_pickle(temp_output_path, compression=None)

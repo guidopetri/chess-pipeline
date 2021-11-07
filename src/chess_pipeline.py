@@ -606,7 +606,7 @@ class EstimateWinProbabilities(Task):
                    on='game_link',
                    )
 
-        win, draw, loss = predict_wp(df)
+        loss, draw, win = predict_wp(df)
 
         df['win_probability_white'] = win
         df['draw_probability'] = draw

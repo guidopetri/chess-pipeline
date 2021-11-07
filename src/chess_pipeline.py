@@ -258,7 +258,7 @@ class CleanChessDF(Task):
 class GetEvals(Task):
 
     local_stockfish = BoolParameter()
-    columns = ListParameter()
+    columns = ListParameter(significant=False)
 
     def output(self):
         import os
@@ -359,7 +359,7 @@ class GetEvals(Task):
 @requires(CleanChessDF)
 class ExplodeMoves(Task):
 
-    columns = ListParameter()
+    columns = ListParameter(significant=False)
 
     def output(self):
         import os
@@ -402,7 +402,7 @@ class ExplodeMoves(Task):
 @requires(CleanChessDF)
 class ExplodeClocks(Task):
 
-    columns = ListParameter()
+    columns = ListParameter(significant=False)
 
     def output(self):
         import os
@@ -446,7 +446,7 @@ class ExplodeClocks(Task):
 @requires(CleanChessDF)
 class ExplodePositions(Task):
 
-    columns = ListParameter()
+    columns = ListParameter(significant=False)
 
     def output(self):
         import os
@@ -491,7 +491,7 @@ class ExplodePositions(Task):
 @requires(CleanChessDF)
 class ExplodeMaterials(Task):
 
-    columns = ListParameter()
+    columns = ListParameter(significant=False)
 
     def output(self):
         import os
@@ -551,7 +551,7 @@ class ExplodeMaterials(Task):
 @requires(CleanChessDF)
 class GetGameInfos(Task):
 
-    columns = ListParameter()
+    columns = ListParameter(significant=False)
 
     def output(self):
         import os
@@ -590,7 +590,7 @@ class GetGameInfos(Task):
 @requires(GetEvals, ExplodePositions, ExplodeClocks, GetGameInfos)
 class EstimateWinProbabilities(Task):
 
-    columns = ListParameter()
+    columns = ListParameter(significant=False)
 
     def output(self):
         import os

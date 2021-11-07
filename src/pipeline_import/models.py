@@ -109,6 +109,6 @@ def predict_wp(df):
             'has_increment',
             ]
 
-    probs = model.predict(df[cols]).round(6)
+    probs = model.predict_proba(df[cols]).round(6)
 
     return probs[:, 0], probs[:, 1], probs[:, 2]

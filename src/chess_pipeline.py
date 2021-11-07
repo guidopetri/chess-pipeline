@@ -604,7 +604,7 @@ class EstimateWinProbabilities(Task):
 
         # if there are missing evals, set to 0 so it doesn't influence the WP
         if not self.local_stockfish:
-            df['evaluation'].fillna(0)
+            df['evaluation'].fillna(0, inplace=True)
             # this is actually kind of incorrect - evaluation was never scaled
             # so the mean isn't 0, but rather something like 0.2 probably.
             # since the LR model inputs weren't scaled in the first place,

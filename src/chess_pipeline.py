@@ -575,6 +575,7 @@ class EstimateWinProbabilities(Task):
     def run(self):
         from pandas import read_pickle, merge
         import hashlib
+        import os
 
         self.output().makedirs()
 
@@ -622,7 +623,12 @@ class EstimateWinProbabilities(Task):
         df['draw_probability'] = draw
         df['win_probability_black'] = loss
 
-        with open('./pipeline_import/wp_model.pckl', 'rb') as f:
+        model_path = os.path.join(os.path.dirname(__file__),
+                                  'pipeline_import',
+                                  'wp_model.pckl',
+                                  )
+
+        with open(model_path, 'rb') as f:
             md5 = hashlib.md5(f.read()).hexdigest()
 
         df['win_prob_model_version'] = md5[:7]

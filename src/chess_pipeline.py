@@ -605,6 +605,16 @@ class EstimateWinProbabilities(Task):
         with self.input()[3].open('r') as f:
             game_infos = read_pickle(f, compression=None)
 
+        if game_infos.empty:
+
+            def complete(self):
+                return True
+
+            with self.output().temporary_path() as temp_output_path:
+                game_infos.to_pickle(temp_output_path, compression=None)
+
+            return
+
         game_infos['has_increment'] = (game_infos['increment'] > 0).astype(int)
 
         game_infos_cols = ['game_link',

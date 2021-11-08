@@ -17,7 +17,7 @@ from pipeline_import.transforms import transform_game_data
 from pipeline_import.models import predict_wp
 
 
-def query_for_column(table, column):
+def run_remote_sql_query(sql, **params):
     pg_cfg = postgres_cfg()
     user = pg_cfg.user
     password = pg_cfg.password
@@ -32,11 +32,15 @@ def query_for_column(table, column):
                           port=port,
                           )
 
+    df = read_sql_query(sql, db, params=params)
+
+    return df
+
+
+def query_for_column(table, column):
     sql = f"""SELECT DISTINCT {column} FROM {table};"""
-
-    current_srs = read_sql_query(sql, db)
-
-    return current_srs[column]
+    df = run_remote_sql_query(sql)
+    return df[column]
 
 
 class FetchLichessApiJSON(Task):

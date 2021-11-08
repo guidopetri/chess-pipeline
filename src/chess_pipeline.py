@@ -291,22 +291,30 @@ class GetEvals(Task):
 
         df = df[['evaluations', 'eval_depths', 'positions']]
 
-        positions_evaluated = query_for_column('position_evals', 'fen')
-
         # explode the two different list-likes separately, then concat
         no_evals = df[~df['evaluations'].astype(bool)]
         df = df[df['evaluations'].astype(bool)]
+
+        no_evals = DataFrame(no_evals['positions'].explode())
+        no_evals['positions'] = get_clean_fens(no_evals['positions'])
 
         evals = df['evaluations'].explode().reset_index(drop=True)
         depths = df['eval_depths'].explode().reset_index(drop=True)
         positions = df['positions'].explode().reset_index(drop=True)
         positions = get_clean_fens(positions)
 
+        sql = """SELECT fen, evaluation, eval_depth
+                 FROM position_evals
+                 WHERE fen IN %(positions)s;
+                 """
+        db_evaluations = run_remote_sql_query(sql,
+                                              positions=tuple(positions.tolist() + no_evals['positions'].tolist()),  # noqa
+                                              )
+        positions_evaluated = db_evaluations['fen'].drop_duplicates()
+
         df = concat([positions, evals, depths], axis=1)
 
         if self.local_stockfish:
-            no_evals = DataFrame(no_evals['positions'].explode())
-            no_evals['positions'] = get_clean_fens(no_evals['positions'])
 
             local_evals = []
 
@@ -352,6 +360,7 @@ class GetEvals(Task):
                                       errors='coerce')
 
         df.dropna(inplace=True)
+        df = concat([df, db_evaluations], axis=0, ignore_index=True)
 
         with self.output().temporary_path() as temp_output_path:
             df.to_pickle(temp_output_path, compression=None)

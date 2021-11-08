@@ -116,9 +116,12 @@ class PositionsVisitor(BaseVisitor):
     def __init__(self, game):
         self.game = game
         self.game.headers._others['positions'] = []
+        self.first_move = True
 
     def visit_board(self, board):
-        self.game.headers._others['positions'].append(board.fen())
+        if not self.first_move:
+            self.game.headers._others['positions'].append(board.fen())
+        self.first_move = False
 
     def result(self):
         return None

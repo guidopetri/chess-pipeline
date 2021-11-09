@@ -31,7 +31,16 @@ class EvalsVisitor(BaseVisitor):
             # if we have evaluations in general but not for this position
             # we are usually in a checkmate position
             # these don't show up as evals in the PGN :/
-            self.game.headers._others['evaluations'].append(None)
+
+            # we don't have to consider stalemate because this shows up
+            # as an eval of 0.0
+            results_map = {'1-0': 9999.0,
+                           '0-1': -9999.0,
+                           }
+
+            result = results_map[self.game.headers['Result']]
+
+            self.game.headers._others['evaluations'].append(result)
             self.game.headers._others['eval_depths'].append(20)
 
     def result(self):

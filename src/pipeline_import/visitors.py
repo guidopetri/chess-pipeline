@@ -27,6 +27,12 @@ class EvalsVisitor(BaseVisitor):
                     evaluation = '9999'
             self.game.headers._others['evaluations'].append(float(evaluation))
             self.game.headers._others['eval_depths'].append(20)
+        elif self.game.headers._others['evaluations']:
+            # if we have evaluations in general but not for this position
+            # we are usually in a checkmate position
+            # these don't show up as evals in the PGN :/
+            self.game.headers._others['evaluations'].append(None)
+            self.game.headers._others['eval_depths'].append(20)
 
     def result(self):
         return None

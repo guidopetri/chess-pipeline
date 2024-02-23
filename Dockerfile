@@ -13,6 +13,7 @@ RUN apt-get update \
     gcc \
     python3-dev \
     libpq-dev \
+    cron \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives
 
@@ -38,4 +39,4 @@ COPY src/ .
 
 ENV PYTHONPATH /app
 
-CMD ["/bin/bash"]
+ENTRYPOINT ["cron", "-f"]

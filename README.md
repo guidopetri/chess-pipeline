@@ -117,5 +117,5 @@ Currently, the newsletter sends out win rates (in %) for black/white in each tim
 The tests are written using `pytest`. To run the test suite, run the following from the root directory:
 
 ```bash
-PYTHONPATH=src/ pytest
+make pytest
 ```

@@ -36,6 +36,7 @@ RUN $POETRY_HOME/bin/poetry install --with $INSTALL_GROUPS --no-root --no-ansi -
     && $POETRY_HOME/bin/poetry cache clear pypi --all
 
 COPY src/ .
+COPY tests/ .
 
 ENV PYTHONPATH /app
 

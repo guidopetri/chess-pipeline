@@ -36,4 +36,6 @@ RUN $POETRY_HOME/bin/poetry install --with $INSTALL_GROUPS --no-root --no-ansi -
 
 COPY src/ .
 
+ENV PYTHONPATH /app
+
 CMD ["/bin/bash"]

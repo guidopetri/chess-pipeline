@@ -5,6 +5,9 @@ build:
 		-t chess-pipeline \
 		.
 
+shell:
+	docker run --rm -it --entrypoint=/bin/bash chess-pipeline-dev
+
 build-dev:
 	docker build \
 		--build-arg INSTALL_GROUPS="main,dev" \

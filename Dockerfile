@@ -14,6 +14,8 @@ RUN apt-get update \
     python3-dev \
     libpq-dev \
     cron \
+    make \
+    g++ \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives
 
@@ -25,6 +27,13 @@ ARG POETRY_HOME=/opt/poetry
 ARG POETRY_NO_INTERACTION=1
 ARG POETRY_VIRTUALENVS_CREATE=false
 RUN curl -sSL https://install.python-poetry.org | python3 -
+
+RUN curl -L --output stockfish_13.tar.gz https://github.com/official-stockfish/Stockfish/archive/refs/tags/sf_13.tar.gz && \
+  mkdir -p /stockfish_src && \
+  tar -xzvf stockfish_13.tar.gz -C /stockfish_src && \
+  make -C /stockfish_src/Stockfish-sf_13/src -j profile-build && \
+  cp /stockfish_src/Stockfish-sf_13/src/stockfish / && \
+  rm -r /stockfish_src
 
 COPY pyproject.toml poetry.lock /app
 

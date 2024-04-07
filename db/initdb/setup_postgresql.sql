@@ -13,18 +13,14 @@ create database chess_db;
 create database task_history_db;
 
 -- make sure you have this file in the folder you're in, or change the location
-\i /chess_db_tables/chess_games.sql
-\i /chess_db_tables/eco_codes.sql
-\i /chess_db_tables/game_clocks.sql
-\i /chess_db_tables/game_moves.sql
-\i /chess_db_tables/game_positions.sql
-\i /chess_db_tables/position_evals.sql
-\i /chess_db_tables/win_probabilities.sql
-\i /chess_db_tables/game_evals_view.sql
-
--- create the user that luigi will be using
-create user luigi_user;
-\password luigi_user
+\i /sql_scripts/chess_games.sql
+\i /sql_scripts/eco_codes.sql
+\i /sql_scripts/game_clocks.sql
+\i /sql_scripts/game_moves.sql
+\i /sql_scripts/game_positions.sql
+\i /sql_scripts/position_evals.sql
+\i /sql_scripts/win_probabilities.sql
+\i /sql_scripts/game_evals_view.sql
 
 --grant luigi user privileges on database
 alter default privileges in schema public grant select, insert, update, delete, truncate on tables to luigi_user;
@@ -32,16 +28,8 @@ alter default privileges in schema public grant usage on sequences to luigi_user
 grant select, insert, update, delete, truncate on all tables in schema public to luigi_user;
 grant usage on all sequences in schema public to luigi_user;
 
--- the task history user
-create user task_history_user;
-\password task_history_user
-
 -- grant task history user privileges on task history db
 grant create, connect on database task_history_db to task_history_user;
-
--- a read-only user
-create user read_user;
-\password read_user
 
 -- read-only role
 create role read_access;
@@ -55,5 +43,5 @@ alter default privileges in schema public grant select on tables to read_access;
 
 grant read_access to read_user;
 
-\i /chess_db_data/copy_eco_codes.sql
-\i /chess_db_data/copy_win_probabilities.sql
+\i /sql_scripts/assorted_sql/copy_eco_codes.sql
+\i /sql_scripts/assorted_sql/copy_win_probabilities.sql

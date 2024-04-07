@@ -28,9 +28,8 @@ services:
       - .postgres_env
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./src/table-sql:/chess_db_tables:ro
-      - ./scripts/assorted-sql:/chess_db_data:ro
-      - ./res/content:/chess_db_resources:ro
+      - ./db:/sql_scripts:ro
+      - ./db/initdb:/docker-entrypoint-initdb.d:ro
 
 volumes:
   chess_pipeline_logs:

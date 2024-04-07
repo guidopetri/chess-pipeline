@@ -13,14 +13,14 @@ create database chess_db;
 create database task_history_db;
 
 -- make sure you have this file in the folder you're in, or change the location
-\i ../src/table-sql/chess_games.sql
-\i ../src/table-sql/eco_codes.sql
-\i ../src/table-sql/game_clocks.sql
-\i ../src/table-sql/game_moves.sql
-\i ../src/table-sql/game_positions.sql
-\i ../src/table-sql/position_evals.sql
-\i ../src/table-sql/game_evals_view.sql
-\i ../src/table-sql/win_probabilities.sql
+\i /chess_db_tables/chess_games.sql
+\i /chess_db_tables/eco_codes.sql
+\i /chess_db_tables/game_clocks.sql
+\i /chess_db_tables/game_moves.sql
+\i /chess_db_tables/game_positions.sql
+\i /chess_db_tables/position_evals.sql
+\i /chess_db_tables/win_probabilities.sql
+\i /chess_db_tables/game_evals_view.sql
 
 -- create the user that luigi will be using
 create user luigi_user;
@@ -55,5 +55,5 @@ alter default privileges in schema public grant select on tables to read_access;
 
 grant read_access to read_user;
 
-\i assorted-sql/copy_eco_codes.sql
-\i assorted-sql/copy_win_probabilities.sql
+\i /chess_db_data/copy_eco_codes.sql
+\i /chess_db_data/copy_win_probabilities.sql

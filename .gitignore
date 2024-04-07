@@ -15,3 +15,5 @@ chess_pipeline.egg-info/
 *.pckl
 **/plots/*
 !**/plots/.keep
+.luigi_env
+.postgres_env

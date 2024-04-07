@@ -1,0 +1,45 @@
+version: "3"
+
+services:
+  chess_pipeline:
+    image: ghcr.io/guidopetri/chess-pipeline:master
+    container_name: chess_pipeline
+    restart: no
+    volumes:
+      - chess_pipeline_logs:/logs
+      - .luigi_env:/app/luigi.cfg
+
+  luigi_server:
+    image: ghcr.io/guidopetri/luigi-server:master
+    container_name: luigi_server
+    restart: always
+    ports:
+      - "127.0.0.1:8082:8082"
+    env_file:
+      - .luigi_env
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    restart: always
+    ports:
+      - "127.0.0.1:5432:5432"
+    env_file:
+      - .postgres_env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./src/table-sql:/chess_db_tables:ro
+      - ./scripts/assorted-sql:/chess_db_data:ro
+      - ./res/content:/chess_db_resources:ro
+
+volumes:
+  chess_pipeline_logs:
+    driver_opts:
+      type: none
+      device: ${HOME}/data/chess_pipeline/logs
+      o: bind
+  postgres_data:
+    driver_opts:
+      type: none
+      device: ${HOME}/data/postgres
+      o: bind

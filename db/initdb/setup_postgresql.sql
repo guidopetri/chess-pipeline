@@ -13,14 +13,16 @@ create database chess_db;
 create database task_history_db;
 
 -- make sure you have this file in the folder you're in, or change the location
-\i /sql_scripts/chess_games.sql
-\i /sql_scripts/eco_codes.sql
-\i /sql_scripts/game_clocks.sql
-\i /sql_scripts/game_moves.sql
-\i /sql_scripts/game_positions.sql
-\i /sql_scripts/position_evals.sql
-\i /sql_scripts/win_probabilities.sql
-\i /sql_scripts/game_evals_view.sql
+\i /sql_scripts/tables/chess_games.sql
+\i /sql_scripts/tables/eco_codes.sql
+\i /sql_scripts/tables/game_clocks.sql
+\i /sql_scripts/tables/game_moves.sql
+\i /sql_scripts/tables/game_materials.sql
+\i /sql_scripts/tables/game_positions.sql
+\i /sql_scripts/tables/position_evals.sql
+\i /sql_scripts/tables/win_probabilities.sql
+\i /sql_scripts/tables/win_probabilities_eval_only.sql
+\i /sql_scripts/tables/game_evals_view.sql
 
 --grant luigi user privileges on database
 alter default privileges in schema public grant select, insert, update, delete, truncate on tables to luigi_user;

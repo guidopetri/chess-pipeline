@@ -6,6 +6,6 @@ create view game_evals as
            eval_depth,
            probability_lr      as win_probability_lr
     from game_positions
-    inner join position_evals      on position_evals.fen = game_positions.fen
-    inner join win_probabilities   on win_probabilities.eval = position_evals.evaluation
+    inner join position_evals                on position_evals.fen = game_positions.fen
+    inner join win_probabilities_eval_only   on win_probabilities_eval_only.eval = position_evals.evaluation
 ;

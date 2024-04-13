@@ -1,1 +1,1 @@
-\copy win_probabilities(eval, probability_lr) from '../res/content/win_probabilities.csv' with csv delimiter ',';
+\copy win_probabilities_eval_only(eval, probability_lr) from '/sql_scripts/content/win_probabilities.csv' with csv delimiter ',';

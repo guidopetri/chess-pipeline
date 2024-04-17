@@ -11,12 +11,14 @@ setup-postgres:
 	docker volume rm chess-pipeline_postgres_data || true
 	docker compose up -d postgres
 
-integration-test: setup-postgres build
+e2e-test: setup-postgres build
 	docker compose run --rm chess_pipeline \
 	  --module chess_pipeline \
 	  CopyGames \
-	  --player Zhigalko_Sergei \
+	  --player thibault \
 	  --perf-type bullet \
+	  --since 2024-01-29 \
+	  --single-day \
 	  --local-stockfish
 
 shell:

@@ -29,6 +29,7 @@ alter default privileges in schema public grant select, insert, update, delete, 
 alter default privileges in schema public grant usage on sequences to luigi_user;
 grant select, insert, update, delete, truncate on all tables in schema public to luigi_user;
 grant usage on all sequences in schema public to luigi_user;
+grant create on schema public to luigi_user;
 
 -- grant task history user privileges on task history db
 grant create, connect on database task_history_db to task_history_user;

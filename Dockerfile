@@ -55,4 +55,4 @@ COPY tests/ .
 
 ENV PYTHONPATH /app
 
-ENTRYPOINT ["cron", "-f"]
+ENTRYPOINT ["/usr/local/bin/luigi"]

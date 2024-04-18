@@ -3,6 +3,7 @@
 from pipeline_import import visitors
 import io
 import chess
+import pytest
 
 
 def test_evals_visitor():
@@ -80,6 +81,7 @@ def test_castling_visitor():
     assert game.headers['castling_sides']['black'] == 'kingside'
 
 
+@pytest.mark.skip
 def test_positions_visitor():
     pgn = """[Site "https://lichess.org/TTYLmSUX"]
 

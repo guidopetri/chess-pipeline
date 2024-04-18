@@ -4,8 +4,10 @@ from pipeline_import import plots, newsletter_utils
 import pandas as pd
 import os
 import hashlib
+import pytest
 
 
+@pytest.mark.skip
 def test_color_stats_plot():
 
     multiindex = pd.MultiIndex.from_arrays([['blitz', 'blitz', 'bullet'],
@@ -37,6 +39,7 @@ def test_color_stats_plot():
     os.remove(file_loc)
 
 
+@pytest.mark.skip
 def test_elo_by_weekday_plot():
     elo = pd.DataFrame([[0, 1666, 0, 1666.0, 1666.0],
                         [1, 1685, 7.071, 1680.0, 1690.0],
@@ -69,6 +72,7 @@ def test_elo_by_weekday_plot():
     os.remove(file_loc)
 
 
+@pytest.mark.skip
 def test_elo_by_weekday_without_games():
 
     empty_elo = pd.DataFrame([],

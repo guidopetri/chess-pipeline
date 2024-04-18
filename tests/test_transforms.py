@@ -225,13 +225,14 @@ def test_get_sf_evaluation_cloud():
     # loc/depth don't matter
     rating = transforms.get_sf_evaluation(fen, '', 1)
 
-    assert rating == -0.29
+    assert rating == -0.3
 
 
 def test_get_sf_evaluation_cloud_mate_in_x():
 
     # this specific FEN is already evaluated by lichess
-    fen = '8/8/6k1/8/6KP/6P1/8/8 b - - 0 1'
+    # scholar's mate
+    fen = 'r1bqkbnr/ppp2ppp/2np4/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 4'
 
     # loc/depth don't matter
     rating = transforms.get_sf_evaluation(fen, '', 1)

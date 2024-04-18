@@ -46,7 +46,7 @@ jobs:
           echo $LUIGI_ENV > .luigi_env
           echo $POSTGRES_ENV > .postgres_env
           make e2e-test
-      - name: Build arm64 Docker image and push to GHCR
+      - name: Build arm64 Docker image and push amd64/arm64 images to GHCR
         uses: docker/build-push-action@v5
         with:
           context: .

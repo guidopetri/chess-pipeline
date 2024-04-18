@@ -1,9 +1,9 @@
 build:
 	poetry check && \
 	docker build \
-		--build-arg INSTALL_GROUPS="main" \
-		-t chess-pipeline \
-		.
+	  --build-arg INSTALL_GROUPS="main" \
+	  -t chess-pipeline \
+	  .
 
 setup-postgres:
 	docker stop postgres || true
@@ -28,17 +28,17 @@ shell:
 
 build-dev:
 	docker build \
-		--build-arg INSTALL_GROUPS="main,dev" \
-		-t chess-pipeline-dev \
-		.
+	  --build-arg INSTALL_GROUPS="main,dev" \
+	  -t chess-pipeline-dev \
+	  .
 
 pyright: build-dev
 	docker compose run \
-		--rm -it \
-		--entrypoint=pyright \
-		chess_pipeline_dev \
-		--project /app/pyproject.toml \
-		/app
+	  --rm -it \
+	  --entrypoint=pyright \
+	  chess_pipeline_dev \
+	  --project /app/pyproject.toml \
+	  /app
 
 pytest: build-dev
 	docker compose run \
@@ -49,11 +49,11 @@ pytest: build-dev
 
 coverage: build-dev
 	docker compose run \
-		--rm -it \
-		--entrypoint=pytest \
-		chess_pipeline_dev \
-		-vv \
-		--cov=src/ \
-		--cov-report term \
-		--cov-report json:coverage.json \
-		--cov-report html:cov_html
+	  --rm -it \
+	  --entrypoint=pytest \
+	  chess_pipeline_dev \
+	  -vv \
+	  --cov=src/ \
+	  --cov-report term \
+	  --cov-report json:coverage.json \
+	  --cov-report html:cov_html

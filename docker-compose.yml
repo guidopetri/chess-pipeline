@@ -1,16 +1,24 @@
 version: "3"
 
+x-chess-pipeline-service: &chess-pipeline-service
+  restart: no
+  depends_on:
+    - luigi_server
+    - postgres
+  volumes:
+    - chess_pipeline_logs:/logs
+    - .luigi_env:/app/luigi.cfg
+
 services:
   chess_pipeline:
-    image: chess-pipeline
+    <<: *chess-pipeline-service
     container_name: chess_pipeline
-    restart: no
-    depends_on:
-      - luigi_server
-      - postgres
-    volumes:
-      - chess_pipeline_logs:/logs
-      - .luigi_env:/app/luigi.cfg
+    image: chess-pipeline
+
+  chess_pipeline_dev:
+    <<: *chess-pipeline-service
+    container_name: chess_pipeline_dev
+    image: chess-pipeline-dev
 
   luigi_server:
     image: ghcr.io/guidopetri/luigi-server:master

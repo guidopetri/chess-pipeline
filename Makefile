@@ -24,7 +24,7 @@ ci-e2e-test: setup-postgres
 e2e-test: build ci-e2e-test
 
 shell:
-	docker run --rm -it --entrypoint=/bin/bash chess-pipeline-dev
+	docker compose run --rm -it --entrypoint=/bin/bash chess_pipeline_dev
 
 build-dev:
 	docker build \
@@ -33,25 +33,25 @@ build-dev:
 		.
 
 pyright: build-dev
-	docker run \
+	docker compose run \
 		--rm -it \
 		--entrypoint=pyright \
-		chess-pipeline-dev \
+		chess_pipeline_dev \
 		--project /app/pyproject.toml \
 		/app
 
 pytest: build-dev
-	docker run \
-		--rm -it \
-		--entrypoint=pytest \
-		chess-pipeline-dev \
-		-vv
+	docker compose run \
+	  --rm -it \
+	  --entrypoint=pytest \
+	  chess_pipeline_dev \
+	  -vv
 
 coverage: build-dev
-	docker run \
+	docker compose run \
 		--rm -it \
 		--entrypoint=pytest \
-		chess-pipeline-dev \
+		chess_pipeline_dev \
 		-vv \
 		--cov=src/ \
 		--cov-report term \

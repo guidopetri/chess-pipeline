@@ -24,7 +24,10 @@ ci-e2e-test: setup-postgres
 e2e-test: build ci-e2e-test
 
 shell:
-	docker compose run --rm -it --entrypoint=/bin/bash chess_pipeline_dev
+	docker compose run \
+	  --rm -it \
+	  --entrypoint=/bin/bash \
+	  chess_pipeline_dev
 
 build-dev:
 	docker build \

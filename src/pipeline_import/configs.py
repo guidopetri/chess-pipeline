@@ -33,7 +33,8 @@ class postgres_cfg(Config):
 
 class lichess_token(Config):
     token = Parameter(visibility=ParameterVisibility.PRIVATE,
-                      significant=False)
+                      significant=False,
+                      default='')
 
 
 class stockfish_cfg(Config):

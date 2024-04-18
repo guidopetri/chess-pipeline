@@ -132,6 +132,17 @@ files = [
 ]
 
 [[package]]
+name = "chess"
+version = "1.10.0"
+description = "A chess library with move generation and validation, Polyglot opening book probing, PGN reading and writing, Gaviota tablebase probing, Syzygy tablebase probing, and XBoard/UCI engine communication."
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "chess-1.10.0-py3-none-any.whl", hash = "sha256:48ff7c084a370811819cfc753c2ee159942356ada70824666bd01ee3fca170d0"},
+    {file = "chess-1.10.0.tar.gz", hash = "sha256:bccde105f54aa436e899f92b4ba953731c65012a863fd9235683d0e2863ccd54"},
+]
+
+[[package]]
 name = "colorama"
 version = "0.4.6"
 description = "Cross-platform colored terminal text."
@@ -953,17 +964,6 @@ setproctitle = ["setproctitle"]
 testing = ["filelock"]
 
 [[package]]
-name = "python-chess"
-version = "0.28.3"
-description = "A pure Python chess library with move generation and validation, Polyglot opening book probing, PGN reading and writing, Gaviota tablebase probing, Syzygy tablebase probing and XBoard/UCI engine communication."
-optional = false
-python-versions = ">=3.5.3"
-files = [
-    {file = "python-chess-0.28.3.tar.gz", hash = "sha256:07cde6e3e30b813a7240879164ce8e2344ccfc1e0d643a18801070d6cdf33f4e"},
-    {file = "python_chess-0.28.3-py3-none-any.whl", hash = "sha256:a635aa242375be8bcede16d669f11d5ed715cc72ba0c0f9ee833bd333e5bd255"},
-]
-
-[[package]]
 name = "python-daemon"
 version = "3.0.1"
 description = "Library to implement a well-behaved Unix daemon process."
@@ -1317,4 +1317,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "b5986946c25bda6285b77ae3105f405c36a3bce42df9b9b5b8afdd33dee5daa5"
+content-hash = "47a0c5c6f1270dddb3b33d783b974ca23cc474d9c7b69fa245585ed93015fc58"

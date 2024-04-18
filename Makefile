@@ -11,7 +11,7 @@ setup-postgres:
 	docker volume rm chess-pipeline_postgres_data || true
 	docker compose up -d postgres
 
-e2e-test: setup-postgres build
+ci-e2e-test: setup-postgres
 	docker compose run --rm chess_pipeline \
 	  --module chess_pipeline \
 	  CopyGames \
@@ -20,6 +20,8 @@ e2e-test: setup-postgres build
 	  --since 2024-01-29 \
 	  --single-day \
 	  --local-stockfish
+
+e2e-test: build ci-e2e-test
 
 shell:
 	docker run --rm -it --entrypoint=/bin/bash chess-pipeline-dev

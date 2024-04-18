@@ -15,8 +15,8 @@ class EvalsVisitor(BaseVisitor):
         self.game.headers._others['eval_depths'] = []
 
     def visit_comment(self, comment):
-        if 'eval' in comment:
-            evaluation = re.search(r'\[%eval ([^\]]+)', comment).group(1)
+        if (eval_match := re.search(r'\[%eval ([^\]]+)', comment)) is not None:
+            evaluation = eval_match.group(1)
 
             # if it's a checkmate sequence
             if evaluation.startswith('#'):
@@ -56,8 +56,8 @@ class ClocksVisitor(BaseVisitor):
         self.game.headers._others['black_berserked'] = False
 
     def visit_comment(self, comment):
-        if 'clk' in comment:
-            clock_time = re.search(r'\[%clk ([^\]]+)', comment).group(1)
+        if (clock_match := re.search(r'\[%clk ([^\]]+)', comment)) is not None:
+            clock_time = clock_match.group(1)
         else:
             clock_time = ''
 

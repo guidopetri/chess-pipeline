@@ -6,6 +6,7 @@ from psycopg2 import connect
 import lichess.api
 import stockfish
 import re
+from subprocess import SubprocessError
 
 
 def get_sf_evaluation(fen, sf_location, sf_depth):
@@ -33,6 +34,9 @@ def get_sf_evaluation(fen, sf_location, sf_depth):
     if sf.get_best_move() is not None:
         rating_match = re.search(r'score (cp|mate) (.+?)(?: |$)',
                                  sf.info)
+        if rating_match is None:
+          raise SubprocessError('Could not find chess engine rating'
+                                f' in info string: {sf.info}')
 
         if rating_match.group(1) == 'mate':
             original_rating = int(rating_match.group(2))

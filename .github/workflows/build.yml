@@ -41,6 +41,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
+          load: true
           tags: ${{ github.event.repository.name }}
           cache-from: type=gha
       - name: Run e2e test

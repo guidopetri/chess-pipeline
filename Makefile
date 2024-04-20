@@ -37,7 +37,7 @@ build-dev:
 
 ci-pyright:
 	docker compose run \
-	  --rm -it \
+	  --rm \
 	  --entrypoint=pyright \
 	  chess_pipeline_dev \
 	  --project /app/pyproject.toml \
@@ -47,7 +47,7 @@ pyright: build-dev ci-pyright
 
 ci-pytest:
 	docker compose run \
-	  --rm -it \
+	  --rm \
 	  --entrypoint=pytest \
 	  chess_pipeline_dev \
 	  -vv

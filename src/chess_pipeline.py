@@ -326,11 +326,9 @@ class GetEvals(Task):
                     # position will be dropped later if evaluation is None
                     evaluation = None
                 else:
-                    sf_eval = get_sf_evaluation(position + ' 0',
-                                                stockfish_params.location,
-                                                stockfish_params.depth)
-                    if sf_eval is not None:
-                        evaluation = sf_eval
+                    evaluation = get_sf_evaluation(position + ' 0',
+                                                   stockfish_params.location,
+                                                   stockfish_params.depth)
                 local_evals.append(evaluation)
 
                 # progress bar stuff

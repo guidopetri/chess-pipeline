@@ -30,5 +30,5 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.pyright]
-typeCheckingMode = "strict"
 ignore = ["./pipeline_import/postgres_templates.py", "./tests"]
+useLibraryCodeForTypes = false

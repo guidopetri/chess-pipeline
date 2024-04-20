@@ -2,18 +2,20 @@
 
 import pickle
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
+from pandas.core.groupby import DataFrameGroupBy
 import os
 
 
 def load_win_probability_model():
-    file_path = os.path.join(os.path.dirname(__file__), 'wp_model.pckl')
+    file_path: str = os.path.join(os.path.dirname(__file__), 'wp_model.pckl')
     with open(file_path, 'rb') as f:
         model = pickle.load(f)
     return model
 
 
-def create_wp_features(df):
+def create_wp_features(df: pd.DataFrame) -> pd.DataFrame:
     df.sort_values(by=['game_link', 'half_move'], ascending=True, inplace=True)
 
     # filter out where we don't have clock times
@@ -31,11 +33,12 @@ def create_wp_features(df):
 
     # group by game and player; sometimes players have different clock times
     # (e.g. berserk in arena)
-    initial_times = df.groupby(['game_link', 'player_to_move'])
+    initial_times_groupby: DataFrameGroupBy = df.groupby(['game_link',
+                                                          'player_to_move'])
     # get only first row of the columns we need
-    initial_times = initial_times[['game_link',
-                                   'player_to_move',
-                                   'clock']].head(1)
+    initial_times = initial_times_groupby[['game_link',
+                                           'player_to_move',
+                                           'clock']].head(1)
     initial_times.columns = ['game_link', 'player_to_move', 'initial_clock']
     df = pd.merge(df,
                   initial_times,
@@ -95,7 +98,7 @@ def create_wp_features(df):
     return df
 
 
-def predict_wp(df):
+def predict_wp(df: pd.DataFrame) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64], npt.NDArray[np.float64]]:
 
     model = load_win_probability_model()
 
@@ -109,6 +112,6 @@ def predict_wp(df):
             'has_increment',
             ]
 
-    probs = model.predict_proba(df[cols]).round(6)
+    probs: npt.NDArray[np.float64] = model.predict_proba(df[cols]).round(6)
 
     return probs[:, 0], probs[:, 1], probs[:, 2]

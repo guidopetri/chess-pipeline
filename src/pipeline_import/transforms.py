@@ -7,10 +7,10 @@ import lichess.api
 import stockfish
 import re
 from subprocess import SubprocessError
+from pathlib import Path
 
 
-def get_sf_evaluation(fen, sf_location, sf_depth):
-
+def get_sf_evaluation(fen: str, sf_location: Path, sf_depth: int) -> float | None:
     # get cloud eval if available
     try:
         cloud_eval = lichess.api.cloud_eval(fen=fen, multiPv=1)

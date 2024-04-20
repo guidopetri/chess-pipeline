@@ -56,7 +56,7 @@ pytest: build-dev ci-pytest
 
 ci-coverage:
 	docker compose run \
-	  --rm -it \
+	  --rm \
 	  --entrypoint=pytest \
 	  chess_pipeline_dev \
 	  -vv \

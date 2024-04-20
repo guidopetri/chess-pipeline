@@ -320,15 +320,21 @@ class GetEvals(Task):
 
             counter = 0
             position_count = len(no_evals['positions'])
+            evaluation = None
 
             for position in no_evals['positions'].tolist():
                 if position in positions_evaluated.values:
                     # position will be dropped later if evaluation is None
                     evaluation = None
                 else:
-                    evaluation = get_sf_evaluation(position + ' 0',
-                                                   stockfish_params.location,
-                                                   stockfish_params.depth)
+                    sf_eval = get_sf_evaluation(position + ' 0',
+                                                stockfish_params.location,
+                                                stockfish_params.depth)
+                    if sf_eval is not None:
+                        # TODO: this is implicitly setting evaluation = last
+                        # eval if in a checkmate position. handle this better
+                        evaluation = sf_eval
+
                 local_evals.append(evaluation)
 
                 # progress bar stuff

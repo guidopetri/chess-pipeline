@@ -41,7 +41,7 @@ jobs:
         with:
           context: .
           build-args: INSTALL_GROUPS=main,dev
-          tags: ${{ env.REPO_NAME }}
+          tags: ${{ env.REPO_NAME }}-dev
           cache-from: type=gha
           outputs: type=docker,dest=/tmp/${{ env.REPO_NAME }}_dev.tar
       - name: Upload dev image artifact

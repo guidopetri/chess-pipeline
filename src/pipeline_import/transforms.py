@@ -105,7 +105,7 @@ def convert_clock_to_seconds(clocks):
     return clocks
 
 
-def get_clean_fens(positions):
+def get_clean_fens(positions: pd.Series) -> pd.Series:
     # split, get all but last element of resulting list, then re-join
     return positions.str.split().str[:-1].str.join(' ')
 

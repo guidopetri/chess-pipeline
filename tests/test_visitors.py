@@ -23,7 +23,7 @@ def test_evals_visitor():
 def test_clocks_visitor():
     pgn = """[Site "https://lichess.org/TTYLmSUX"]
 
-1. e4 { [%clk 0:01:00] } 1... c5 { [%clk 0:01:00] } 2. f4 { [%clk 0:00:59] } 2... d6 { [%clk 0:01:00] } 1-0"""  # noqa
+1. e4 { [%clk 0:01:00] } 1... c5 { [%clk 0:01:00] } 2. f4 { [%clk 0:00:59] } 2... d6 { [%clk 0:01:00] } 3. e5 { [%eval 0.3] } 1-0"""  # noqa
 
     game = chess.pgn.read_game(io.StringIO(pgn))
 
@@ -32,7 +32,9 @@ def test_clocks_visitor():
     assert game.headers['clocks'] == ['0:01:00',
                                       '0:01:00',
                                       '0:00:59',
-                                      '0:01:00']
+                                      '0:01:00',
+                                      '',
+                                      ]
 
 
 def test_queen_exchange_visitor():

@@ -1,10 +1,11 @@
 #! /usr/bin/env python3
 
-from pipeline_import import plots, newsletter_utils
-import pandas as pd
-import os
 import hashlib
+import os
+
+import pandas as pd
 import pytest
+from pipeline_import import newsletter_utils, plots
 
 
 @pytest.mark.skip

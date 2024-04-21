@@ -8,25 +8,35 @@ from datetime import datetime, timedelta
 import lichess.api
 import pandas as pd
 import psycopg2
-
-from lichess.format import JSON
-from lichess.format import PYCHESS
-from luigi import Task, LocalTarget
+from lichess.format import JSON, PYCHESS
+from luigi import LocalTarget, Task
 from luigi.format import Nop
-from luigi.parameter import Parameter, DateParameter, BoolParameter
-from luigi.util import requires, inherits
-from pipeline_import.configs import lichess_token, stockfish_cfg, postgres_cfg
+from luigi.parameter import BoolParameter, DateParameter, Parameter
+from luigi.util import inherits, requires
+from pipeline_import.configs import lichess_token, postgres_cfg, stockfish_cfg
 from pipeline_import.models import predict_wp
-from pipeline_import.postgres_templates import CopyWrapper, HashableDict
-from pipeline_import.postgres_templates import TransactionFactTable
-from pipeline_import.transforms import get_sf_evaluation, parse_headers
-from pipeline_import.transforms import fix_provisional_columns, get_clean_fens
-from pipeline_import.transforms import convert_clock_to_seconds
-from pipeline_import.transforms import transform_game_data
-from pipeline_import.visitors import EvalsVisitor, ClocksVisitor
-from pipeline_import.visitors import QueenExchangeVisitor
-from pipeline_import.visitors import CastlingVisitor, PositionsVisitor
-from pipeline_import.visitors import PromotionsVisitor, MaterialVisitor
+from pipeline_import.postgres_templates import (
+    CopyWrapper,
+    HashableDict,
+    TransactionFactTable,
+)
+from pipeline_import.transforms import (
+    convert_clock_to_seconds,
+    fix_provisional_columns,
+    get_clean_fens,
+    get_sf_evaluation,
+    parse_headers,
+    transform_game_data,
+)
+from pipeline_import.visitors import (
+    CastlingVisitor,
+    ClocksVisitor,
+    EvalsVisitor,
+    MaterialVisitor,
+    PositionsVisitor,
+    PromotionsVisitor,
+    QueenExchangeVisitor,
+)
 
 
 def run_remote_sql_query(sql, **params):

@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 
 import timeit
+
 import stockfish
 
 
@@ -31,6 +32,7 @@ def run_benchmark(stockfish_location):
 
 if __name__ == '__main__':
     import sys
+
     import matplotlib.pyplot as plt
 
     if len(sys.argv) < 2:

@@ -1,15 +1,20 @@
 #! /usr/bin/env python3
 
-from luigi import Task, LocalTarget
+from luigi import LocalTarget, Task
 from luigi.format import Nop
+from luigi.parameter import ListParameter, Parameter
 from luigi.util import requires
-from luigi.parameter import Parameter, ListParameter
-from pipeline_import.configs import sendgrid, newsletter_cfg, postgres_cfg
-from pipeline_import.transforms import get_color_stats, get_elo_by_weekday
-from pipeline_import.transforms import get_weekly_data
-from pipeline_import.plots import make_color_stats_plot
-from pipeline_import.plots import make_elo_by_weekday_plot
+from pipeline_import.configs import newsletter_cfg, postgres_cfg, sendgrid
 from pipeline_import.newsletter_utils import get_color_stats_text
+from pipeline_import.plots import (
+    make_color_stats_plot,
+    make_elo_by_weekday_plot,
+)
+from pipeline_import.transforms import (
+    get_color_stats,
+    get_elo_by_weekday,
+    get_weekly_data,
+)
 
 
 class GetData(Task):
@@ -41,15 +46,16 @@ class WinRatioByColor(Task):
         return LocalTarget(os.path.expanduser(file_loc), format=Nop)
 
     def run(self):
-        import pickle
         import os
+        import pickle
+
         from pandas import read_pickle
 
         with self.input().open('r') as f:
             df = read_pickle(f, compression=None)
 
         if df.empty:
-            text = 'Wait a second, no you didn\'t!'
+            text = "Wait a second, no you didn't!"
 
             with self.output().open('w') as f:
                 pickle.dump(text, f, protocol=-1)
@@ -68,8 +74,8 @@ class WinRatioByColor(Task):
         win_rate_string = get_color_stats_text(color_stats)
 
         text = (win_rate_string
-                + ' <br> <img alt=\'Win rate by color '
-                + 'played\' src=\'cid:win-by-color\'><br>'
+                + " <br> <img alt='Win rate by color "
+                + "played' src='cid:win-by-color'><br>"
                 )
 
         with self.output().open('w') as f:
@@ -88,8 +94,9 @@ class EloByWeekday(Task):
         return LocalTarget(os.path.expanduser(file_loc), format=Nop)
 
     def run(self):
-        import pickle
         import os
+        import pickle
+
         from pandas import read_pickle
 
         with self.input().open('r') as f:
@@ -115,8 +122,8 @@ class EloByWeekday(Task):
 
         text = (f'This week, your highest elo in {self.category} was '
                 f'{max_elo} and your lowest elo was {min_elo}. <br>'
-                f'<img alt=\'Elo by weekday\' src='
-                f'\'cid:elo-by-weekday\'><br>'
+                f"<img alt='Elo by weekday' src="
+                f"'cid:elo-by-weekday'><br>"
                 )
 
         with self.output().open('w') as f:
@@ -129,11 +136,12 @@ class CreateNewsletter(Task):
     receiver = Parameter()
 
     def run(self):
-        import pickle
         import base64
         import os
-        from sendgrid.helpers import mail
+        import pickle
+
         from bs4 import BeautifulSoup
+        from sendgrid.helpers import mail
 
         newsletter = mail.Mail(from_email=newsletter_cfg().sender,
                                to_emails=self.receiver,
@@ -157,7 +165,7 @@ class CreateNewsletter(Task):
                 newsletter.add_attachment(attachment)
 
         message = [f'<html><body> Hi {self.player},<br><br>'
-                   f'This week you played chess! Here\'s your performance:'
+                   f"This week you played chess! Here's your performance:"
                    ]
 
         for inp in self.input():
@@ -193,8 +201,9 @@ class SendNewsletter(Task):
 
     def run(self):
         import os
-        import shutil
         import pickle
+        import shutil
+
         from sendgrid import SendGridAPIClient
 
         with self.input().open('r') as f:

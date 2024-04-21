@@ -1,11 +1,12 @@
 #! /usr/bin/env python
 
+import pickle
+
+import numpy as np
 import pandas as pd
+import statsmodels.formula.api as sm
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
-import statsmodels.formula.api as sm
-import numpy as np
-import pickle
 
 df = pd.read_csv('../../data/processed/dataset.csv')
 

@@ -1,13 +1,21 @@
 #! /usr/bin/env python3
 
-from pandas import to_timedelta, to_datetime, to_numeric
-from pandas import concat, Series, merge, read_sql_query
-from psycopg2 import connect
+import re
+from pathlib import Path
+from subprocess import SubprocessError
+
 import lichess.api
 import stockfish
-import re
-from subprocess import SubprocessError
-from pathlib import Path
+from pandas import (
+    Series,
+    concat,
+    merge,
+    read_sql_query,
+    to_datetime,
+    to_numeric,
+    to_timedelta,
+)
+from psycopg2 import connect
 
 
 def get_sf_evaluation(fen: str,

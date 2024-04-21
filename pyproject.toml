@@ -34,3 +34,12 @@ build-backend = "poetry.core.masonry.api"
 [tool.pyright]
 ignore = ["./pipeline_import/postgres_templates.py", "./tests"]
 useLibraryCodeForTypes = false
+
+[tool.ruff]
+line-length = 79
+
+[tool.ruff.lint.flake8-quotes]
+inline-quotes = "single"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "Q", "I"]

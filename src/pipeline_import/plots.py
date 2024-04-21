@@ -1,8 +1,9 @@
 #! /usr/bin/env python3
 
-from seaborn import set as sns_set
-from matplotlib import use
 import os
+
+from matplotlib import use
+from seaborn import set as sns_set
 
 
 def make_color_stats_plot(color_stats, fig_loc, filename):

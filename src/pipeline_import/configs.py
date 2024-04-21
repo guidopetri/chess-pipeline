@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 
 from luigi import Config
-from luigi.parameter import ParameterVisibility, IntParameter, Parameter
+from luigi.parameter import IntParameter, Parameter, ParameterVisibility
 
 
 class sendgrid(Config):

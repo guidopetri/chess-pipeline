@@ -1,9 +1,10 @@
 #! /usr/bin/env python
 
-import psycopg2
-import pandas as pd
-from dotenv import load_dotenv, find_dotenv
 import os
+
+import pandas as pd
+import psycopg2
+from dotenv import find_dotenv, load_dotenv
 
 pd.options.display.max_columns = 999
 

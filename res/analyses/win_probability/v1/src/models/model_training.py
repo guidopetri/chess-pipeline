@@ -1,11 +1,12 @@
 #! /usr/bin/env python
 
+import pickle
+
+import numpy as np
 import pandas as pd
+from model_definitions import leela_model, tumblr_model, wiki_model
 from sklearn.linear_model import LogisticRegressionCV
 from sklearn.model_selection import train_test_split
-import numpy as np
-import pickle
-from model_definitions import tumblr_model, leela_model, wiki_model
 
 df = pd.read_csv('../../data/processed/dataset.csv')
 

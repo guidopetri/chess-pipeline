@@ -1,10 +1,11 @@
 #! /usr/bin/env python
 
-from chess.pgn import BaseVisitor
-import chess
 import re
-from datetime import datetime
 from collections import Counter
+from datetime import datetime
+
+import chess
+from chess.pgn import BaseVisitor
 
 
 class EvalsVisitor(BaseVisitor):

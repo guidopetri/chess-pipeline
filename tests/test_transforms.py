@@ -1,11 +1,12 @@
 #! /usr/bin/env python3
 
-from pipeline_import import transforms, visitors
-from configparser import ConfigParser
-import pandas as pd
 import io
+from configparser import ConfigParser
+
 import chess
+import pandas as pd
 import pytest
+from pipeline_import import transforms, visitors
 
 
 def test_parse_headers():

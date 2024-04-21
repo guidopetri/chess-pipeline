@@ -1,13 +1,18 @@
 #! /usr/bin/env python
 
-import pandas as pd
-from sklearn.metrics import (brier_score_loss, roc_auc_score,
-                             log_loss, roc_curve)
-import seaborn as sns
-import matplotlib.pyplot as plt
 from itertools import product
+
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
 import statsmodels.api as sm
 from scipy.special import expit
+from sklearn.metrics import (
+    brier_score_loss,
+    log_loss,
+    roc_auc_score,
+    roc_curve,
+)
 
 pd.options.display.max_columns = 999
 
@@ -51,7 +56,7 @@ plt.plot(x['half_move'], y, 'r--', label='Model')
 plt.legend(loc='best')
 plt.xlabel('Half-move')
 plt.ylabel('Winner clock time percent (sigmoid-transformed)')
-plt.title('Chess game winners\' pace of play')
+plt.title("Chess game winners' pace of play")
 plt.savefig('../../report/plots/pace_of_play_sigmoid.png')
 
 plt.figure()
@@ -60,7 +65,7 @@ plt.plot(x['half_move'], expit(y), 'r--', label='Model')
 plt.legend(loc='best')
 plt.xlabel('Half-move')
 plt.ylabel('Winner clock time percent')
-plt.title('Chess game winners\' pace of play')
+plt.title("Chess game winners' pace of play")
 plt.savefig('../../report/plots/pace_of_play_standard.png')
 
 # # # # # #                       EVALUATION                       # # # # # #

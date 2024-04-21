@@ -1,11 +1,12 @@
 #! /usr/bin/env python3
 
+import os
 import pickle
+
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
 from pandas.core.groupby import DataFrameGroupBy
-import os
 
 
 def load_win_probability_model():

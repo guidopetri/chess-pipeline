@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 import statsmodels.formula.api as sm
 
 pd.options.display.max_columns = 999

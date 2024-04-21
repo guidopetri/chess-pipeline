@@ -1,7 +1,8 @@
 #! /usr/bin/env python
 
-import pandas as pd
 import pickle
+
+import pandas as pd
 import statsmodels.api as sm
 
 with open('../../models/lr_model.pckl', 'rb') as f:

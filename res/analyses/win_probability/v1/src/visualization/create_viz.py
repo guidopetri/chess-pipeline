@@ -1,12 +1,17 @@
 #! /usr/bin/env python
 
-import pandas as pd
-from sklearn.metrics import (brier_score_loss, roc_auc_score,
-                             log_loss, roc_curve)
-import numpy as np
-import seaborn as sns
-import matplotlib.pyplot as plt
 from itertools import product
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
+from sklearn.metrics import (
+    brier_score_loss,
+    log_loss,
+    roc_auc_score,
+    roc_curve,
+)
 
 pd.options.display.max_columns = 999
 

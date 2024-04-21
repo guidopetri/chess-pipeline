@@ -1,9 +1,10 @@
 #! /usr/bin/env python3
 
 import multiprocessing
-import stockfish
 import queue
 import re
+
+import stockfish
 
 
 def run_stockfish(fens_queue, evals_queue, stockfish_location, depth):

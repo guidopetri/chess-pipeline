@@ -1,10 +1,15 @@
 #! /usr/bin/env python3
 
 from collections import OrderedDict
+
+from luigi import LocalTarget, Task
 from luigi.contrib import postgres
-from luigi.parameter import Parameter, ListParameter, DictParameter
-from luigi.parameter import TaskParameter
-from luigi import Task, LocalTarget
+from luigi.parameter import (
+    DictParameter,
+    ListParameter,
+    Parameter,
+    TaskParameter,
+)
 from luigi.task import flatten
 
 

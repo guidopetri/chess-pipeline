@@ -1,9 +1,10 @@
 #! /usr/bin/env python3
 
-from pipeline_import import visitors
 import io
+
 import chess
 import pytest
+from pipeline_import import visitors
 
 
 def test_evals_visitor():

@@ -6,6 +6,7 @@ from subprocess import SubprocessError
 from typing import Type
 
 import lichess.api
+import pandas as pd
 import stockfish
 from chess.pgn import Game
 from pandas import (
@@ -84,14 +85,14 @@ def parse_headers(game: Game, visitors: list[Type[Visitor]]) -> Json:
     return game_infos
 
 
-def fix_provisional_columns(json):
+def fix_provisional_columns(json_df: pd.DataFrame) -> pd.DataFrame:
     for side in ['black', 'white']:
         col = f'players_{side}_provisional'
-        if col in json.columns:
-            json[col].fillna(False, inplace=True)
+        if col in json_df.columns:
+            json_df[col].fillna(False, inplace=True)
         else:
-            json[col] = False
-    return json
+            json_df[col] = False
+    return json_df
 
 
 def convert_clock_to_seconds(clocks):

@@ -156,6 +156,46 @@ def fetch_lichess_api_pgn(player: str,
     return df
 
 
+def clean_chess_df(pgn: pd.DataFrame, json: pd.DataFrame) -> pd.DataFrame:
+    json['Site'] = 'https://lichess.org/' + json['id']
+
+    json = fix_provisional_columns(json)
+
+    json = json[['Site',
+                 'speed',
+                 'status',
+                 'players_black_provisional',
+                 'players_white_provisional',
+                 ]]
+
+    df: pd.DataFrame = pd.merge(pgn, json, on='Site')
+
+    # rename columns
+    df.rename(columns={'Black':                     'black',
+                       'BlackElo':                  'black_elo',
+                       'BlackRatingDiff':           'black_rating_diff',
+                       'Date':                      'date_played',
+                       'ECO':                       'opening_played',
+                       'Event':                     'event_type',
+                       'Result':                    'result',
+                       'Round':                     'round',
+                       'Site':                      'game_link',
+                       'Termination':               'termination',
+                       'TimeControl':               'time_control',
+                       'UTCDate':                   'utc_date_played',
+                       'UTCTime':                   'time_played',
+                       'Variant':                   'chess_variant',
+                       'White':                     'white',
+                       'WhiteElo':                  'white_elo',
+                       'WhiteRatingDiff':           'white_rating_diff',
+                       'Opening':                   'lichess_opening',
+                       'players_black_provisional': 'black_elo_tentative',
+                       'players_white_provisional': 'white_elo_tentative',
+                       },
+              inplace=True)
+    return df
+
+
 class FetchLichessApiJSON(Task):
 
     player = Parameter(default='thibault')
@@ -228,8 +268,7 @@ class CleanChessDF(Task):
         with self.input()[1].open('r') as f:
             json = pd.read_pickle(f, compression=None)
 
-        # hopefully, if pgn is empty so is json
-        if pgn.empty:
+        if pgn.empty and json.empty:
 
             def complete(self):
                 return True
@@ -238,43 +277,12 @@ class CleanChessDF(Task):
                 pgn.to_pickle(temp_output_path, compression=None)
 
             return
+        elif pgn.empty or json.empty:
+            raise ValueError('Found only one of pgn/json empty for input '
+                             f'{self.player=} {self.perf_type=} {self.since=} '
+                             f'{self.single_day=}')
 
-        json['Site'] = 'https://lichess.org/' + json['id']
-
-        json = fix_provisional_columns(json)
-
-        json = json[['Site',
-                     'speed',
-                     'status',
-                     'players_black_provisional',
-                     'players_white_provisional',
-                     ]]
-
-        df = pd.merge(pgn, json, on='Site')
-
-        # rename columns
-        df.rename(columns={'Black':                     'black',
-                           'BlackElo':                  'black_elo',
-                           'BlackRatingDiff':           'black_rating_diff',
-                           'Date':                      'date_played',
-                           'ECO':                       'opening_played',
-                           'Event':                     'event_type',
-                           'Result':                    'result',
-                           'Round':                     'round',
-                           'Site':                      'game_link',
-                           'Termination':               'termination',
-                           'TimeControl':               'time_control',
-                           'UTCDate':                   'utc_date_played',
-                           'UTCTime':                   'time_played',
-                           'Variant':                   'chess_variant',
-                           'White':                     'white',
-                           'WhiteElo':                  'white_elo',
-                           'WhiteRatingDiff':           'white_rating_diff',
-                           'Opening':                   'lichess_opening',
-                           'players_black_provisional': 'black_elo_tentative',
-                           'players_white_provisional': 'white_elo_tentative',
-                           },
-                  inplace=True)
+        df = clean_chess_df(pgn, json)
 
         with self.output().temporary_path() as temp_output_path:
             df.to_pickle(temp_output_path, compression=None)

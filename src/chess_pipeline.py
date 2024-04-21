@@ -282,6 +282,116 @@ def get_evals(df: pd.DataFrame,
     return df
 
 
+def explode_moves(df: pd.DataFrame) -> pd.DataFrame:
+    df = df[['game_link', 'moves']]
+
+    df = df.explode('moves')
+    df.rename(columns={'moves': 'move'},
+              inplace=True)
+    df['half_move'] = df.groupby('game_link').cumcount() + 1
+    return df
+
+
+def explode_clocks(df: pd.DataFrame) -> pd.DataFrame:
+    df = df[['game_link', 'clocks']]
+
+    df = df.explode('clocks')
+    df.rename(columns={'clocks': 'clock'},
+              inplace=True)
+    df['half_move'] = df.groupby('game_link').cumcount() + 1
+    df['clock'] = convert_clock_to_seconds(df['clock'])
+    return df
+
+
+def explode_positions(df: pd.DataFrame) -> pd.DataFrame:
+    df = df[['game_link', 'positions']]
+
+    df = df.explode('positions')
+    df.rename(columns={'positions': 'position'},
+              inplace=True)
+    df['half_move'] = df.groupby('game_link').cumcount() + 1
+
+    df['fen'] = get_clean_fens(df['position'])
+    return df
+
+
+def explode_materials(df: pd.DataFrame) -> pd.DataFrame:
+    df = df[['game_link', 'material_by_move']]
+
+    df = df.explode('material_by_move')
+
+    df = pd.concat([df['game_link'],
+                    df['material_by_move'].apply(pd.Series)
+                                          .fillna(0)
+                                          .astype(int)],
+                   axis=1)
+    df.rename(columns={'r': 'rooks_black',
+                       'n': 'knights_black',
+                       'b': 'bishops_black',
+                       'q': 'queens_black',
+                       'p': 'pawns_black',
+                       'P': 'pawns_white',
+                       'R': 'rooks_white',
+                       'N': 'knights_white',
+                       'B': 'bishops_white',
+                       'Q': 'queens_white',
+                       },
+              inplace=True)
+
+    df['half_move'] = df.groupby('game_link').cumcount() + 1
+    return df
+
+
+def estimate_win_probabilities(game_infos: pd.DataFrame,
+                               evals: pd.DataFrame,
+                               game_positions: pd.DataFrame,
+                               game_clocks: pd.DataFrame,
+                               local_stockfish: bool,
+                               ) -> pd.DataFrame:
+    game_infos['has_increment'] = (game_infos['increment'] > 0).astype(int)
+
+    game_infos_cols = ['game_link',
+                       'has_increment',
+                       'player_color',
+                       'player_elo',
+                       'opponent_elo',
+                       ]
+
+    # evals isn't always populated
+    df = pd.merge(game_positions, evals, on='fen', how='left')
+
+    # if there are missing evals, set to 0 so it doesn't influence the WP
+    if not local_stockfish:
+        df['evaluation'].fillna(0, inplace=True)
+        # this is actually kind of incorrect - evaluation was never scaled
+        # so the mean isn't 0, but rather something like 0.2 probably.
+        # since the LR model inputs weren't scaled in the first place,
+        # i am just ignoring this for now
+
+    df = pd.merge(df, game_clocks, on=['game_link', 'half_move'])
+    df = pd.merge(df,
+                  game_infos[game_infos_cols],
+                  on='game_link',
+                  )
+
+    loss, draw, win = predict_wp(df)
+
+    df['win_probability_white'] = win
+    df['draw_probability'] = draw
+    df['win_probability_black'] = loss
+
+    model_path = os.path.join(os.path.dirname(__file__),
+                              'pipeline_import',
+                              'wp_model.pckl',
+                              )
+
+    with open(model_path, 'rb') as f:
+        md5 = hashlib.md5(f.read()).hexdigest()
+
+    df['win_prob_model_version'] = md5[:7]
+    return df
+
+
 class FetchLichessApiJSON(Task):
 
     player = Parameter(default='thibault')
@@ -430,12 +540,7 @@ class ExplodeMoves(Task):
 
             return
 
-        df = df[['game_link', 'moves']]
-
-        df = df.explode('moves')
-        df.rename(columns={'moves': 'move'},
-                  inplace=True)
-        df['half_move'] = df.groupby('game_link').cumcount() + 1
+        df = explode_moves(df)
 
         with self.output().temporary_path() as temp_output_path:
             df.to_pickle(temp_output_path, compression=None)
@@ -465,13 +570,7 @@ class ExplodeClocks(Task):
 
             return
 
-        df = df[['game_link', 'clocks']]
-
-        df = df.explode('clocks')
-        df.rename(columns={'clocks': 'clock'},
-                  inplace=True)
-        df['half_move'] = df.groupby('game_link').cumcount() + 1
-        df['clock'] = convert_clock_to_seconds(df['clock'])
+        df = explode_clocks(df)
 
         with self.output().temporary_path() as temp_output_path:
             df.to_pickle(temp_output_path, compression=None)
@@ -501,14 +600,7 @@ class ExplodePositions(Task):
 
             return
 
-        df = df[['game_link', 'positions']]
-
-        df = df.explode('positions')
-        df.rename(columns={'positions': 'position'},
-                  inplace=True)
-        df['half_move'] = df.groupby('game_link').cumcount() + 1
-
-        df['fen'] = get_clean_fens(df['position'])
+        df = explode_positions(df)
 
         with self.output().temporary_path() as temp_output_path:
             df.to_pickle(temp_output_path, compression=None)
@@ -538,29 +630,7 @@ class ExplodeMaterials(Task):
 
             return
 
-        df = df[['game_link', 'material_by_move']]
-
-        df = df.explode('material_by_move')
-
-        df = pd.concat([df['game_link'],
-                        df['material_by_move'].apply(pd.Series)
-                                              .fillna(0)
-                                              .astype(int)],
-                       axis=1)
-        df.rename(columns={'r': 'rooks_black',
-                           'n': 'knights_black',
-                           'b': 'bishops_black',
-                           'q': 'queens_black',
-                           'p': 'pawns_black',
-                           'P': 'pawns_white',
-                           'R': 'rooks_white',
-                           'N': 'knights_white',
-                           'B': 'bishops_white',
-                           'Q': 'queens_white',
-                           },
-                  inplace=True)
-
-        df['half_move'] = df.groupby('game_link').cumcount() + 1
+        df = explode_materials(df)
 
         with self.output().temporary_path() as temp_output_path:
             df.to_pickle(temp_output_path, compression=None)
@@ -629,47 +699,12 @@ class EstimateWinProbabilities(Task):
 
             return
 
-        game_infos['has_increment'] = (game_infos['increment'] > 0).astype(int)
-
-        game_infos_cols = ['game_link',
-                           'has_increment',
-                           'player_color',
-                           'player_elo',
-                           'opponent_elo',
-                           ]
-
-        # evals isn't always populated
-        df = pd.merge(game_positions, evals, on='fen', how='left')
-
-        # if there are missing evals, set to 0 so it doesn't influence the WP
-        if not self.local_stockfish:
-            df['evaluation'].fillna(0, inplace=True)
-            # this is actually kind of incorrect - evaluation was never scaled
-            # so the mean isn't 0, but rather something like 0.2 probably.
-            # since the LR model inputs weren't scaled in the first place,
-            # i am just ignoring this for now
-
-        df = pd.merge(df, game_clocks, on=['game_link', 'half_move'])
-        df = pd.merge(df,
-                      game_infos[game_infos_cols],
-                      on='game_link',
-                      )
-
-        loss, draw, win = predict_wp(df)
-
-        df['win_probability_white'] = win
-        df['draw_probability'] = draw
-        df['win_probability_black'] = loss
-
-        model_path = os.path.join(os.path.dirname(__file__),
-                                  'pipeline_import',
-                                  'wp_model.pckl',
-                                  )
-
-        with open(model_path, 'rb') as f:
-            md5 = hashlib.md5(f.read()).hexdigest()
-
-        df['win_prob_model_version'] = md5[:7]
+        df = estimate_win_probabilities(game_infos,
+                                        evals,
+                                        game_positions,
+                                        game_clocks,
+                                        self.local_stockfish,
+                                        )
 
         with self.output().temporary_path() as temp_output_path:
             df.to_pickle(temp_output_path, compression=None)

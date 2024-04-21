@@ -4,10 +4,12 @@ import hashlib
 import os
 from calendar import timegm
 from datetime import datetime, timedelta
+from typing import Type
 
 import lichess.api
 import pandas as pd
 import psycopg2
+from chess.pgn import Game
 from lichess.format import JSON, PYCHESS
 from luigi import LocalTarget, Task
 from luigi.format import Nop
@@ -37,6 +39,7 @@ from pipeline_import.visitors import (
     PromotionsVisitor,
     QueenExchangeVisitor,
 )
+from utils.types import Json, Visitor
 
 
 def run_remote_sql_query(sql, **params):
@@ -65,6 +68,94 @@ def query_for_column(table, column):
     return df[column]
 
 
+def fetch_lichess_api_json(player: str,
+                           perf_type: str,
+                           since: datetime,
+                           single_day: bool,
+                           ) -> pd.DataFrame:
+    if single_day:
+        unix_time_until: int = timegm((since + timedelta(days=1)).timetuple())
+    else:
+        unix_time_until = timegm(datetime.today().date().timetuple())
+    until: int = int(1000 * unix_time_until)
+
+    unix_time_since: int = timegm(since.timetuple())
+    since_unix: int = int(1000 * unix_time_since)
+
+    games: list[Json] = lichess.api.user_games(player,
+                                               since=since_unix,
+                                               until=until,
+                                               perfType=perf_type,
+                                               auth=lichess_token().token,
+                                               evals='false',
+                                               clocks='false',
+                                               moves='false',
+                                               format=JSON)
+
+    df: pd.DataFrame = pd.json_normalize([game for game in games], sep='_')
+    return df
+
+
+def fetch_lichess_api_pgn(player: str,
+                          perf_type: str,
+                          since: datetime,
+                          single_day: bool,
+                          game_count: int,
+                          task: Task,
+                          ) -> pd.DataFrame:
+    if single_day:
+        unix_time_until: int = timegm((since + timedelta(days=1)).timetuple())
+    else:
+        unix_time_until = timegm(datetime.today().date().timetuple())
+    until: int = int(1000 * unix_time_until)
+
+    unix_time_since: int = timegm(since.timetuple())
+    since_unix: int = int(1000 * unix_time_since)
+
+    games: list[Game] = lichess.api.user_games(player,
+                                               since=since_unix,
+                                               until=until,
+                                               perfType=perf_type,
+                                               auth=lichess_token().token,
+                                               clocks='true',
+                                               evals='true',
+                                               opening='true',
+                                               format=PYCHESS)
+
+    visitors: list[Type[Visitor]] = [EvalsVisitor,
+                                     ClocksVisitor,
+                                     QueenExchangeVisitor,
+                                     CastlingVisitor,
+                                     PromotionsVisitor,
+                                     PositionsVisitor,
+                                     MaterialVisitor,
+                                     ]
+
+    header_infos = []
+
+    counter: int = 0
+
+    for game in games:
+        game_infos: Json = parse_headers(game, visitors)
+        header_infos.append(game_infos)
+
+        # progress bar stuff
+        counter += 1
+
+        current: str = f'{game_infos["UTCDate"]} {game_infos["UTCTime"]}'
+
+        current_progress: float = counter / game_count
+        task.set_status_message(f'Parsed until {current} :: '
+                                f'{counter} / {game_count}')
+        task.set_progress_percentage(round(current_progress * 100, 2))
+
+    df: pd.DataFrame = pd.DataFrame(header_infos)
+
+    task.set_status_message('Parsed all games')
+    task.set_progress_percentage(100)
+    return df
+
+
 class FetchLichessApiJSON(Task):
 
     player = Parameter(default='thibault')
@@ -79,33 +170,11 @@ class FetchLichessApiJSON(Task):
 
     def run(self):
         self.output().makedirs()
-
-        if self.single_day:
-            unix_time_until = timegm((self.since
-                                      + timedelta(days=1)).timetuple())
-        else:
-            unix_time_until = timegm(datetime.today().date().timetuple())
-        self.until = int(1000 * unix_time_until)
-
-        unix_time_since = timegm(self.since.timetuple())
-        self.since_unix = int(1000 * unix_time_since)
-
-        token = lichess_token().token
-
-        games = lichess.api.user_games(self.player,
-                                       since=self.since_unix,
-                                       until=self.until,
-                                       perfType=self.perf_type,
-                                       auth=token,
-                                       evals='false',
-                                       clocks='false',
-                                       moves='false',
-                                       format=JSON)
-
-        df = pd.json_normalize([game
-                                for game in games],
-                               sep='_')
-
+        df = fetch_lichess_api_json(self.player,
+                                    self.perf_type,
+                                    self.since,
+                                    self.single_day,
+                                    )
         with self.output().temporary_path() as temp_output_path:
             df.to_pickle(temp_output_path, compression=None)
 
@@ -130,59 +199,13 @@ class FetchLichessApiPGN(Task):
             json = pd.read_pickle(f, compression=None)
             game_count = len(json)
 
-        if self.single_day:
-            unix_time_until = timegm((self.since
-                                      + timedelta(days=1)).timetuple())
-        else:
-            unix_time_until = timegm(datetime.today().date().timetuple())
-        self.until = int(1000 * unix_time_until)
-
-        unix_time_since = timegm(self.since.timetuple())
-        self.since_unix = int(1000 * unix_time_since)
-
-        token = lichess_token().token
-
-        games = lichess.api.user_games(self.player,
-                                       since=self.since_unix,
-                                       until=self.until,
-                                       perfType=self.perf_type,
-                                       auth=token,
-                                       clocks='true',
-                                       evals='true',
-                                       opening='true',
-                                       format=PYCHESS)
-
-        visitors = [EvalsVisitor,
-                    ClocksVisitor,
-                    QueenExchangeVisitor,
-                    CastlingVisitor,
-                    PromotionsVisitor,
-                    PositionsVisitor,
-                    MaterialVisitor,
-                    ]
-
-        header_infos = []
-
-        counter = 0
-
-        for game in games:
-            game_infos = parse_headers(game, visitors)
-            header_infos.append(game_infos)
-
-            # progress bar stuff
-            counter += 1
-
-            current = f'{game_infos["UTCDate"]} {game_infos["UTCTime"]}'
-
-            current_progress = counter / game_count
-            self.set_status_message(f'Parsed until {current} :: '
-                                    f'{counter} / {game_count}')
-            self.set_progress_percentage(round(current_progress * 100, 2))
-
-        df = pd.DataFrame(header_infos)
-
-        self.set_status_message('Parsed all games')
-        self.set_progress_percentage(100)
+        df = fetch_lichess_api_pgn(self.player,
+                                   self.perf_type,
+                                   self.since,
+                                   self.single_day,
+                                   game_count,
+                                   self,
+                                   )
 
         with self.output().temporary_path() as temp_output_path:
             df.to_pickle(temp_output_path, compression=None)

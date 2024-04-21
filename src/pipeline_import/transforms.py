@@ -3,9 +3,11 @@
 import re
 from pathlib import Path
 from subprocess import SubprocessError
+from typing import Type
 
 import lichess.api
 import stockfish
+from chess.pgn import Game
 from pandas import (
     Series,
     concat,
@@ -16,6 +18,7 @@ from pandas import (
     to_timedelta,
 )
 from psycopg2 import connect
+from utils.types import Json, Visitor
 
 
 def get_sf_evaluation(fen: str,
@@ -70,12 +73,12 @@ def get_sf_evaluation(fen: str,
     return rating
 
 
-def parse_headers(game, visitors):
+def parse_headers(game: Game, visitors: list[Type[Visitor]]) -> Json:
     if getattr(game.headers, 'Variant', '') in ['From Position', '']:
         game.headers['Variant'] = 'Standard'
     for visitor in visitors:
         game.accept(visitor(game))
-    game_infos = {x: y for x, y in game.headers.items()}
+    game_infos: Json = Json({x: y for x, y in game.headers.items()})
     game_infos['moves'] = [x.san() for x in game.mainline()]
 
     return game_infos

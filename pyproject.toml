@@ -43,3 +43,4 @@ inline-quotes = "single"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "Q", "I"]
+preview = true

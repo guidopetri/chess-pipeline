@@ -98,7 +98,10 @@ def create_wp_features(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def predict_wp(df: pd.DataFrame) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64], npt.NDArray[np.float64]]:
+def predict_wp(df: pd.DataFrame,
+               ) -> tuple[npt.NDArray[np.float64],
+                          npt.NDArray[np.float64],
+                          npt.NDArray[np.float64]]:
 
     model = load_win_probability_model()
 

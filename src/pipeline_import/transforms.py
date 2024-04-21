@@ -10,7 +10,10 @@ from subprocess import SubprocessError
 from pathlib import Path
 
 
-def get_sf_evaluation(fen: str, sf_location: Path, sf_depth: int) -> float | None:
+def get_sf_evaluation(fen: str,
+                      sf_location: Path,
+                      sf_depth: int,
+                      ) -> float | None:
     # get cloud eval if available
     try:
         cloud_eval = lichess.api.cloud_eval(fen=fen, multiPv=1)
@@ -35,8 +38,8 @@ def get_sf_evaluation(fen: str, sf_location: Path, sf_depth: int) -> float | Non
         rating_match = re.search(r'score (cp|mate) (.+?)(?: |$)',
                                  sf.info)
         if rating_match is None:
-          raise SubprocessError('Could not find chess engine rating'
-                                f' in info string: {sf.info}')
+            raise SubprocessError('Could not find chess engine rating'
+                                  f' in info string: {sf.info}')
 
         if rating_match.group(1) == 'mate':
             original_rating = int(rating_match.group(2))

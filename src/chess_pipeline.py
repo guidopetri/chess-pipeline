@@ -1,20 +1,32 @@
 #! /usr/bin/env python3
 
-from luigi.parameter import Parameter, DateParameter, BoolParameter
+import hashlib
+import os
+from calendar import timegm
+from datetime import datetime, timedelta
+
+import lichess.api
+import pandas as pd
 import psycopg2
-from luigi.util import requires, inherits
-from luigi.format import Nop
+
+from lichess.format import JSON
+from lichess.format import PYCHESS
 from luigi import Task, LocalTarget
-from pandas import read_sql_query
+from luigi.format import Nop
+from luigi.parameter import Parameter, DateParameter, BoolParameter
+from luigi.util import requires, inherits
+from pipeline_import.configs import lichess_token, stockfish_cfg, postgres_cfg
+from pipeline_import.models import predict_wp
 from pipeline_import.postgres_templates import CopyWrapper, HashableDict
 from pipeline_import.postgres_templates import TransactionFactTable
-from datetime import datetime, timedelta
-from pipeline_import.configs import lichess_token, stockfish_cfg, postgres_cfg
 from pipeline_import.transforms import get_sf_evaluation, parse_headers
 from pipeline_import.transforms import fix_provisional_columns, get_clean_fens
 from pipeline_import.transforms import convert_clock_to_seconds
 from pipeline_import.transforms import transform_game_data
-from pipeline_import.models import predict_wp
+from pipeline_import.visitors import EvalsVisitor, ClocksVisitor
+from pipeline_import.visitors import QueenExchangeVisitor
+from pipeline_import.visitors import CastlingVisitor, PositionsVisitor
+from pipeline_import.visitors import PromotionsVisitor, MaterialVisitor
 
 
 def run_remote_sql_query(sql, **params):
@@ -32,7 +44,7 @@ def run_remote_sql_query(sql, **params):
                           port=port,
                           )
 
-    df = read_sql_query(sql, db, params=params)
+    df = pd.read_sql_query(sql, db, params=params)
 
     return df
 
@@ -51,18 +63,11 @@ class FetchLichessApiJSON(Task):
     single_day = BoolParameter()
 
     def output(self):
-        import os
-
         file_location = (f'~/Temp/luigi/{self.since}-raw-games-'
                          f'{self.player}-{self.perf_type}-json.pckl')
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):
-        import lichess.api
-        from lichess.format import JSON
-        from pandas import json_normalize
-        from calendar import timegm
-
         self.output().makedirs()
 
         if self.single_day:
@@ -87,9 +92,9 @@ class FetchLichessApiJSON(Task):
                                        moves='false',
                                        format=JSON)
 
-        df = json_normalize([game
-                             for game in games],
-                            sep='_')
+        df = pd.json_normalize([game
+                                for game in games],
+                               sep='_')
 
         with self.output().temporary_path() as temp_output_path:
             df.to_pickle(temp_output_path, compression=None)
@@ -104,26 +109,15 @@ class FetchLichessApiPGN(Task):
     single_day = BoolParameter()
 
     def output(self):
-        import os
-
         file_location = (f'~/Temp/luigi/{self.since}-raw-games-'
                          f'{self.player}-{self.perf_type}-pgn.pckl')
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):
-        import lichess.api
-        from lichess.format import PYCHESS
-        from pandas import DataFrame, read_pickle
-        from calendar import timegm
-        from pipeline_import.visitors import EvalsVisitor, ClocksVisitor
-        from pipeline_import.visitors import QueenExchangeVisitor
-        from pipeline_import.visitors import CastlingVisitor, PositionsVisitor
-        from pipeline_import.visitors import PromotionsVisitor, MaterialVisitor
-
         self.output().makedirs()
 
         with self.input().open('r') as f:
-            json = read_pickle(f, compression=None)
+            json = pd.read_pickle(f, compression=None)
             game_count = len(json)
 
         if self.single_day:
@@ -175,7 +169,7 @@ class FetchLichessApiPGN(Task):
                                     f'{counter} / {game_count}')
             self.set_progress_percentage(round(current_progress * 100, 2))
 
-        df = DataFrame(header_infos)
+        df = pd.DataFrame(header_infos)
 
         self.set_status_message('Parsed all games')
         self.set_progress_percentage(100)
@@ -188,22 +182,18 @@ class FetchLichessApiPGN(Task):
 class CleanChessDF(Task):
 
     def output(self):
-        import os
-
         file_location = (f'~/Temp/luigi/{self.since}-cleaned-games-'
                          f'{self.player}-{self.perf_type}.pckl')
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):
-        from pandas import read_pickle, merge
-
         self.output().makedirs()
 
         with self.input()[0].open('r') as f:
-            pgn = read_pickle(f, compression=None)
+            pgn = pd.read_pickle(f, compression=None)
 
         with self.input()[1].open('r') as f:
-            json = read_pickle(f, compression=None)
+            json = pd.read_pickle(f, compression=None)
 
         # hopefully, if pgn is empty so is json
         if pgn.empty:
@@ -227,7 +217,7 @@ class CleanChessDF(Task):
                      'players_white_provisional',
                      ]]
 
-        df = merge(pgn, json, on='Site')
+        df = pd.merge(pgn, json, on='Site')
 
         # rename columns
         df.rename(columns={'Black':                     'black',
@@ -263,19 +253,15 @@ class GetEvals(Task):
     local_stockfish = BoolParameter()
 
     def output(self):
-        import os
-
         file_location = (f'~/Temp/luigi/{self.since}-game-evals-'
                          f'{self.player}-{self.perf_type}.pckl')
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):
-        from pandas import read_pickle, to_numeric, concat, DataFrame
-
         self.output().makedirs()
 
         with self.input().open('r') as f:
-            df = read_pickle(f, compression=None)
+            df = pd.read_pickle(f, compression=None)
 
         if df.empty:
 
@@ -295,7 +281,7 @@ class GetEvals(Task):
         no_evals = df[~df['evaluations'].astype(bool)]
         df = df[df['evaluations'].astype(bool)]
 
-        no_evals = DataFrame(no_evals['positions'].explode())
+        no_evals = pd.DataFrame(no_evals['positions'].explode())
         no_evals['positions'] = get_clean_fens(no_evals['positions'])
 
         evals = df['evaluations'].explode().reset_index(drop=True)
@@ -312,7 +298,7 @@ class GetEvals(Task):
                                               )
         positions_evaluated = db_evaluations['fen'].drop_duplicates()
 
-        df = concat([positions, evals, depths], axis=1)
+        df = pd.concat([positions, evals, depths], axis=1)
 
         if self.local_stockfish:
 
@@ -352,7 +338,7 @@ class GetEvals(Task):
             no_evals['eval_depths'] = stockfish_params.depth
             no_evals.dropna(inplace=True)
 
-            df = concat([df, no_evals], axis=0, ignore_index=True)
+            df = pd.concat([df, no_evals], axis=0, ignore_index=True)
 
         df = df[~df['positions'].isin(positions_evaluated)]
 
@@ -360,11 +346,11 @@ class GetEvals(Task):
                            'eval_depths': 'eval_depth',
                            'positions': 'fen'},
                   inplace=True)
-        df['evaluation'] = to_numeric(df['evaluation'],
-                                      errors='coerce')
+        df['evaluation'] = pd.to_numeric(df['evaluation'],
+                                         errors='coerce')
 
         df.dropna(inplace=True)
-        df = concat([df, db_evaluations], axis=0, ignore_index=True)
+        df = pd.concat([df, db_evaluations], axis=0, ignore_index=True)
 
         with self.output().temporary_path() as temp_output_path:
             df.to_pickle(temp_output_path, compression=None)
@@ -374,19 +360,15 @@ class GetEvals(Task):
 class ExplodeMoves(Task):
 
     def output(self):
-        import os
-
         file_location = (f'~/Temp/luigi/{self.since}-game-moves-'
                          f'{self.player}-{self.perf_type}.pckl')
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):
-        from pandas import read_pickle
-
         self.output().makedirs()
 
         with self.input().open('r') as f:
-            df = read_pickle(f, compression=None)
+            df = pd.read_pickle(f, compression=None)
 
         if df.empty:
 
@@ -413,19 +395,15 @@ class ExplodeMoves(Task):
 class ExplodeClocks(Task):
 
     def output(self):
-        import os
-
         file_location = (f'~/Temp/luigi/{self.since}-game-clocks-'
                          f'{self.player}-{self.perf_type}.pckl')
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):
-        from pandas import read_pickle
-
         self.output().makedirs()
 
         with self.input().open('r') as f:
-            df = read_pickle(f, compression=None)
+            df = pd.read_pickle(f, compression=None)
 
         if df.empty:
 
@@ -453,19 +431,15 @@ class ExplodeClocks(Task):
 class ExplodePositions(Task):
 
     def output(self):
-        import os
-
         file_location = (f'~/Temp/luigi/{self.since}-game-positions-'
                          f'{self.player}-{self.perf_type}.pckl')
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):
-        from pandas import read_pickle
-
         self.output().makedirs()
 
         with self.input().open('r') as f:
-            df = read_pickle(f, compression=None)
+            df = pd.read_pickle(f, compression=None)
 
         if df.empty:
 
@@ -494,19 +468,15 @@ class ExplodePositions(Task):
 class ExplodeMaterials(Task):
 
     def output(self):
-        import os
-
         file_location = (f'~/Temp/luigi/{self.since}-game-materials-'
                          f'{self.player}-{self.perf_type}.pckl')
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):
-        from pandas import read_pickle, concat, Series
-
         self.output().makedirs()
 
         with self.input().open('r') as f:
-            df = read_pickle(f, compression=None)
+            df = pd.read_pickle(f, compression=None)
 
         if df.empty:
 
@@ -522,11 +492,11 @@ class ExplodeMaterials(Task):
 
         df = df.explode('material_by_move')
 
-        df = concat([df['game_link'],
-                     df['material_by_move'].apply(Series)
-                                           .fillna(0)
-                                           .astype(int)],
-                    axis=1)
+        df = pd.concat([df['game_link'],
+                        df['material_by_move'].apply(pd.Series)
+                                              .fillna(0)
+                                              .astype(int)],
+                       axis=1)
         df.rename(columns={'r': 'rooks_black',
                            'n': 'knights_black',
                            'b': 'bishops_black',
@@ -550,19 +520,15 @@ class ExplodeMaterials(Task):
 class GetGameInfos(Task):
 
     def output(self):
-        import os
-
         file_location = (f'~/Temp/luigi/{self.since}-game-infos-'
                          f'{self.player}-{self.perf_type}.pckl')
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):
-        from pandas import read_pickle
-
         self.output().makedirs()
 
         with self.input().open('r') as f:
-            df = read_pickle(f, compression=None)
+            df = pd.read_pickle(f, compression=None)
 
         if df.empty:
 
@@ -584,30 +550,24 @@ class GetGameInfos(Task):
 class EstimateWinProbabilities(Task):
 
     def output(self):
-        import os
-
         file_location = (f'~/Temp/luigi/{self.since}-win-probs-'
                          f'{self.player}-{self.perf_type}.pckl')
         return LocalTarget(os.path.expanduser(file_location), format=Nop)
 
     def run(self):
-        from pandas import read_pickle, merge
-        import hashlib
-        import os
-
         self.output().makedirs()
 
         with self.input()[0].open('r') as f:
-            evals = read_pickle(f, compression=None)
+            evals = pd.read_pickle(f, compression=None)
 
         with self.input()[1].open('r') as f:
-            game_positions = read_pickle(f, compression=None)
+            game_positions = pd.read_pickle(f, compression=None)
 
         with self.input()[2].open('r') as f:
-            game_clocks = read_pickle(f, compression=None)
+            game_clocks = pd.read_pickle(f, compression=None)
 
         with self.input()[3].open('r') as f:
-            game_infos = read_pickle(f, compression=None)
+            game_infos = pd.read_pickle(f, compression=None)
 
         if game_infos.empty:
 
@@ -629,7 +589,7 @@ class EstimateWinProbabilities(Task):
                            ]
 
         # evals isn't always populated
-        df = merge(game_positions, evals, on='fen', how='left')
+        df = pd.merge(game_positions, evals, on='fen', how='left')
 
         # if there are missing evals, set to 0 so it doesn't influence the WP
         if not self.local_stockfish:
@@ -639,11 +599,11 @@ class EstimateWinProbabilities(Task):
             # since the LR model inputs weren't scaled in the first place,
             # i am just ignoring this for now
 
-        df = merge(df, game_clocks, on=['game_link', 'half_move'])
-        df = merge(df,
-                   game_infos[game_infos_cols],
-                   on='game_link',
-                   )
+        df = pd.merge(df, game_clocks, on=['game_link', 'half_move'])
+        df = pd.merge(df,
+                      game_infos[game_infos_cols],
+                      on='game_link',
+                      )
 
         loss, draw, win = predict_wp(df)
 

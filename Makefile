@@ -55,15 +55,18 @@ ci-pytest:
 pytest: build-dev ci-pytest
 
 ci-coverage:
+	docker rm chess_pipeline_dev_coverage || true
 	docker compose run \
-	  --rm \
 	  --entrypoint=pytest \
+	  --name chess_pipeline_dev_coverage \
 	  chess_pipeline_dev \
 	  -vv \
-	  --cov=src/ \
+	  --cov=/app \
 	  --cov-report term \
-	  --cov-report json:coverage.json \
-	  --cov-report html:cov_html
+	  --cov-report json:/coverage.json \
+	  --cov-report html:/cov_html
+	docker cp chess_pipeline_dev_coverage:/coverage.json .
+	docker cp chess_pipeline_dev_coverage:/cov_html .
 
 
 coverage: build-dev ci-coverage

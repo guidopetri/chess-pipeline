@@ -17,3 +17,5 @@ chess_pipeline.egg-info/
 !**/plots/.keep
 .luigi_env
 .postgres_env
+coverage.json
+cov_html/

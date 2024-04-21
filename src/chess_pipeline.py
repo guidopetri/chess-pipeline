@@ -21,9 +21,7 @@ from pipeline_import.postgres_templates import (
     HashableDict,
     TransactionFactTable,
 )
-from pipeline_import.transforms import (
-    transform_game_data,
-)
+from pipeline_import.transforms import transform_game_data
 from vendors.lichess import fetch_lichess_api_json, fetch_lichess_api_pgn
 from vendors.stockfish import get_evals
 

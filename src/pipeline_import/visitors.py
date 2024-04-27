@@ -69,9 +69,9 @@ class ClocksVisitor(BaseVisitor):
             self.black_clock = datetime.strptime(clock_time, '%H:%M:%S')
         elif len(self.game.headers._others['clocks']) == 2:
             if self.black_clock > self.white_clock:
-                self.game.headers.white_berserked = True
+                self.game.headers._others['white_berserked'] = True
             elif self.white_clock > self.black_clock:
-                self.game.headers.black_berserked = True
+                self.game.headers._others['black_berserked'] = True
 
         self.game.headers._others['clocks'].append(clock_time)
 

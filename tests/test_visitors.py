@@ -35,6 +35,29 @@ def test_clocks_visitor():
                                       '',
                                       ]
 
+    pgn = """[Site "https://lichess.org/FCwXJbzX"]
+
+1. e4 { [%eval 0.16] [%clk 0:00:30] } 1... e6 { [%eval 0.4] [%clk 0:01:00] } 2. Nf3 { [%eval 0.14] [%clk 0:00:29] } 2... d5 { [%eval 0.2] [%clk 0:01:00] }"""  # noqa
+
+    game = chess.pgn.read_game(io.StringIO(pgn))
+
+    game.accept(visitors.ClocksVisitor(game))
+
+    print(game.headers)
+    assert game.headers['white_berserked'] is True
+    assert game.headers['black_berserked'] is False
+
+    pgn = """[Site "https://lichess.org/biIncQDZ"]
+
+1. e4 { [%clk 0:01:00] } 1... g6 { [%clk 0:00:30] } 2. c3 { [%clk 0:00:58] } 2... Bg7 { [%clk 0:00:30] }"""  # noqa
+
+    game = chess.pgn.read_game(io.StringIO(pgn))
+
+    game.accept(visitors.ClocksVisitor(game))
+
+    assert game.headers['white_berserked'] is False
+    assert game.headers['black_berserked'] is True
+
 
 def test_queen_exchange_visitor():
     pgn = """[Site "https://lichess.org/TTYLmSUX"]

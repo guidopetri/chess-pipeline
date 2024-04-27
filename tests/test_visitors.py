@@ -83,6 +83,15 @@ def test_castling_visitor():
     assert game.headers['castling_sides']['white'] == 'queenside'
     assert game.headers['castling_sides']['black'] == 'kingside'
 
+    pgn = """1. e4 Nc6 2. d4 d5 3. e5 Bf5 4. Nf3 Qd7 5. Nc3 O-O-O"""
+
+    game = chess.pgn.read_game(io.StringIO(pgn))
+
+    game.accept(visitors.CastlingVisitor(game))
+
+    assert game.headers['castling_sides']['white'] is None
+    assert game.headers['castling_sides']['black'] == 'queenside'
+
 
 @pytest.mark.skip
 def test_positions_visitor():

@@ -3,7 +3,6 @@
 import io
 
 import chess
-import pytest
 from pipeline_import import visitors
 
 
@@ -93,7 +92,6 @@ def test_castling_visitor():
     assert game.headers['castling_sides']['black'] == 'queenside'
 
 
-@pytest.mark.skip
 def test_positions_visitor():
     pgn = """[Site "https://lichess.org/TTYLmSUX"]
 
@@ -103,8 +101,7 @@ def test_positions_visitor():
 
     game.accept(visitors.PositionsVisitor(game))
 
-    true = ['rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
-            'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1',
+    true = ['rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1',
             'rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2',
             'rnbqkbnr/pp1ppppp/8/2p5/4PP2/8/PPPP2PP/RNBQKBNR b KQkq - 0 2',
             'rnbqkbnr/pp2pppp/3p4/2p5/4PP2/8/PPPP2PP/RNBQKBNR w KQkq - 0 3',

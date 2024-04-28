@@ -659,7 +659,6 @@ def test_get_color_stats():
     pd.testing.assert_frame_equal(parsed, true, check_like=True)
 
 
-@pytest.mark.skip
 def test_get_elo_by_weekday():
 
     # disable SettingWithCopy warning
@@ -691,6 +690,7 @@ def test_get_elo_by_weekday():
                                  'min',
                                  'max'],
                         )
+    true['weekday_played'] = true['weekday_played'].astype('int32')
 
     pd.testing.assert_frame_equal(parsed,
                                   true,
@@ -707,6 +707,7 @@ def test_get_elo_by_weekday():
                                  'min',
                                  'max'],
                         )
+    true['weekday_played'] = true['weekday_played'].astype('int32')
 
     pd.testing.assert_frame_equal(parsed,
                                   true,

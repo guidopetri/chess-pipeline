@@ -4,11 +4,9 @@ import hashlib
 import os
 
 import pandas as pd
-import pytest
 from pipeline_import import newsletter_utils, plots
 
 
-@pytest.mark.skip
 def test_color_stats_plot():
 
     multiindex = pd.MultiIndex.from_arrays([['blitz', 'blitz', 'bullet'],
@@ -33,14 +31,13 @@ def test_color_stats_plot():
     with open(file_loc, 'rb') as f:
         md5 = hashlib.md5(f.read()).hexdigest()
 
-    true_md5 = '07fbf16c92a2544669f404e17db3e5b9'
+    true_md5 = 'c5db29597bc7936db111444dd8bc35df'
 
     assert md5 == true_md5
 
     os.remove(file_loc)
 
 
-@pytest.mark.skip
 def test_elo_by_weekday_plot():
     elo = pd.DataFrame([[0, 1666, 0, 1666.0, 1666.0],
                         [1, 1685, 7.071, 1680.0, 1690.0],
@@ -66,14 +63,13 @@ def test_elo_by_weekday_plot():
     with open(file_loc, 'rb') as f:
         md5 = hashlib.md5(f.read()).hexdigest()
 
-    true_md5 = 'fec2b35e4c7d987098cdac371c3ace73'
+    true_md5 = 'dad710a3d32903926277ea59a4d1e2cc'
 
     assert md5 == true_md5
 
     os.remove(file_loc)
 
 
-@pytest.mark.skip
 def test_elo_by_weekday_without_games():
 
     empty_elo = pd.DataFrame([],
@@ -97,7 +93,7 @@ def test_elo_by_weekday_without_games():
     with open(file_loc, 'rb') as f:
         md5 = hashlib.md5(f.read()).hexdigest()
 
-    true_md5 = '10c2ae2d3f298f2dd3f16ce626ac427c'
+    true_md5 = '4e93a5e395a23f57b6700aba8d630796'
 
     assert md5 == true_md5
 

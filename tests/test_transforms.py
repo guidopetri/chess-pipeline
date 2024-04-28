@@ -342,7 +342,7 @@ def test_get_sf_evaluation_in_checkmate():
 
     rating = transforms.get_sf_evaluation(fen, stockfish_loc, depth)
 
-    assert rating is None
+    assert rating == 9999
 
 
 def test_get_sf_evaluation_double_checkmate():

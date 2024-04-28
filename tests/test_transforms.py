@@ -392,7 +392,6 @@ def test_get_clean_fens():
     assert (transforms.get_clean_fens(fen) == clean).all()
 
 
-@pytest.mark.skip
 def test_transform_game_data():
 
     # disable SettingWithCopy warning
@@ -468,7 +467,7 @@ def test_transform_game_data():
                     'time_control_category': 'bullet',
                     'datetime_played': pd.to_datetime('2021-05-01 02:34:14'),
                     'starting_time': '60',
-                    'increment': '0',
+                    'increment': 0,
                     'in_arena': 'Not in arena',
                     'rated_casual': 'Rated',
                     'date_played': pd.to_datetime('2020-05-01'),

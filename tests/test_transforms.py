@@ -659,6 +659,38 @@ def test_get_color_stats():
     pd.testing.assert_frame_equal(parsed, true, check_like=True)
 
 
+def test_get_color_stats_missing_category():
+
+    data = pd.DataFrame([[13, 'blitz', 'white', 'Win'],
+                         [14, 'blitz', 'white', 'Loss'],
+                         [15, 'blitz', 'black', 'Win'],
+                         [16, 'blitz', 'black', 'Win'],
+                         [17, 'bullet', 'black', 'Win'],
+                         ],
+                        columns=['id',
+                                 'time_control_category',
+                                 'player_color',
+                                 'player_result',
+                                 ])
+
+    parsed = transforms.get_color_stats(data)
+
+    multiindex = pd.MultiIndex.from_arrays([['blitz', 'blitz', 'bullet'],
+                                            ['white', 'black', 'black']],
+                                           names=('time_control_category',
+                                                  'player_color'))
+
+    true = pd.DataFrame([[0.5, 0, 0.5],
+                         [1, 0, 0],
+                         [1, 0, 0]],
+                        columns=pd.Index(['Win', 'Draw', 'Loss'],
+                                         name='player_result'),
+                        index=multiindex,
+                        )
+
+    pd.testing.assert_frame_equal(parsed, true, check_like=True)
+
+
 def test_get_elo_by_weekday():
 
     # disable SettingWithCopy warning

@@ -60,6 +60,8 @@ def get_sf_evaluation(fen: str,
             if original_rating:
                 rating = 999900 * original_rating / abs(original_rating)
             elif ' w ' in fen:
+                # TODO: is this + the else clause necessary? the UCI syntax
+                # returns `mate X` which seems to always be a number
                 rating = 999900
             else:
                 rating = -999900

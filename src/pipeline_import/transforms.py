@@ -73,8 +73,8 @@ def get_sf_evaluation(fen: str,
         rating /= 100
     else:
         board = chess.Board(fen)
-        if board.is_checkmate():
-            if board.outcome().winner is chess.WHITE:
+        if board.is_checkmate() and (outcome := board.outcome()) is not None:
+            if outcome.winner is chess.WHITE:
                 rating = 9999
             else:
                 rating = -9999

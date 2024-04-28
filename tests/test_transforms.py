@@ -2,6 +2,7 @@
 
 import io
 from configparser import ConfigParser
+from subprocess import SubprocessError
 
 import chess
 import pandas as pd
@@ -239,6 +240,20 @@ def test_get_sf_evaluation_cloud_mate_in_x():
     rating = transforms.get_sf_evaluation(fen, '', 1)
 
     assert rating == 9999
+
+
+def test_get_sf_evaluation_cloud_error(mocker):
+    mocker.patch('lichess.api.cloud_eval', return_value={'pvs': ['foobar']})
+    with pytest.raises(KeyError):
+        transforms.get_sf_evaluation('fake fen', '', 1)
+
+
+def test_get_sf_evaluation_local_returns_error(mocker, monkeypatch):
+    mocker.patch('stockfish.Stockfish')
+    mocker.patch('re.search', return_value=None)
+
+    with pytest.raises(SubprocessError):
+        transforms.get_sf_evaluation('', '', 1)
 
 
 def test_get_sf_evaluation_shallow():

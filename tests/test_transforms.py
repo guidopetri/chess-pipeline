@@ -626,7 +626,6 @@ def test_transform_game_data():
     pd.options.mode.chained_assignment = 'warn'
 
 
-@pytest.mark.skip
 def test_get_color_stats():
 
     data = pd.DataFrame([[13, 'blitz', 'white', 'Win'],
@@ -652,7 +651,8 @@ def test_get_color_stats():
     true = pd.DataFrame([[1 / 3, 1 / 3, 1 / 3],
                          [1, 0, 0],
                          [1, 0, 0]],
-                        columns=['Win', 'Draw', 'Loss'],
+                        columns=pd.Index(['Win', 'Draw', 'Loss'],
+                                         name='player_result'),
                         index=multiindex,
                         )
 

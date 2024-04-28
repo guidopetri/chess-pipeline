@@ -47,4 +47,7 @@ select = ["E", "F", "W", "Q", "I"]
 preview = true
 
 [tool.coverage.run]
-omit = ["/app/tests/*"]
+omit = ["/app/tests/*", "/app/chess_pipeline.py", "/app/pipeline_import/configs.py", "/app/pipeline_import/postgres_templates.py"]
+
+[tool.coverage.report]
+include_namespace_packages = true

@@ -51,13 +51,9 @@ def get_evals(df: pd.DataFrame,
                 # position will be dropped later if evaluation is None
                 evaluation = None
             else:
-                sf_eval: float | None = get_sf_evaluation(position + ' 0',
-                                                          sf_params.location,
-                                                          sf_params.depth)
-                if sf_eval is not None:
-                    # TODO: this is implicitly setting evaluation = last
-                    # eval if in a checkmate position. handle this better
-                    evaluation = sf_eval
+                evaluation = get_sf_evaluation(position + ' 0',
+                                               sf_params.location,
+                                               sf_params.depth)
 
             local_evals.append(evaluation)
 

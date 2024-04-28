@@ -5,6 +5,7 @@ from pathlib import Path
 from subprocess import SubprocessError
 from typing import Type
 
+import chess
 import lichess.api
 import pandas as pd
 import stockfish
@@ -25,7 +26,7 @@ from utils.types import Json, Visitor
 def get_sf_evaluation(fen: str,
                       sf_location: Path,
                       sf_depth: int,
-                      ) -> float | None:
+                      ) -> float:
     # get cloud eval if available
     try:
         cloud_eval = lichess.api.cloud_eval(fen=fen, multiPv=1)
@@ -71,7 +72,15 @@ def get_sf_evaluation(fen: str,
             rating *= -1
         rating /= 100
     else:
-        rating = None
+        board = chess.Board(fen)
+        if board.is_checkmate():
+            if board.outcome().winner is chess.WHITE:
+                rating = 9999
+            else:
+                rating = -9999
+        else:
+            raise ValueError('No best move found and not a checkmate position '
+                             f'for: {fen=} {sf.info=}')
 
     return rating
 

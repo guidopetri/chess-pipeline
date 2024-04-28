@@ -18,6 +18,29 @@ def test_evals_visitor():
     assert game.headers['evaluations'] == [0.05, 0.32, 9999, -9999]
     assert all([x == 20 for x in game.headers['eval_depths']])
 
+    pgn = """[Site "https://lichess.org/6yO2xdfO"]
+
+1. e4 { [%eval 0.16] [%clk 0:01:00] } 1... Nc6 { [%eval 0.39] [%clk 0:01:00] } 2. d4 { [%clk 0:00:59] } 1-0"""  # noqa
+
+    game = chess.pgn.read_game(io.StringIO(pgn))
+
+    game.accept(visitors.EvalsVisitor(game))
+
+    assert game.headers['evaluations'] == [0.16, 0.39, 9999]
+    assert all([x == 20 for x in game.headers['eval_depths']])
+
+
+    pgn = """[Site "https://lichess.org/6yO2xdfO"]
+
+1. e4 { [%eval 0.16] [%clk 0:01:00] } 1... Nc6 { [%eval 0.39] [%clk 0:01:00] } 2. d4 { [%clk 0:00:59] } 0-1"""  # noqa
+
+    game = chess.pgn.read_game(io.StringIO(pgn))
+
+    game.accept(visitors.EvalsVisitor(game))
+
+    assert game.headers['evaluations'] == [0.16, 0.39, -9999]
+    assert all([x == 20 for x in game.headers['eval_depths']])
+
 
 def test_clocks_visitor():
     pgn = """[Site "https://lichess.org/TTYLmSUX"]

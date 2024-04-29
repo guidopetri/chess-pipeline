@@ -4,7 +4,8 @@ import hashlib
 import os
 
 import pandas as pd
-from pipeline_import import newsletter_utils, plots
+from pipeline_import import plots
+from utils.newsletter import get_color_stats_text
 
 
 def test_color_stats_plot():
@@ -114,7 +115,7 @@ def test_color_stats_text_generic():
                                index=multiindex,
                                )
 
-    win_rate_str = newsletter_utils.get_color_stats_text(color_stats)
+    win_rate_str = get_color_stats_text(color_stats)
 
     true_win_rate_str = ('You had a 33.33% win rate with white in blitz and'
                          ' a 100.00% win rate with black.')
@@ -134,7 +135,7 @@ def test_color_stats_text_only_one_color():
                                index=multiindex,
                                )
 
-    win_rate_str = newsletter_utils.get_color_stats_text(color_stats)
+    win_rate_str = get_color_stats_text(color_stats)
 
     true_win_rate_str = 'You had a 33.33% win rate with black in blitz.'
 
@@ -154,7 +155,7 @@ def test_color_stats_text_multiple_categories():
                                index=multiindex,
                                )
 
-    win_rate_str = newsletter_utils.get_color_stats_text(color_stats)
+    win_rate_str = get_color_stats_text(color_stats)
 
     true_win_rate_str = ('You had a 33.33% win rate with black in blitz and'
                          ' a 100.00% win rate with black in bullet.')

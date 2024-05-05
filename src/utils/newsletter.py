@@ -108,12 +108,13 @@ def send_newsletter(newsletter) -> bool:
 
     filepath = os.path.expanduser('~/Temp/luigi')
 
-    for file in os.listdir(filepath):
-        full_path = os.path.join(filepath, file)
-        if os.path.isfile(full_path):
-            os.remove(full_path)
-        elif os.path.isdir(full_path):
-            shutil.rmtree(full_path)
+    if os.path.exists(filepath):
+        for file in os.listdir(filepath):
+            full_path = os.path.join(filepath, file)
+            if os.path.isfile(full_path):
+                os.remove(full_path)
+            elif os.path.isdir(full_path):
+                shutil.rmtree(full_path)
     return response.status_code == 202
 
 

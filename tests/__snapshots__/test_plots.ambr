@@ -1,0 +1,92 @@
+# serializer version: 1
+# name: test_create_newsletter
+  Mail(
+    asm=None,
+    attachment=None,
+    attachments=list([
+      Attachment(
+        content_id=ContentId(
+          content_id='thibault',
+        ),
+        disposition=Disposition(
+          disposition='inline',
+        ),
+        file_content=FileContent(
+          file_content='ZHVtbXktaW5wdXQ=',
+        ),
+        file_name=FileName(
+          file_name='thibault.png',
+        ),
+        file_type=FileType(
+          file_type='image/png',
+        ),
+      ),
+    ]),
+    batch_id=None,
+    bcc=None,
+    categories=None,
+    category=None,
+    cc=None,
+    content=None,
+    contents=list([
+      Content(
+        content=" Hi thibault,This week you played chess! Here's your performance:foobarHope you do well this upcoming week!",
+        mime_type='text/plain',
+      ),
+      Content(
+        content="<html><body> Hi thibault,<br><br>This week you played chess! Here's your performance:<br>foo<br>bar<br>Hope you do well this upcoming week!</body></html>",
+        mime_type='text/html',
+      ),
+    ]),
+    custom_arg=None,
+    custom_args=None,
+    dynamic_template_data=None,
+    header=None,
+    headers=None,
+    ip_pool_name=None,
+    mail_settings=None,
+    personalizations=list([
+      Personalization(
+        bccs=list([
+        ]),
+        ccs=list([
+        ]),
+        custom_args=list([
+        ]),
+        dynamic_template_data=None,
+        headers=list([
+        ]),
+        send_at=None,
+        subject=None,
+        substitutions=list([
+        ]),
+        tos=list([
+          dict({
+            'email': 'bar@foo.com',
+          }),
+        ]),
+      ),
+    ]),
+    reply_to=None,
+    section=None,
+    sections=None,
+    send_at=None,
+    subject=Subject(
+      personalization=None,
+      subject='Chess Newsletter - thibault',
+    ),
+    substitution=None,
+    template_id=None,
+    to=None,
+    tracking_settings=None,
+  )
+# ---
+# name: test_generate_elo_by_weekday_text_generic
+  "This week, your highest elo in bullet was 300 and your lowest elo was 100. <br><img alt='Elo by weekday' src='cid:elo-by-weekday'><br>"
+# ---
+# name: test_generate_win_ratio_by_color_text_empty
+  "Wait a second, no you didn't!"
+# ---
+# name: test_generate_win_ratio_by_color_text_generic
+  "foo <br> <img alt='Win rate by color played' src='cid:win-by-color'><br>"
+# ---

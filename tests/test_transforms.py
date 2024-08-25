@@ -219,9 +219,11 @@ def test_fix_provisional_columns_full_data():
     pd.testing.assert_frame_equal(parsed, clean, check_like=True)
 
 
-def test_get_sf_evaluation_cloud():
+def test_get_sf_evaluation_cloud(mocker):
+    mock_parsed_resp = {'pvs': [{'cp': -30}]}
 
-    # this specific FEN is already evaluated by lichess
+    mocker.patch('lichess.api.cloud_eval', return_value=mock_parsed_resp)
+
     fen = 'r1bqkb1r/pp1ppppp/2n2n2/2p5/8/1P3NP1/PBPPPP1P/RN1QKB1R b KQkq - 0 1'
 
     # loc/depth don't matter

@@ -78,6 +78,8 @@ def get_sf_evaluation(fen: str,
                 rating = 9999
             else:
                 rating = -9999
+        elif board.is_stalemate():
+            rating = 0
         else:
             raise ValueError('No best move found and not a checkmate position '
                              f'for: {fen=} {sf.info=}')

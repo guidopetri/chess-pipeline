@@ -330,6 +330,21 @@ def test_get_sf_evaluation_checkmate_white():
     assert rating == 9999
 
 
+def test_get_sf_evaluation_in_stalemate():
+
+    fen = '3Q4/8/8/8/8/3QK2P/8/4k3 b - - 0 56'
+
+    cfg = ConfigParser()
+    cfg.read('luigi.cfg')
+    stockfish_loc = cfg['stockfish_cfg']['location']
+
+    depth = 20
+
+    rating = transforms.get_sf_evaluation(fen, stockfish_loc, depth)
+
+    assert rating == 0
+
+
 def test_get_sf_evaluation_in_checkmate():
 
     fen = '4Rb1k/7Q/8/1p4N1/p7/8/1P4PK/8 b - - 4 0'

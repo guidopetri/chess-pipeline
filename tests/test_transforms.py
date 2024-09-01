@@ -232,9 +232,11 @@ def test_get_sf_evaluation_cloud(mocker):
     assert rating == -0.3
 
 
-def test_get_sf_evaluation_cloud_mate_in_x():
+def test_get_sf_evaluation_cloud_mate_in_x(mocker):
+    mock_parsed_resp = {'pvs': [{'mate': 1}]}
 
-    # this specific FEN is already evaluated by lichess
+    mocker.patch('lichess.api.cloud_eval', return_value=mock_parsed_resp)
+
     # scholar's mate
     fen = 'r1bqkbnr/ppp2ppp/2np4/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 4'
 
@@ -250,7 +252,7 @@ def test_get_sf_evaluation_cloud_error(mocker):
         transforms.get_sf_evaluation('fake fen', '', 1)
 
 
-def test_get_sf_evaluation_local_returns_error(mocker, monkeypatch):
+def test_get_sf_evaluation_local_returns_error(mocker, mocked_cloud_eval):
     mocker.patch('stockfish.Stockfish')
     mocker.patch('re.search', return_value=None)
 
@@ -258,7 +260,7 @@ def test_get_sf_evaluation_local_returns_error(mocker, monkeypatch):
         transforms.get_sf_evaluation('', '', 1)
 
 
-def test_get_sf_evaluation_shallow():
+def test_get_sf_evaluation_shallow(mocked_cloud_eval):
 
     fen = 'r1bq1rk1/1pp3b1/3p2np/nP2P1p1/4Pp2/PN3NP1/1B3PBP/R2Q1RK1 b - - 2 0'
 
@@ -280,7 +282,7 @@ def test_get_sf_evaluation_shallow():
         assert rating == -0.89
 
 
-def test_get_sf_evaluation_deep():
+def test_get_sf_evaluation_deep(mocked_cloud_eval):
 
     fen = 'r1bq1rk1/1pp3b1/3p2np/nP2P1p1/4Pp2/PN3NP1/1B3PBP/R2Q1RK1 b - - 2 0'
 
@@ -302,7 +304,7 @@ def test_get_sf_evaluation_deep():
         assert rating == -0.89
 
 
-def test_get_sf_evaluation_checkmate_black():
+def test_get_sf_evaluation_checkmate_black(mocked_cloud_eval):
 
     fen = '8/5q1k/7p/4Q2r/P3P3/4R1P1/7p/3R1r1K w - - 3 0'
 
@@ -317,7 +319,7 @@ def test_get_sf_evaluation_checkmate_black():
     assert rating == -9999
 
 
-def test_get_sf_evaluation_checkmate_white():
+def test_get_sf_evaluation_checkmate_white(mocked_cloud_eval):
 
     fen = '5rk1/4Q1b1/8/pp6/8/7N/1P2R1PK/8 w - - 1 0'
 
@@ -332,7 +334,7 @@ def test_get_sf_evaluation_checkmate_white():
     assert rating == 9999
 
 
-def test_get_sf_evaluation_in_stalemate():
+def test_get_sf_evaluation_in_stalemate(mocked_cloud_eval):
 
     fen = '3Q4/8/8/8/8/3QK2P/8/4k3 b - - 0 56'
 
@@ -347,7 +349,7 @@ def test_get_sf_evaluation_in_stalemate():
     assert rating == 0
 
 
-def test_get_sf_evaluation_in_checkmate():
+def test_get_sf_evaluation_in_checkmate(mocked_cloud_eval):
 
     fen = '4Rb1k/7Q/8/1p4N1/p7/8/1P4PK/8 b - - 4 0'
 
@@ -362,7 +364,7 @@ def test_get_sf_evaluation_in_checkmate():
     assert rating == 9999
 
 
-def test_get_sf_evaluation_double_checkmate():
+def test_get_sf_evaluation_double_checkmate(mocked_cloud_eval):
 
     fen = '6k1/4pppp/6r1/3b4/4r3/8/1Q5P/1R5K w - - 0 0'
 

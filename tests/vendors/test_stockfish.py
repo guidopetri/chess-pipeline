@@ -10,12 +10,9 @@ def mock_run_remote_sql_query(mocker):
                  )
 
 
-@pytest.fixture
-def mock_task(mocker):
-    return mocker.MagicMock()
-
-
-def test_get_evals_on_checkmate_position(mock_run_remote_sql_query, mock_task):
+def test_get_evals_on_checkmate_position(mock_run_remote_sql_query,
+                                         mock_task,
+                                         mocked_cloud_eval):
     fen = 'rnb1k1nr/pp1p1ppp/4p3/8/8/1P2qN2/PBPKPbPP/RN1Q1B1R w kq - 2 7'
 
     df = pd.DataFrame([[None, None, fen]],

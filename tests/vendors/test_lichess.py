@@ -2,7 +2,6 @@ from collections import defaultdict
 from datetime import datetime
 
 import freezegun
-import pandas as pd
 import pytest
 from lichess.format import JSON, PYCHESS
 from vendors.lichess import fetch_lichess_api_json, fetch_lichess_api_pgn
@@ -71,7 +70,7 @@ def mock_parse_headers(mocker):
                  )
 
 
-def test_lichess_api_json_single_day(mocker, mock_lichess_api_json):
+def test_lichess_api_json_single_day(mocker, mock_lichess_api_json, snapshot):
     player = 'thibault'
     perf_type = 'bullet'
     since = datetime(2024, 4, 28)
@@ -97,60 +96,7 @@ def test_lichess_api_json_single_day(mocker, mock_lichess_api_json):
                                                   format=JSON,
                                                   )
 
-    expected = pd.DataFrame([['q7ZvsdUF',
-                              True,
-                              'standard',
-                              'blitz',
-                              'blitz',
-                              1514505150384,
-                              1514505592843,
-                              'draw',
-                              'd4 d5 c4 c6 Nc3 e6',
-                              'Lance5500',
-                              'LM',
-                              True,
-                              'lance5500',
-                              2389,
-                              4,
-                              'TryingHard87',
-                              'tryinghard87',
-                              2498,
-                              -4,
-                              'D31',
-                              'Semi-Slav Defense: Marshall Gambit',
-                              7,
-                              300,
-                              3,
-                              420,
-                              ]],
-                            columns=['id',
-                                     'rated',
-                                     'variant',
-                                     'speed',
-                                     'perf',
-                                     'createdAt',
-                                     'lastMoveAt',
-                                     'status',
-                                     'moves',
-                                     'players_white_user_name',
-                                     'players_white_user_title',
-                                     'players_white_user_patron',
-                                     'players_white_user_id',
-                                     'players_white_rating',
-                                     'players_white_ratingDiff',
-                                     'players_black_user_name',
-                                     'players_black_user_id',
-                                     'players_black_rating',
-                                     'players_black_ratingDiff',
-                                     'opening_eco',
-                                     'opening_name',
-                                     'opening_ply',
-                                     'clock_initial',
-                                     'clock_increment',
-                                     'clock_totalTime',
-                                     ]
-                            )
-    pd.testing.assert_frame_equal(df, expected)
+    assert df.to_json() == snapshot
 
 
 @freezegun.freeze_time('2024-04-30 00:00:00')

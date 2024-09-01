@@ -19,7 +19,6 @@ from pandas import (
     to_numeric,
     to_timedelta,
 )
-from psycopg2 import connect
 from utils.types import Json, Visitor
 
 
@@ -107,7 +106,7 @@ def fix_provisional_columns(json_df: pd.DataFrame) -> pd.DataFrame:
     for side in ['black', 'white']:
         col = f'players_{side}_provisional'
         if col in json_df.columns:
-            json_df[col].fillna(False, inplace=True)
+            json_df[col] = json_df[col].fillna(False)
         else:
             json_df[col] = False
     return json_df
@@ -288,7 +287,7 @@ def get_elo_by_weekday(df, category='blitz'):
     df['weekday_played'] = df['datetime_played'].dt.weekday
 
     # change to sunday-first, not monday-first
-    df['weekday_played'].replace(6, -1, inplace=True)
+    df['weekday_played'] = df['weekday_played'].replace(6, -1)
     df['weekday_played'] += 1  # what a dumb way of fixing this
 
     elo = (df.groupby('weekday_played')
@@ -307,18 +306,16 @@ def get_elo_by_weekday(df, category='blitz'):
 
 
 def get_weekly_data(pg_cfg, player):
-    db_connection_string = 'postgresql://{}:{}@{}:{}/{}'
+    db_conn_string = 'postgresql+psycopg2://{}:{}@{}:{}/{}'
+    db_conn_string = db_conn_string.format(pg_cfg.read_user,
+                                           pg_cfg.read_password,
+                                           pg_cfg.host,
+                                           pg_cfg.port,
+                                           pg_cfg.database)
+    sql = f"""SELECT * from chess_games
+              WHERE player = '{player}'
+              AND datetime_played >= now()::date - interval '7 days';
+           """
 
-    with connect(db_connection_string.format(pg_cfg.read_user,
-                                             pg_cfg.read_password,
-                                             pg_cfg.host,
-                                             pg_cfg.port,
-                                             pg_cfg.database)) as con:
-
-        sql = f"""SELECT * from chess_games
-                  WHERE player = '{player}'
-                  AND datetime_played >= now()::date - interval '7 days';
-               """
-
-        df = read_sql_query(sql, con)
+    df = read_sql_query(sql, db_conn_string)
     return df

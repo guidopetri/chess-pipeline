@@ -23,11 +23,11 @@ def create_wp_features(df: pd.DataFrame) -> pd.DataFrame:
     df = df[df['clock'] != -1]
 
     df['opponent_clock'] = df.groupby(['game_link'])['clock'].shift(-1)
-    df['opponent_clock'].fillna(df['opponent_clock'].shift(2), inplace=True)
+    df['opponent_clock'] = df['opponent_clock'].fillna(df['opponent_clock'].shift(2))  # noqa
 
     # in situations where there were only one or two moves,
     # fill with the clock time
-    df['opponent_clock'].fillna(df['clock'], inplace=True)
+    df['opponent_clock'] = df['opponent_clock'].fillna(df['clock'])
 
     # start with white
     df['player_to_move'] = df['half_move'] % 2

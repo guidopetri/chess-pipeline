@@ -1,0 +1,16 @@
+# serializer version: 1
+# name: test_clean_chess_df
+  '{"event_type":{"0":"Rated bullet game"},"game_link":{"0":"https:\\/\\/lichess.org\\/KvnsPlh9"},"date_played":{"0":"2024.01.29"},"round":{"0":"?"},"white":{"0":"Nalajr"},"black":{"0":"thibault"},"result":{"0":"1-0"},"utc_date_played":{"0":"2024.01.29"},"time_played":{"0":"09:44:48"},"white_elo":{"0":"1827"},"black_elo":{"0":"1794"},"white_rating_diff":{"0":"+5"},"black_rating_diff":{"0":"-14"},"chess_variant":{"0":"Standard"},"time_control":{"0":"120+1"},"opening_played":{"0":"B30"},"lichess_opening":{"0":"Sicilian Defense"},"termination":{"0":"Normal"},"evaluations":{"0":[0.15,0.25,0.24]},"eval_depths":{"0":[20,20,20]},"clocks":{"0":["0:02:00","0:02:00","0:02:00"]},"white_berserked":{"0":false},"black_berserked":{"0":false},"queen_exchange":{"0":false},"castling_sides":{"0":{"black":"kingside","white":"kingside"}},"has_promotion":{"0":false},"promotion_count":{"0":{"True":0,"False":0}},"promotions":{"0":{"True":[],"False":[]}},"promotion_count_white":{"0":0},"promotion_count_black":{"0":0},"promotions_white":{"0":""},"promotions_black":{"0":""},"positions":{"0":["rnbqkbnr\\/pppppppp\\/8\\/8\\/4P3\\/8\\/PPPP1PPP\\/RNBQKBNR b KQkq - 0 1","rnbqkbnr\\/pp1ppppp\\/8\\/2p5\\/4P3\\/8\\/PPPP1PPP\\/RNBQKBNR w KQkq - 0 2","rnbqkbnr\\/pp1ppppp\\/8\\/2p5\\/4P3\\/5N2\\/PPPP1PPP\\/RNBQKB1R b KQkq - 1 2"]},"material_by_move":{"0":[{"p":8,"P":8,"k":1,"K":1},{"p":8,"P":8,"k":1,"K":1},{"p":8,"P":8,"k":1,"K":1}]},"moves":{"0":["e4","c5","Nf3"]},"speed":{"0":"bullet"},"status":{"0":"mate"},"black_elo_tentative":{"0":false},"white_elo_tentative":{"0":false}}'
+# ---
+# name: test_explode_clocks
+  '{"game_link":{"0":"https:\\/\\/fake-link.com\\/abc","1":"https:\\/\\/fake-link.com\\/abc","2":"https:\\/\\/fake-link.com\\/abc"},"clock":{"0":99,"1":105,"2":93},"half_move":{"0":1,"1":2,"2":3}}'
+# ---
+# name: test_explode_materials
+  '{"game_link":{"0":"https:\\/\\/fake-link.com\\/abc","1":"https:\\/\\/fake-link.com\\/abc"},"pawns_black":{"0":0,"1":9},"rooks_black":{"0":1,"1":0},"knights_black":{"0":2,"1":1},"bishops_black":{"0":3,"1":2},"queens_black":{"0":4,"1":3},"pawns_white":{"0":5,"1":4},"rooks_white":{"0":6,"1":5},"knights_white":{"0":7,"1":6},"bishops_white":{"0":8,"1":7},"queens_white":{"0":9,"1":8},"half_move":{"0":1,"1":2}}'
+# ---
+# name: test_explode_moves
+  '{"game_link":{"0":"https:\\/\\/fake-link.com\\/abc","1":"https:\\/\\/fake-link.com\\/abc","2":"https:\\/\\/fake-link.com\\/abc"},"move":{"0":"e4","1":"c5","2":"Nf3"},"half_move":{"0":1,"1":2,"2":3}}'
+# ---
+# name: test_explode_positions
+  '{"game_link":{"0":"https:\\/\\/fake-link.com\\/abc","1":"https:\\/\\/fake-link.com\\/abc","2":"https:\\/\\/fake-link.com\\/abc"},"position":{"0":"rnbqkbnr\\/pppppppp\\/8\\/8\\/4P3\\/8\\/PPPP1PPP\\/RNBQKBNR b KQkq - 0 1","1":"rnbqkbnr\\/pp1ppppp\\/8\\/2p5\\/4P3\\/8\\/PPPP1PPP\\/RNBQKBNR w KQkq - 0 2","2":"rnbqkbnr\\/pp1ppppp\\/8\\/2p5\\/4P3\\/5N2\\/PPPP1PPP\\/RNBQKB1R b KQkq - 1 2"},"half_move":{"0":1,"1":2,"2":3},"fen":{"0":"rnbqkbnr\\/pppppppp\\/8\\/8\\/4P3\\/8\\/PPPP1PPP\\/RNBQKBNR b KQkq - 0","1":"rnbqkbnr\\/pp1ppppp\\/8\\/2p5\\/4P3\\/8\\/PPPP1PPP\\/RNBQKBNR w KQkq - 0","2":"rnbqkbnr\\/pp1ppppp\\/8\\/2p5\\/4P3\\/5N2\\/PPPP1PPP\\/RNBQKB1R b KQkq - 1"}}'
+# ---

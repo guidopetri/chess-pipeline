@@ -1,4 +1,7 @@
 # serializer version: 1
+# name: test_color_stats_plot
+  '4a9c086a905bde320cfeed437e131934'
+# ---
 # name: test_create_newsletter
   Mail(
     asm=None,
@@ -80,6 +83,12 @@
     to=None,
     tracking_settings=None,
   )
+# ---
+# name: test_elo_by_weekday_plot
+  '574de65d835cd72b0c470efd78483315'
+# ---
+# name: test_elo_by_weekday_without_games
+  '2c72ebcedd63e778d31e3ca25711e9d3'
 # ---
 # name: test_generate_elo_by_weekday_text_generic
   "This week, your highest elo in bullet was 300 and your lowest elo was 100. <br><img alt='Elo by weekday' src='cid:elo-by-weekday'><br>"

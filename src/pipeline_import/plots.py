@@ -3,6 +3,7 @@
 import os
 
 from matplotlib import use
+from more_itertools import one
 from seaborn import set as sns_set
 
 
@@ -78,9 +79,9 @@ def make_elo_by_weekday_plot(elo, fig_loc, filename):
                  xticks=range(0, 7),
                  )
 
-        min_last_day = elo[-1:]['min'].values
-        max_last_day = elo[-1:]['max'].values
-        mean_last_day = elo[-1:]['mean'].values
+        min_last_day = one(elo[-1:]['min'].values)
+        max_last_day = one(elo[-1:]['max'].values)
+        mean_last_day = one(elo[-1:]['mean'].values)
 
         # annotate the lines individually
         ax.annotate('min',

@@ -131,7 +131,8 @@ def test_fix_provisional_columns_missing_neither():
     data = pd.DataFrame([[False, None], [None, True]],
                         columns=['players_white_provisional',
                                  'players_black_provisional',
-                                 ])
+                                 ],
+                        dtype=bool)
 
     clean = pd.DataFrame([[False, False], [False, True]],
                          columns=['players_white_provisional',
@@ -412,10 +413,6 @@ def test_get_clean_fens():
 
 
 def test_transform_game_data():
-
-    # disable SettingWithCopy warning
-    pd.options.mode.chained_assignment = None
-
     player = 'thibault'
 
     # fake game, this is dummy data anyway
@@ -440,13 +437,11 @@ def test_transform_game_data():
                'players_black_provisional': False,
                'players_white_provisional': False,
                'queen_exchange': True,
-               'castling_sides': None,
+               'castling_sides': [{'black': 'kingside', 'white': 'queenside'}],
                'speed': 'bullet',
                }
 
-    df = pd.DataFrame(headers, index=[0])
-
-    df['castling_sides'][0] = {'black': 'kingside', 'white': 'queenside'}
+    df = pd.DataFrame(headers)
 
     parsed = transforms.transform_game_data(df, player)
 
@@ -469,7 +464,8 @@ def test_transform_game_data():
                     'termination': 'Normal',
                     'players_black_provisional': False,
                     'players_white_provisional': False,
-                    'castling_sides': None,
+                    'castling_sides': [{'black': 'kingside',
+                                        'white': 'queenside'}],
                     'queen_exchange': 'Queen exchange',
                     'player_castling_side': 'kingside',
                     'opponent_castling_side': 'queenside',
@@ -492,9 +488,7 @@ def test_transform_game_data():
                     'date_played': pd.to_datetime('2020-05-01'),
                     }
 
-    true = pd.DataFrame(true_headers, index=[0])
-
-    true['castling_sides'][0] = {'black': 'kingside', 'white': 'queenside'}
+    true = pd.DataFrame(true_headers)
 
     pd.testing.assert_frame_equal(parsed, true, check_like=True)
 
@@ -504,9 +498,7 @@ def test_transform_game_data():
     del headers['black_rating_diff']
     del headers['white_rating_diff']
 
-    df = pd.DataFrame(headers, index=[0])
-
-    df['castling_sides'][0] = {'black': 'kingside', 'white': 'queenside'}
+    df = pd.DataFrame(headers)
 
     parsed = transforms.transform_game_data(df, player)
 
@@ -515,9 +507,7 @@ def test_transform_game_data():
     true_headers['black_rating_diff'] = 0
     true_headers['opponent_rating_diff'] = 0
 
-    true = pd.DataFrame(true_headers, index=[0])
-
-    true['castling_sides'][0] = {'black': 'kingside', 'white': 'queenside'}
+    true = pd.DataFrame(true_headers)
 
     pd.testing.assert_frame_equal(parsed, true, check_like=True)
 
@@ -526,9 +516,7 @@ def test_transform_game_data():
     # test draw
     headers['result'] = '1/2-1/2'
 
-    df = pd.DataFrame(headers, index=[0])
-
-    df['castling_sides'][0] = {'black': 'kingside', 'white': 'queenside'}
+    df = pd.DataFrame(headers)
 
     parsed = transforms.transform_game_data(df, player)
 
@@ -536,9 +524,7 @@ def test_transform_game_data():
     true_headers['player_result'] = 'Draw'
     true_headers['opponent_result'] = 'Draw'
 
-    true = pd.DataFrame(true_headers, index=[0])
-
-    true['castling_sides'][0] = {'black': 'kingside', 'white': 'queenside'}
+    true = pd.DataFrame(true_headers)
 
     pd.testing.assert_frame_equal(parsed, true, check_like=True)
 
@@ -547,18 +533,14 @@ def test_transform_game_data():
     # test arena
     headers['event_type'] = 'Rated Bullet Arena'
 
-    df = pd.DataFrame(headers, index=[0])
-
-    df['castling_sides'][0] = {'black': 'kingside', 'white': 'queenside'}
+    df = pd.DataFrame(headers)
 
     parsed = transforms.transform_game_data(df, player)
 
     true_headers['event_type'] = 'Rated Bullet Arena'
     true_headers['in_arena'] = 'In arena'
 
-    true = pd.DataFrame(true_headers, index=[0])
-
-    true['castling_sides'][0] = {'black': 'kingside', 'white': 'queenside'}
+    true = pd.DataFrame(true_headers)
 
     pd.testing.assert_frame_equal(parsed, true, check_like=True)
 
@@ -567,18 +549,14 @@ def test_transform_game_data():
     # test rated/casual
     headers['event_type'] = 'Casual Bullet Arena'
 
-    df = pd.DataFrame(headers, index=[0])
-
-    df['castling_sides'][0] = {'black': 'kingside', 'white': 'queenside'}
+    df = pd.DataFrame(headers)
 
     parsed = transforms.transform_game_data(df, player)
 
     true_headers['event_type'] = 'Casual Bullet Arena'
     true_headers['rated_casual'] = 'Casual'
 
-    true = pd.DataFrame(true_headers, index=[0])
-
-    true['castling_sides'][0] = {'black': 'kingside', 'white': 'queenside'}
+    true = pd.DataFrame(true_headers)
 
     pd.testing.assert_frame_equal(parsed, true, check_like=True)
 
@@ -587,35 +565,29 @@ def test_transform_game_data():
     # test queen exchange
     headers['queen_exchange'] = False
 
-    df = pd.DataFrame(headers, index=[0])
-
-    df['castling_sides'][0] = {'black': 'kingside', 'white': 'queenside'}
+    df = pd.DataFrame(headers)
 
     parsed = transforms.transform_game_data(df, player)
 
     true_headers['queen_exchange'] = 'No queen exchange'
 
-    true = pd.DataFrame(true_headers, index=[0])
-
-    true['castling_sides'][0] = {'black': 'kingside', 'white': 'queenside'}
+    true = pd.DataFrame(true_headers)
 
     pd.testing.assert_frame_equal(parsed, true, check_like=True)
 
     #####################################
 
     # test castling side
-    df = pd.DataFrame(headers, index=[0])
-
-    df['castling_sides'][0] = {'black': 'queenside', 'white': None}
+    headers['castling_sides'] = [{'black': 'queenside', 'white': None}]
+    df = pd.DataFrame(headers)
 
     parsed = transforms.transform_game_data(df, player)
 
     true_headers['player_castling_side'] = 'queenside'
     true_headers['opponent_castling_side'] = 'No castling'
+    true_headers['castling_sides'] = [{'black': 'queenside', 'white': None}]
 
-    true = pd.DataFrame(true_headers, index=[0])
-
-    true['castling_sides'][0] = {'black': 'queenside', 'white': None}
+    true = pd.DataFrame(true_headers)
 
     pd.testing.assert_frame_equal(parsed, true, check_like=True)
 
@@ -625,9 +597,7 @@ def test_transform_game_data():
 
     headers['white_elo'] = '?'
 
-    df = pd.DataFrame(headers, index=[0])
-
-    df['castling_sides'][0] = {'black': 'queenside', 'white': None}
+    df = pd.DataFrame(headers)
 
     parsed = transforms.transform_game_data(df, player)
 
@@ -635,14 +605,9 @@ def test_transform_game_data():
     true_headers['opponent_elo'] = 1500
     true_headers['opponent_rating_diff'] = 0
 
-    true = pd.DataFrame(true_headers, index=[0])
-
-    true['castling_sides'][0] = {'black': 'queenside', 'white': None}
+    true = pd.DataFrame(true_headers)
 
     pd.testing.assert_frame_equal(parsed, true, check_like=True)
-
-    # re-enable SettingWithCopy warning
-    pd.options.mode.chained_assignment = 'warn'
 
 
 def test_get_color_stats():

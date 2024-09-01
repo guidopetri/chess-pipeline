@@ -84,6 +84,8 @@ def get_evals(df: pd.DataFrame,
                                      errors='coerce')
 
     df.dropna(inplace=True)
-    df = pd.concat([df, db_evaluations], axis=0, ignore_index=True)
+
+    if not db_evaluations.empty:
+        df = pd.concat([df, db_evaluations], axis=0, ignore_index=True)
 
     return df

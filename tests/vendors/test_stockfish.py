@@ -20,7 +20,7 @@ def test_get_evals_on_checkmate_position(mock_run_remote_sql_query,
                       )
     actual = get_evals(df, local_stockfish=True, task=mock_task)
 
-    expected = pd.DataFrame([[fen[:-2], -9999.0, 1]],
+    expected = pd.DataFrame([[fen[:-2], -9999, 1]],
                             columns=['fen', 'evaluation', 'eval_depth'])
     expected['eval_depth'] = expected['eval_depth'].astype(object)
 

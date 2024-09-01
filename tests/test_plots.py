@@ -17,7 +17,7 @@ from utils.newsletter import (
 )
 
 
-def test_color_stats_plot():
+def test_color_stats_plot(snapshot):
 
     multiindex = pd.MultiIndex.from_arrays([['blitz', 'blitz', 'bullet'],
                                             ['white', 'black', 'black']],
@@ -41,14 +41,12 @@ def test_color_stats_plot():
     with open(file_loc, 'rb') as f:
         md5 = hashlib.md5(f.read()).hexdigest()
 
-    true_md5 = 'c5db29597bc7936db111444dd8bc35df'
-
-    assert md5 == true_md5
+    assert md5 == snapshot
 
     os.remove(file_loc)
 
 
-def test_elo_by_weekday_plot():
+def test_elo_by_weekday_plot(snapshot):
     elo = pd.DataFrame([[0, 1666, 0, 1666.0, 1666.0],
                         [1, 1685, 7.071, 1680.0, 1690.0],
                         [2, 1685, 7.071, 1680.0, 1690.0],
@@ -73,14 +71,12 @@ def test_elo_by_weekday_plot():
     with open(file_loc, 'rb') as f:
         md5 = hashlib.md5(f.read()).hexdigest()
 
-    true_md5 = 'dad710a3d32903926277ea59a4d1e2cc'
-
-    assert md5 == true_md5
+    assert md5 == snapshot
 
     os.remove(file_loc)
 
 
-def test_elo_by_weekday_without_games():
+def test_elo_by_weekday_without_games(snapshot):
 
     empty_elo = pd.DataFrame([],
                              columns=['weekday_played',
@@ -94,7 +90,7 @@ def test_elo_by_weekday_without_games():
                              )
 
     fig_loc = '.'
-    filename = 'elo_by_weekday_test.png'
+    filename = 'elo_by_weekday_without_games.png'
 
     plots.make_elo_by_weekday_plot(empty_elo, fig_loc, filename)
 
@@ -103,9 +99,7 @@ def test_elo_by_weekday_without_games():
     with open(file_loc, 'rb') as f:
         md5 = hashlib.md5(f.read()).hexdigest()
 
-    true_md5 = '4e93a5e395a23f57b6700aba8d630796'
-
-    assert md5 == true_md5
+    assert md5 == snapshot
 
     os.remove(file_loc)
 

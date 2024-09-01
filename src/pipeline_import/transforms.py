@@ -23,13 +23,18 @@ from psycopg2 import connect
 from utils.types import Json, Visitor
 
 
+class LichessApiClient(lichess.api.DefaultApiClient):
+    max_retries = 3
+
+
 def get_sf_evaluation(fen: str,
                       sf_location: Path,
                       sf_depth: int,
                       ) -> float:
     # get cloud eval if available
     try:
-        cloud_eval = lichess.api.cloud_eval(fen=fen, multiPv=1)
+        client = LichessApiClient()
+        cloud_eval = lichess.api.cloud_eval(fen=fen, multiPv=1, client=client)
         rating = cloud_eval['pvs'][0]
         if 'cp' in rating:
             rating = rating['cp'] / 100

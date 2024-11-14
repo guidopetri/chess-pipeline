@@ -5,6 +5,7 @@ x-chess-pipeline-service: &chess-pipeline-service
   depends_on:
     - luigi_server
     - postgres
+    - valkey
   volumes:
     - chess_pipeline_logs:/logs
     - .luigi_env:/app/luigi.cfg
@@ -43,6 +44,13 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./db:/sql_scripts:ro
       - ./db/initdb:/docker-entrypoint-initdb.d:ro
+
+  valkey:
+    image: valkey/valkey:alpine
+    container_name: valkey
+    restart: always
+    ports:
+      - "127.0.0.1:6379:6379"
 
 volumes:
   chess_pipeline_logs:

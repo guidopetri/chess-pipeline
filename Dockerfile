@@ -54,5 +54,6 @@ COPY src/ .
 COPY tests/ ./tests
 
 ENV PYTHONPATH /app
+ENV VALKEY_CONNECTION_URL valkey://valkey:6379
 
 ENTRYPOINT ["/usr/local/bin/luigi"]

@@ -1,14 +1,17 @@
 #! /usr/bin/env python3
 
+import logging
 import re
+from datetime import date, timedelta
 from pathlib import Path
 from subprocess import SubprocessError
-from typing import Type
+from typing import Type, cast
 
 import chess
 import lichess.api
 import pandas as pd
 import stockfish
+import valkey
 from chess.pgn import Game
 from pandas import (
     Series,
@@ -21,30 +24,76 @@ from pandas import (
 )
 from utils.types import Json, Visitor
 
+MAX_CLOUD_API_CALLS_PER_DAY = 3
+
 
 class LichessApiClient(lichess.api.DefaultApiClient):
     max_retries = 3
 
 
+def increment_successful_api_call(valkey_client: valkey.Valkey,
+                                  key: str,
+                                  expire_at_unix: int,
+                                  ) -> None:
+    valkey_client.incr(key, 1)
+    valkey_client.expireat(key, expire_at_unix, nx=True)
+
+
 def get_sf_evaluation(fen: str,
                       sf_location: Path,
                       sf_depth: int,
+                      valkey_client: valkey.Valkey | None = None,
                       ) -> float:
-    # get cloud eval if available
-    try:
-        client = LichessApiClient()
-        cloud_eval = lichess.api.cloud_eval(fen=fen, multiPv=1, client=client)
-        rating = cloud_eval['pvs'][0]
-        if 'cp' in rating:
-            rating = rating['cp'] / 100
-        elif 'mate' in rating:
-            rating = -9999 if rating['mate'] < 0 else 9999
-        else:
-            raise KeyError(f'{fen}, {rating}')
-        return rating
-    except lichess.api.ApiHttpError:
-        # continue execution
-        pass
+    today: date = date.today()
+    valkey_key: str = today.strftime('lichess-cloud-evals-api-%F')
+
+    # by default, don't use cloud API if we are not tracking api hits
+    api_calls_done: int = MAX_CLOUD_API_CALLS_PER_DAY + 1
+
+    if valkey_client is not None:
+        valkey_response: str | None = cast(str | None,
+                                           valkey_client.get(valkey_key),
+                                           )
+        api_calls_done: int = int(valkey_response
+                                  if valkey_response is not None
+                                  else 0
+                                  )
+
+    if api_calls_done < MAX_CLOUD_API_CALLS_PER_DAY:
+        try:
+            # get cloud eval if available
+            client = LichessApiClient()
+            cloud_eval = lichess.api.cloud_eval(fen=fen,
+                                                multiPv=1,
+                                                client=client,
+                                                )
+            rating = cloud_eval['pvs'][0]
+            if 'cp' in rating:
+                rating = rating['cp'] / 100
+            elif 'mate' in rating:
+                rating = -9999 if rating['mate'] < 0 else 9999
+            else:
+                raise KeyError(f'{fen}, {rating}')
+
+            if valkey_client is not None:
+                tomorrow: date = today + timedelta(days=1)
+                expire_at_unix: int = int(tomorrow.strftime('%s'))
+
+                increment_successful_api_call(valkey_client,
+                                              valkey_key,
+                                              expire_at_unix,
+                                              )
+            return rating
+        except lichess.api.ApiHttpError as e:
+            logging.warning(f'Got an API HTTP error: {e}')
+            # continue execution
+            pass
+        except lichess.api.ApiError as e:
+            logging.warning('Hit an API error (potentially a rate limit) '
+                            f'with only {api_calls_done} calls')
+            logging.warning(e)
+            # continue execution
+            pass
 
     # implicit else
     sf = stockfish.Stockfish(sf_location,

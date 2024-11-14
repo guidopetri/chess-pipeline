@@ -1,6 +1,8 @@
+import os
 from typing import Any
 
 import pandas as pd
+import valkey
 from luigi import Task
 from pipeline_import.configs import stockfish_cfg
 from pipeline_import.transforms import get_clean_fens, get_sf_evaluation
@@ -46,6 +48,11 @@ def get_evals(df: pd.DataFrame,
         position_count: int = len(no_evals['positions'])
         evaluation: float | None = None
 
+        valkey_url: str = os.environ['VALKEY_CONNECTION_URL']
+        valkey_client: valkey.Valkey = valkey.from_url(valkey_url,
+                                                       decode_responses=True,
+                                                       )
+
         for position in no_evals['positions'].tolist():
             if position in positions_evaluated.values:
                 # position will be dropped later if evaluation is None
@@ -53,7 +60,9 @@ def get_evals(df: pd.DataFrame,
             else:
                 evaluation = get_sf_evaluation(position + ' 0',
                                                sf_params.location,
-                                               sf_params.depth)
+                                               sf_params.depth,
+                                               valkey_client,
+                                               )
 
             local_evals.append(evaluation)
 

@@ -8,6 +8,7 @@ import chess
 import pandas as pd
 import pytest
 from pipeline_import import transforms, visitors
+from pipeline_import.transforms import MAX_CLOUD_API_CALLS_PER_DAY
 
 
 def test_parse_headers():
@@ -228,9 +229,61 @@ def test_get_sf_evaluation_cloud(mocker):
     fen = 'r1bqkb1r/pp1ppppp/2n2n2/2p5/8/1P3NP1/PBPPPP1P/RN1QKB1R b KQkq - 0 1'
 
     # loc/depth don't matter
-    rating = transforms.get_sf_evaluation(fen, '', 1)
+    rating = transforms.get_sf_evaluation(fen,
+                                          '',
+                                          1,
+                                          valkey_client=mocker.MagicMock(),
+                                          )
 
     assert rating == -0.3
+
+
+@pytest.fixture
+def mock_valkey_client():
+    class MockValkey:
+        def __init__(self):
+            self.counter = 0
+
+        def get(self, *args, **kwargs):
+            return '0'
+
+        def incr(self, *args, **kwargs):
+            self.counter += 1
+
+        def expireat(self, *args, **kwargs):
+            pass
+    return MockValkey()
+
+
+def test_get_sf_evaluation_tracks_api_calls(mocker, mock_valkey_client):
+    mock_parsed_resp = {'pvs': [{'cp': -30}]}
+
+    mocker.patch('lichess.api.cloud_eval', return_value=mock_parsed_resp)
+
+    # loc/depth don't matter
+    transforms.get_sf_evaluation('',
+                                 '',
+                                 1,
+                                 valkey_client=mock_valkey_client,
+                                 )
+
+    assert mock_valkey_client.counter == 1
+
+
+def test_get_sf_evaluation_doesnt_exceed_api_calls(mocker, mock_valkey_client):
+    mock_sf = mocker.patch('stockfish.Stockfish')
+    mocker.patch('re.search', return_value=None)
+
+    mock_valkey_client.counter = MAX_CLOUD_API_CALLS_PER_DAY + 1
+
+    with pytest.raises(SubprocessError):
+        transforms.get_sf_evaluation('',
+                                     '',
+                                     1,
+                                     valkey_client=mock_valkey_client,
+                                     )
+
+    mock_sf.assert_called_once()
 
 
 def test_get_sf_evaluation_cloud_mate_in_x(mocker):
@@ -242,7 +295,11 @@ def test_get_sf_evaluation_cloud_mate_in_x(mocker):
     fen = 'r1bqkbnr/ppp2ppp/2np4/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 4'
 
     # loc/depth don't matter
-    rating = transforms.get_sf_evaluation(fen, '', 1)
+    rating = transforms.get_sf_evaluation(fen,
+                                          '',
+                                          1,
+                                          valkey_client=mocker.MagicMock(),
+                                          )
 
     assert rating == 9999
 
@@ -250,7 +307,11 @@ def test_get_sf_evaluation_cloud_mate_in_x(mocker):
 def test_get_sf_evaluation_cloud_error(mocker):
     mocker.patch('lichess.api.cloud_eval', return_value={'pvs': ['foobar']})
     with pytest.raises(KeyError):
-        transforms.get_sf_evaluation('fake fen', '', 1)
+        transforms.get_sf_evaluation('fake fen',
+                                     '',
+                                     1,
+                                     valkey_client=mocker.MagicMock(),
+                                     )
 
 
 def test_get_sf_evaluation_local_returns_error(mocker, mocked_cloud_eval):

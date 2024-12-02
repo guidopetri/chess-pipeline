@@ -858,12 +858,12 @@ files = [
 
 [[package]]
 name = "luigi"
-version = "3.5.2"
+version = "3.5.1"
 description = "Workflow mgmgt + task scheduling + dependency resolution."
 optional = false
 python-versions = "*"
 files = [
-    {file = "luigi-3.5.2.tar.gz", hash = "sha256:d000fe6a6ea77c9376674fe87a045ac00c3fcf7ebe8414655a06630aa9db5111"},
+    {file = "luigi-3.5.1.tar.gz", hash = "sha256:fc790b2747515dd19c673efbb8e4c9ace5f4c5cdc31f8e7f93dc667deb2ec6c8"},
 ]
 
 [package.dependencies]
@@ -1390,24 +1390,22 @@ testing = ["filelock"]
 
 [[package]]
 name = "python-daemon"
-version = "3.1.0"
+version = "3.1.1"
 description = "Library to implement a well-behaved Unix daemon process."
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "python_daemon-3.1.0-py3-none-any.whl", hash = "sha256:a66b5896f0aed5807a25c6128268eb496488b1f9c6927c487710049ba16be32a"},
-    {file = "python_daemon-3.1.0.tar.gz", hash = "sha256:fdb621d7e5f46e74b4de1ad6b0fff6e69cd91b4f219de1476190ebdd0f4781df"},
+    {file = "python_daemon-3.1.1-py3-none-any.whl", hash = "sha256:b44866efe923c278ac5a052b6b87d4736fc53221b671cd3a7ec7c1f94ed19f47"},
+    {file = "python_daemon-3.1.1.tar.gz", hash = "sha256:a389d342aab7ac4c0e8397510af54ecb0d6919e2fced9bab7dd24f8c22265306"},
 ]
 
 [package.dependencies]
 lockfile = ">=0.10"
-setuptools = ">=62.4.0"
 
 [package.extras]
 build = ["build", "changelog-chug", "docutils", "python-daemon[doc]", "wheel"]
 devel = ["python-daemon[dist,test]"]
 dist = ["python-daemon[build]", "twine"]
-doc = ["Sphinx (>=4.4,<5.0)"]
 static-analysis = ["isort (>=5.13,<6.0)", "pip-check", "pycodestyle (>=2.12,<3.0)", "pydocstyle (>=6.3,<7.0)", "pyupgrade (>=3.17,<4.0)"]
 test = ["coverage", "python-daemon[build,static-analysis]", "testscenarios (>=0.4)", "testtools"]
 
@@ -1707,26 +1705,6 @@ files = [
 python-http-client = ">=3.0"
 
 [[package]]
-name = "setuptools"
-version = "75.6.0"
-description = "Easily download, build, install, upgrade, and uninstall Python packages"
-optional = false
-python-versions = ">=3.9"
-files = [
-    {file = "setuptools-75.6.0-py3-none-any.whl", hash = "sha256:ce74b49e8f7110f9bf04883b730f4765b774ef3ef28f722cce7c273d253aaf7d"},
-    {file = "setuptools-75.6.0.tar.gz", hash = "sha256:8199222558df7c86216af4f84c30e9b34a61d8ba19366cc914424cdbd28252f6"},
-]
-
-[package.extras]
-check = ["pytest-checkdocs (>=2.4)", "pytest-ruff (>=0.2.1)", "ruff (>=0.7.0)"]
-core = ["importlib_metadata (>=6)", "jaraco.collections", "jaraco.functools (>=4)", "jaraco.text (>=3.7)", "more_itertools", "more_itertools (>=8.8)", "packaging", "packaging (>=24.2)", "platformdirs (>=4.2.2)", "tomli (>=2.0.1)", "wheel (>=0.43.0)"]
-cover = ["pytest-cov"]
-doc = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "pygments-github-lexers (==0.0.5)", "pyproject-hooks (!=1.1)", "rst.linker (>=1.9)", "sphinx (>=3.5)", "sphinx-favicon", "sphinx-inline-tabs", "sphinx-lint", "sphinx-notfound-page (>=1,<2)", "sphinx-reredirects", "sphinxcontrib-towncrier", "towncrier (<24.7)"]
-enabler = ["pytest-enabler (>=2.2)"]
-test = ["build[virtualenv] (>=1.0.3)", "filelock (>=3.4.0)", "ini2toml[lite] (>=0.14)", "jaraco.develop (>=7.21)", "jaraco.envs (>=2.2)", "jaraco.path (>=3.2.0)", "jaraco.test (>=5.5)", "packaging (>=24.2)", "pip (>=19.1)", "pyproject-hooks (!=1.1)", "pytest (>=6,!=8.1.*)", "pytest-home (>=0.5)", "pytest-perf", "pytest-subprocess", "pytest-timeout", "pytest-xdist (>=3)", "tomli-w (>=1.0.0)", "virtualenv (>=13.0.0)", "wheel (>=0.44.0)"]
-type = ["importlib_metadata (>=7.0.2)", "jaraco.develop (>=7.21)", "mypy (>=1.12,<1.14)", "pytest-mypy"]
-
-[[package]]
 name = "six"
 version = "1.16.0"
 description = "Python 2 and 3 compatibility utilities"
@@ -1994,4 +1972,4 @@ test = ["covdefaults (>=2.3)", "coverage (>=7.2.7)", "coverage-enable-subprocess
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "cdf37bd8966083682a05cd3f63dcd8364f6f01a9bd9938fc4d3f384a5a1f3e8c"
+content-hash = "a029cf6fa5be5bbe79bb653bb91a86c60636b547697b7f409de8021bae6d22e6"

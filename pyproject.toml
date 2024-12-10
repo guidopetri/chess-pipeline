@@ -8,7 +8,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.12"
 psycopg2 = "^2.6.2"
-luigi = "3.5.1"
+luigi = "3.6.0"
 pandas = "^2.2.2"
 chess = "^1.10.0"
 python-lichess = "^0.10"

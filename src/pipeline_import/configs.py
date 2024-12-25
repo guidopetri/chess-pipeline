@@ -1,43 +1,13 @@
 #! /usr/bin/env python3
 
-from luigi import Config
-from luigi.parameter import IntParameter, Parameter, ParameterVisibility
+import configparser
 
 
-class sendgrid(Config):
-    apikey = Parameter(config_path={'section': 'email',
-                                    'name': 'SENGRID_API_KEY'},
-                       description='API key for SendGrid login')
+def _load_cfg():
+    cfg = configparser.ConfigParser()
+    cfg.read('/io/config.toml')
+    return cfg
 
 
-class newsletter_cfg(Config):
-    sender = Parameter()
-
-
-class postgres_cfg(Config):
-    user = Parameter(visibility=ParameterVisibility.PRIVATE,
-                     significant=False)
-    password = Parameter(visibility=ParameterVisibility.PRIVATE,
-                         significant=False)
-    host = Parameter(visibility=ParameterVisibility.PRIVATE,
-                     significant=False)
-    port = IntParameter(visibility=ParameterVisibility.PRIVATE,
-                        significant=False)
-    database = Parameter(visibility=ParameterVisibility.PRIVATE,
-                         significant=False)
-    read_user = Parameter(visibility=ParameterVisibility.PRIVATE,
-                          significant=False)
-    read_password = Parameter(visibility=ParameterVisibility.PRIVATE,
-                              significant=False)
-
-
-class lichess_token(Config):
-    token = Parameter(visibility=ParameterVisibility.PRIVATE,
-                      significant=False,
-                      default='')
-
-
-class stockfish_cfg(Config):
-    depth = IntParameter()
-    location = Parameter(visibility=ParameterVisibility.PRIVATE,
-                         significant=False)
+def get_cfg(key: str):
+    return _load_cfg()[key]

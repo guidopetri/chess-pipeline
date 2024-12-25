@@ -150,11 +150,11 @@ class PromotionsVisitor(BaseVisitor):
 
     def begin_game(self):
         self.gm.headers._others['has_promotion'] = False
-        self.gm.headers._others['promotion_count'] = {chess.WHITE: 0,
-                                                      chess.BLACK: 0,
+        self.gm.headers._others['promotion_count'] = {'white': 0,
+                                                      'black': 0,
                                                       }
-        self.gm.headers._others['promotions'] = {chess.WHITE: [],
-                                                 chess.BLACK: [],
+        self.gm.headers._others['promotions'] = {'white': [],
+                                                 'black': [],
                                                  }
 
     def visit_move(self, board, move):
@@ -166,13 +166,13 @@ class PromotionsVisitor(BaseVisitor):
             self.gm.headers._others['promotions'][board.turn].append(piece_symbol)  # noqa
 
     def end_game(self):
-        self.gm.headers._others['promotion_count_white'] = self.gm.headers._others['promotion_count'][chess.WHITE]  # noqa
-        self.gm.headers._others['promotion_count_black'] = self.gm.headers._others['promotion_count'][chess.BLACK]  # noqa
+        self.gm.headers._others['promotion_count_white'] = self.gm.headers._others['promotion_count']['white']  # noqa
+        self.gm.headers._others['promotion_count_black'] = self.gm.headers._others['promotion_count']['black']  # noqa
 
-        promotions = sorted(self.gm.headers._others['promotions'][chess.WHITE])
+        promotions = sorted(self.gm.headers._others['promotions']['white'])
         self.gm.headers._others['promotions_white'] = ''.join(promotions)
 
-        promotions = sorted(self.gm.headers._others['promotions'][chess.BLACK])
+        promotions = sorted(self.gm.headers._others['promotions']['black'])
         self.gm.headers._others['promotions_black'] = ''.join(promotions)
 
     def result(self):

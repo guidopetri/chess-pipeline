@@ -1,12 +1,11 @@
-from calendar import timegm
-from datetime import datetime, timedelta
+from datetime import date, timedelta
+from pathlib import Path
 from typing import Type
 
 import lichess.api
 import pandas as pd
 from chess.pgn import Game
 from lichess.format import JSON, PYCHESS
-from luigi import Task
 from pipeline_import.configs import lichess_token
 from pipeline_import.transforms import parse_headers
 from pipeline_import.visitors import (
@@ -23,57 +22,52 @@ from utils.types import Json, Visitor
 
 def fetch_lichess_api_json(player: str,
                            perf_type: str,
-                           since: datetime,
-                           single_day: bool,
-                           ) -> pd.DataFrame:
-    if single_day:
-        unix_time_until: int = timegm((since + timedelta(days=1)).timetuple())
-    else:
-        unix_time_until = timegm(datetime.today().date().timetuple())
-    until: int = int(1000 * unix_time_until)
-
-    unix_time_since: int = timegm(since.timetuple())
-    since_unix: int = int(1000 * unix_time_since)
+                           data_date: date,
+                           local_stockfish: bool,
+                           io_dir: Path,
+                           ) -> None:
+    next_date: date = data_date + timedelta(days=1)
+    until_unix: int = 1000 * int(next_date.strftime('%s'))
+    since_unix: int = 1000 * int(data_date.strftime('%s'))
 
     games: list[Json] = lichess.api.user_games(player,
                                                since=since_unix,
-                                               until=until,
+                                               until=until_unix,
                                                perfType=perf_type,
                                                auth=lichess_token().token,
                                                evals='false',
                                                clocks='false',
                                                moves='false',
-                                               format=JSON)
+                                               format=JSON,
+                                               )
 
     df: pd.DataFrame = pd.json_normalize([game for game in games], sep='_')
-    return df
+    df.to_parquet(io_dir / 'raw_json.parquet')
 
 
 def fetch_lichess_api_pgn(player: str,
                           perf_type: str,
-                          since: datetime,
-                          single_day: bool,
-                          game_count: int,
-                          task: Task,
-                          ) -> pd.DataFrame:
-    if single_day:
-        unix_time_until: int = timegm((since + timedelta(days=1)).timetuple())
-    else:
-        unix_time_until = timegm(datetime.today().date().timetuple())
-    until: int = int(1000 * unix_time_until)
+                          data_date: date,
+                          local_stockfish: bool,
+                          io_dir: Path,
+                          ) -> None:
+    json = pd.read_parquet(io_dir / 'raw_json.parquet')
+    game_count = len(json)
 
-    unix_time_since: int = timegm(since.timetuple())
-    since_unix: int = int(1000 * unix_time_since)
+    next_date: date = data_date + timedelta(days=1)
+    until_unix: int = 1000 * int(next_date.strftime('%s'))
+    since_unix: int = 1000 * int(data_date.strftime('%s'))
 
     games: list[Game] = lichess.api.user_games(player,
                                                since=since_unix,
-                                               until=until,
+                                               until=until_unix,
                                                perfType=perf_type,
                                                auth=lichess_token().token,
                                                clocks='true',
                                                evals='true',
                                                opening='true',
-                                               format=PYCHESS)
+                                               format=PYCHESS,
+                                               )
 
     visitors: list[Type[Visitor]] = [EvalsVisitor,
                                      ClocksVisitor,
@@ -98,12 +92,9 @@ def fetch_lichess_api_pgn(player: str,
         current: str = f'{game_infos["UTCDate"]} {game_infos["UTCTime"]}'
 
         current_progress: float = counter / game_count
-        task.set_status_message(f'Parsed until {current} :: '
-                                f'{counter} / {game_count}')
-        task.set_progress_percentage(round(current_progress * 100, 2))
+        print(f'Parsed until {current} :: '
+              f'{counter} / {game_count} :: {current_progress:.2%}')
 
     df: pd.DataFrame = pd.DataFrame(header_infos)
 
-    task.set_status_message('Parsed all games')
-    task.set_progress_percentage(100)
-    return df
+    df.to_parquet(io_dir / 'raw_pgn.parquet')

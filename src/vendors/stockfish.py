@@ -1,19 +1,23 @@
 import os
-from typing import Any
+from datetime import date
+from pathlib import Path
 
 import pandas as pd
 import valkey
-from luigi import Task
-from pipeline_import.configs import stockfish_cfg
+from pipeline_import.configs import get_cfg
 from pipeline_import.transforms import get_clean_fens, get_sf_evaluation
 from utils.db import run_remote_sql_query
 
 
-def get_evals(df: pd.DataFrame,
+def get_evals(player: str,
+              perf_type: str,
+              data_date: date,
               local_stockfish: bool,
-              task: Task,
-              ) -> pd.DataFrame:
-    sf_params: Any = stockfish_cfg()
+              io_dir: Path,
+              ) -> None:
+    df = pd.read_parquet(io_dir / 'cleaned_df.parquet')
+
+    sf_params = get_cfg('stockfish_cfg')
 
     df = df[['evaluations', 'eval_depths', 'positions']]
 
@@ -59,8 +63,8 @@ def get_evals(df: pd.DataFrame,
                 evaluation = None
             else:
                 evaluation = get_sf_evaluation(position + ' 0',
-                                               sf_params.location,
-                                               sf_params.depth,
+                                               Path(sf_params['location']),
+                                               sf_params['depth'],
                                                valkey_client,
                                                )
 
@@ -70,15 +74,13 @@ def get_evals(df: pd.DataFrame,
             counter += 1
 
             current_progress = counter / position_count
-            task.set_status_message(f'Analyzed :: '
-                                    f'{counter} / {position_count}')
-            task.set_progress_percentage(round(current_progress * 100, 2))
+            print(f'Analyzed :: {counter} / {position_count} '
+                  f':: {current_progress:.2%}')
 
-        task.set_status_message(f'Analyzed all {position_count} positions')
-        task.set_progress_percentage(100)
+        print(f'Analyzed all {position_count} positions')
 
         no_evals['evaluations'] = local_evals
-        no_evals['eval_depths'] = sf_params.depth
+        no_evals['eval_depths'] = sf_params['depth']
         no_evals.dropna(inplace=True)
 
         df = pd.concat([df, no_evals], axis=0, ignore_index=True)
@@ -97,4 +99,4 @@ def get_evals(df: pd.DataFrame,
     if not db_evaluations.empty:
         df = pd.concat([df, db_evaluations], axis=0, ignore_index=True)
 
-    return df
+    df.to_parquet(io_dir / 'evals.parquet')

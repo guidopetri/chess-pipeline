@@ -1,17 +1,18 @@
 
 import pandas as pd
-from pipeline_import.configs import postgres_cfg
+from pipeline_import.configs import get_cfg
 
 
 def run_remote_sql_query(sql, **params) -> pd.DataFrame:
-    pg_cfg = postgres_cfg()
+    pg_cfg = get_cfg('postgres_cfg')
 
     db_conn_string = 'postgresql+psycopg2://{}:{}@{}:{}/{}'
-    db_conn_string = db_conn_string.format(pg_cfg.user,
-                                           pg_cfg.password,
-                                           pg_cfg.host,
-                                           pg_cfg.port,
-                                           pg_cfg.database)
+    db_conn_string = db_conn_string.format(pg_cfg['user'],
+                                           pg_cfg['password'],
+                                           pg_cfg['host'],
+                                           pg_cfg['port'],
+                                           pg_cfg['database'],
+                                           )
 
     df: pd.DataFrame = pd.read_sql_query(sql, db_conn_string, params=params)
 

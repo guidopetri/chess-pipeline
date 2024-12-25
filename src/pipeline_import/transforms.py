@@ -248,6 +248,7 @@ def transform_game_data(player: str,
                                         + ' '
                                         + df['time_played'].astype(str))
     df['starting_time'] = df['time_control'].str.extract(r'(\d+)\+')
+    df['starting_time'] = df['starting_time'].astype(int)
     df['increment'] = df['time_control'].str.extract(r'\+(\d+)').astype(int)
 
     df['in_arena'] = df['event_type'].str.contains(r'Arena')

@@ -176,7 +176,13 @@ def get_clean_fens(positions: pd.Series) -> pd.Series:
     return positions.str.split().str[:-1].str.join(' ')
 
 
-def transform_game_data(df, player):
+def transform_game_data(player: str,
+                        perf_type: str,
+                        data_date: date,
+                        local_stockfish: bool,
+                        io_dir: Path,
+                        ) -> None:
+    df = pd.read_parquet(io_dir / 'cleaned_df.parquet')
     df['player'] = player
 
     if 'black_rating_diff' not in df.columns:
@@ -304,7 +310,7 @@ def transform_game_data(df, player):
         df[column] = df[column].replace('?', '1500')
         df[column] = to_numeric(df[column])
 
-    return df
+    df.to_parquet(io_dir / 'game_infos.parquet')
 
 
 def get_color_stats(df):

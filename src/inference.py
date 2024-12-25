@@ -1,16 +1,23 @@
 import hashlib
 import os
+from datetime import date
+from pathlib import Path
 
 import pandas as pd
 from pipeline_import.models import predict_wp
 
 
-def estimate_win_probabilities(game_infos: pd.DataFrame,
-                               evals: pd.DataFrame,
-                               game_positions: pd.DataFrame,
-                               game_clocks: pd.DataFrame,
+def estimate_win_probabilities(player: str,
+                               perf_type: str,
+                               data_date: date,
                                local_stockfish: bool,
-                               ) -> pd.DataFrame:
+                               io_dir: Path,
+                               ) -> None:
+    game_infos = pd.read_parquet(io_dir / 'game_infos.parquet')
+    evals = pd.read_parquet(io_dir / 'evals.parquet')
+    game_positions = pd.read_parquet(io_dir / 'exploded_positions.parquet')
+    game_clocks = pd.read_parquet(io_dir / 'exploded_clocks.parquet')
+
     game_infos['has_increment'] = (game_infos['increment'] > 0).astype(int)
 
     game_infos_cols = ['game_link',
@@ -52,4 +59,4 @@ def estimate_win_probabilities(game_infos: pd.DataFrame,
         md5 = hashlib.md5(f.read()).hexdigest()
 
     df['win_prob_model_version'] = md5[:7]
-    return df
+    df.to_parquet(io_dir / 'win_probabilities.parquet')

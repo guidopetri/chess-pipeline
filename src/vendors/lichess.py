@@ -6,7 +6,7 @@ import lichess.api
 import pandas as pd
 from chess.pgn import Game
 from lichess.format import JSON, PYCHESS
-from pipeline_import.configs import lichess_token
+from pipeline_import.configs import get_cfg
 from pipeline_import.transforms import parse_headers
 from pipeline_import.visitors import (
     CastlingVisitor,
@@ -30,11 +30,13 @@ def fetch_lichess_api_json(player: str,
     until_unix: int = 1000 * int(next_date.strftime('%s'))
     since_unix: int = 1000 * int(data_date.strftime('%s'))
 
+    token = get_cfg('lichess')['token']
+
     games: list[Json] = lichess.api.user_games(player,
                                                since=since_unix,
                                                until=until_unix,
                                                perfType=perf_type,
-                                               auth=lichess_token().token,
+                                               auth=token,
                                                evals='false',
                                                clocks='false',
                                                moves='false',
@@ -58,11 +60,13 @@ def fetch_lichess_api_pgn(player: str,
     until_unix: int = 1000 * int(next_date.strftime('%s'))
     since_unix: int = 1000 * int(data_date.strftime('%s'))
 
+    token = get_cfg('lichess')['token']
+
     games: list[Game] = lichess.api.user_games(player,
                                                since=since_unix,
                                                until=until_unix,
                                                perfType=perf_type,
-                                               auth=lichess_token().token,
+                                               auth=token,
                                                clocks='true',
                                                evals='true',
                                                opening='true',

@@ -1,167 +1,182 @@
 #! /usr/bin/env python3
 
-from collections import OrderedDict
 
-from luigi import LocalTarget, Task
-from luigi.contrib import postgres
-from luigi.parameter import (
-    DictParameter,
-    ListParameter,
-    Parameter,
-    TaskParameter,
-)
-from luigi.task import flatten
+from datetime import date
+from pathlib import Path
+
+import adbc_driver_postgresql.dbapi
+import pyarrow.parquet as pq
+from pipeline_import.configs import get_cfg
 
 
-class HashableDict(OrderedDict):
-    def __hash__(self):
-        return hash(frozenset(self))
+def load_chess_games(player: str,
+                     perf_type: str,
+                     data_date: date,
+                     local_stockfish: bool,
+                     io_dir: Path,
+                     ) -> None:
+    table_name = 'chess_games'
+    id_cols = ['player', 'game_link']
+    parquet_filename = 'game_infos'
+
+    _load_to_table(table_name=table_name,
+                   parquet_filename=parquet_filename,
+                   id_cols=id_cols,
+                   io_dir=io_dir,
+                   )
 
 
-class PostgresTable(postgres.CopyToTable):
-    from .configs import postgres_cfg
+def load_position_evals(player: str,
+                        perf_type: str,
+                        data_date: date,
+                        local_stockfish: bool,
+                        io_dir: Path,
+                        ) -> None:
+    table_name = 'position_evals'
+    id_cols = ['fen']
+    parquet_filename = 'evals'
 
-    pg_cfg = postgres_cfg()
-    user = pg_cfg.user
-    password = pg_cfg.password
-    host = pg_cfg.host
-    port = pg_cfg.port
-    database = pg_cfg.database
+    _load_to_table(table_name=table_name,
+                   parquet_filename=parquet_filename,
+                   id_cols=id_cols,
+                   io_dir=io_dir,
+                   )
 
 
-class TransactionFactTable(PostgresTable):
+def load_game_positions(player: str,
+                        perf_type: str,
+                        data_date: date,
+                        local_stockfish: bool,
+                        io_dir: Path,
+                        ) -> None:
+    table_name = 'game_positions'
+    id_cols = ['game_link', 'half_move']
+    parquet_filename = 'exploded_positions'
+
+    _load_to_table(table_name=table_name,
+                   parquet_filename=parquet_filename,
+                   id_cols=id_cols,
+                   io_dir=io_dir,
+                   )
+
+
+def load_game_materials(player: str,
+                        perf_type: str,
+                        data_date: date,
+                        local_stockfish: bool,
+                        io_dir: Path,
+                        ) -> None:
+    table_name = 'game_materials'
+    id_cols = ['game_link', 'half_move']
+    parquet_filename = 'exploded_materials'
+
+    _load_to_table(table_name=table_name,
+                   parquet_filename=parquet_filename,
+                   id_cols=id_cols,
+                   io_dir=io_dir,
+                   )
+
+
+def load_move_clocks(player: str,
+                     perf_type: str,
+                     data_date: date,
+                     local_stockfish: bool,
+                     io_dir: Path,
+                     ) -> None:
+    table_name = 'game_clocks'
+    id_cols = ['game_link', 'half_move']
+    parquet_filename = 'exploded_clocks'
+
+    _load_to_table(table_name=table_name,
+                   parquet_filename=parquet_filename,
+                   id_cols=id_cols,
+                   io_dir=io_dir,
+                   )
+
+
+def load_move_list(player: str,
+                   perf_type: str,
+                   data_date: date,
+                   local_stockfish: bool,
+                   io_dir: Path,
+                   ) -> None:
+    table_name = 'game_moves'
+    id_cols = ['game_link', 'half_move']
+    parquet_filename = 'exploded_moves'
+
+    _load_to_table(table_name=table_name,
+                   parquet_filename=parquet_filename,
+                   id_cols=id_cols,
+                   io_dir=io_dir,
+                   )
+
+
+def load_win_probs(player: str,
+                   perf_type: str,
+                   data_date: date,
+                   local_stockfish: bool,
+                   io_dir: Path,
+                   ) -> None:
+    table_name = 'win_probabilities'
+    id_cols = ['game_link', 'half_move']
+    parquet_filename = 'win_probabilities'
+
+    _load_to_table(table_name=table_name,
+                   parquet_filename=parquet_filename,
+                   id_cols=id_cols,
+                   io_dir=io_dir,
+                   )
+
+
+def _load_to_table(table_name: str,
+                   parquet_filename: str,
+                   id_cols: list[str],
+                   io_dir: Path,
+                   ) -> None:
+    pg_cfg = get_cfg('postgres_cfg')
+
+    uri = 'postgresql://{}:{}@{}:{}/{}'
+    uri = uri.format(pg_cfg['user'],
+                     pg_cfg['password'],
+                     pg_cfg['host'],
+                     pg_cfg['port'],
+                     pg_cfg['database'],
+                     )
+
+    reader = pq.ParquetFile(io_dir / f'{parquet_filename}.parquet')
+
+    temp_table_name = f'temp_{table_name}'
+
+    insert_sql = f"""
+        insert into {table_name} ({{columns}})
+        select {{columns}} from {temp_table_name}
     """
-    Copy a pandas DataFrame in a transaction fact table fashion to PostGreSQL.
 
-    :param table: The table to write to.
-    :param columns: The columns, in order they show up in the PostGreSQL table.
-    :param fn: The Task that provides the data to load.
-    :param id_cols: The columns to be used to identify whether a row is already
-                    in the table.
-    :param merge_cols: The columns representing dimension tables. In a
-                       dictionary format, with the key being the `left` to
-                       merge with, and the value being a tuple of
-                       (`table`, `right`).
+    get_col_names = f"""
+        select column_name from information_schema.columns
+        where table_name = '{table_name}' and column_name != 'id'
     """
 
-    table = Parameter(default='')
-    fn = TaskParameter(default=Task)
-    columns = ListParameter(default=[])
-    id_cols = ListParameter(default=[])
-    merge_cols = DictParameter(default={})
-
-    column_separator = '\t'
-
-    def requires(self):
-        return self.clone(self.fn)
-
-    def rows(self):
-        from pandas import read_pickle, read_sql_query
-
-        connection = self.output().connect()
-
-        sql = f"""SELECT {', '.join(self.id_cols)} FROM {self.table};"""
-
-        current_df = read_sql_query(sql, connection)
-        current_df.columns = self.id_cols
-
-        with self.input().open('r') as f:
-            df = read_pickle(f, compression=None)
-
-        if not df.empty:
-            # self.id_cols is tuple for some reason, so we need to convert
-            # to list first
-            # also, .isin compares by index as well as columns if passed a DF
-            # to avoid that we can pass the dict with orient='list' and compare
-            # just the columns
-            df = df[~(df[list(self.id_cols)]
-                      .isin(current_df.to_dict(orient='list'))
-                      .all(axis=1))]
-            df = df[list(self.columns)]
-
-        for index, line in df.iterrows():  # returns (index, Series) tuple
-            yield line.values.tolist()
-
-
-class CopyWrapper(Task):
-    """
-    Dynamically require each Task in the `jobs` list and remove all local
-    outputs.
-
-    In order to write to multiple tables, we need to pass in a different
-    `table` parameter each time. Using the `jobs` list, we can pass in a `dict`
-    that has the appropriate parameters for each requirement.
-
-    :param jobs: List of dictionaries. Each dictionary specifies one Task to
-                 run and copy to a PostGreSQL table. Necessary keys are:
-
-                 - `table`: The PostGreSQL table.
-                 - `fn`: The Task to run in order to get the data.
-                 - `columns: The table's columns, in the order they show up in
-                             the PostGreSQL table.
-                 - `id_cols`: The columns to be used to identify whether a row
-                              is already present.
-                 - `date_cols`: The columns that have to be converted to
-                                datetime before copying.
-                 - `merge_cols`: The columns that should represent dimension
-                                 tables. This should be in the form of a
-                                 `HashableDict()`, with the `left` column name
-                                 as key, and a tuple of (`table`, `right`) as
-                                 value.
+    drop_if_in_temp_table = f"""
+        delete from {table_name} where ({', '.join(id_cols)}) in (
+            select distinct ({', '.join(id_cols)}) from {temp_table_name}
+        )
     """
 
-    jobs = []
-    _local_files = []
+    with adbc_driver_postgresql.dbapi.connect(uri) as conn:
+        with conn.cursor() as cur:
+            # todo: schema only read specific columns,
+            # or insert new columns with warning?
+            cur.execute(get_col_names)
+            columns = [row[0] for row in cur.fetchall()]
 
-    def requires(self):
-        for job in self.jobs:
-            vars(self).update(job)
-            yield self.clone(job['table_type'])
-
-    @property
-    def local_files(self):
-        # if we haven't processed the local targets yet
-        if not self._local_files:
-            for job in self.jobs:
-                vars(self).update(job)
-                task = self.clone(job['fn'])
-                targets = self.get_local_files(task)
-                for target in targets:
-                    if isinstance(target, LocalTarget):
-                        self._local_files.append(target.path)
-            # deduplicate items
-            self._local_files = list(set(self._local_files))
-
-        return self._local_files
-
-    def get_local_files(self, task):
-        # recursively gets local files from each task's requires()
-        r = flatten(task.output())
-        for dependency in flatten(task.requires()):
-            r += self.get_local_files(dependency)
-        return r
-
-    def run(self):
-        import os
-        import shutil
-
-        for local_file in self.local_files:
-            if os.path.isfile(local_file):
-                os.remove(local_file)
-            elif os.path.isdir(local_file):
-                shutil.rmtree(local_file)
-
-    def complete(self):
-        import os
-
-        filepath = os.path.expanduser('~/Temp/luigi')
-
-        if not os.path.exists(filepath):
-            return False
-
-        if any(os.path.isfile(local_file) for local_file in self.local_files):
-            return False
-
-        finished_tasks = [inp.exists() for inp in self.input()]
-
-        return all(finished_tasks)
+            rows = cur.adbc_ingest(temp_table_name,
+                                   reader.iter_batches(columns=columns),
+                                   mode='create',
+                                   temporary=True,
+                                   )
+            print(f'{rows=}')
+            # handle upserting
+            cur.execute(drop_if_in_temp_table)
+            cur.execute(insert_sql.format(columns=', '.join(columns)))
+            print('inserted')

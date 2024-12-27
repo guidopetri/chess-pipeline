@@ -159,7 +159,7 @@ def _load_to_table(table_name: str,
 
     drop_if_in_temp_table = f"""
         delete from {table_name} where ({', '.join(id_cols)}) in (
-            select distinct ({', '.join(id_cols)}) from {temp_table_name}
+            select distinct {', '.join(id_cols)} from {temp_table_name}
         )
     """
 

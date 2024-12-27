@@ -64,7 +64,7 @@ def get_evals(player: str,
             else:
                 evaluation = get_sf_evaluation(position + ' 0',
                                                Path(sf_params['location']),
-                                               sf_params['depth'],
+                                               int(sf_params['depth']),
                                                valkey_client,
                                                )
 

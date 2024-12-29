@@ -150,29 +150,29 @@ class PromotionsVisitor(BaseVisitor):
 
     def begin_game(self):
         self.gm.headers._others['has_promotion'] = False
-        self.gm.headers._others['promotion_count'] = {chess.WHITE: 0,
-                                                      chess.BLACK: 0,
+        self.gm.headers._others['promotion_count'] = {str(chess.WHITE): 0,
+                                                      str(chess.BLACK): 0,
                                                       }
-        self.gm.headers._others['promotions'] = {chess.WHITE: [],
-                                                 chess.BLACK: [],
+        self.gm.headers._others['promotions'] = {str(chess.WHITE): [],
+                                                 str(chess.BLACK): [],
                                                  }
 
     def visit_move(self, board, move):
         if move.promotion is not None:
             self.gm.headers._others['has_promotion'] = True
-            self.gm.headers._others['promotion_count'][board.turn] += 1
+            self.gm.headers._others['promotion_count'][str(board.turn)] += 1
 
             piece_symbol = chess.piece_symbol(move.promotion)
-            self.gm.headers._others['promotions'][board.turn].append(piece_symbol)  # noqa
+            self.gm.headers._others['promotions'][str(board.turn)].append(piece_symbol)  # noqa
 
     def end_game(self):
-        self.gm.headers._others['promotion_count_white'] = self.gm.headers._others['promotion_count'][chess.WHITE]  # noqa
-        self.gm.headers._others['promotion_count_black'] = self.gm.headers._others['promotion_count'][chess.BLACK]  # noqa
+        self.gm.headers._others['promotion_count_white'] = self.gm.headers._others['promotion_count'][str(chess.WHITE)]  # noqa
+        self.gm.headers._others['promotion_count_black'] = self.gm.headers._others['promotion_count'][str(chess.BLACK)]  # noqa
 
-        promotions = sorted(self.gm.headers._others['promotions'][chess.WHITE])
+        promotions = sorted(self.gm.headers._others['promotions'][str(chess.WHITE)])  # noqa
         self.gm.headers._others['promotions_white'] = ''.join(promotions)
 
-        promotions = sorted(self.gm.headers._others['promotions'][chess.BLACK])
+        promotions = sorted(self.gm.headers._others['promotions'][str(chess.BLACK)])  # noqa
         self.gm.headers._others['promotions_black'] = ''.join(promotions)
 
     def result(self):

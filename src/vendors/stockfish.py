@@ -22,8 +22,8 @@ def get_evals(player: str,
     df = df[['evaluations', 'eval_depths', 'positions']]
 
     # explode the two different list-likes separately, then concat
-    no_evals: pd.DataFrame = df[~df['evaluations'].astype(bool)]
-    df = df[df['evaluations'].astype(bool)]
+    no_evals: pd.DataFrame = df[~df['evaluations'].map(any)]
+    df = df[df['evaluations'].map(any)]
 
     no_evals = pd.DataFrame(no_evals['positions'].explode())
     no_evals['positions'] = get_clean_fens(no_evals['positions'])

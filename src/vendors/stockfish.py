@@ -93,6 +93,7 @@ def get_evals(player: str,
               inplace=True)
     df['evaluation'] = pd.to_numeric(df['evaluation'],
                                      errors='coerce')
+    df['eval_depth'] = pd.to_numeric(df['eval_depth'])
 
     df.dropna(inplace=True)
 

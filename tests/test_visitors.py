@@ -166,8 +166,10 @@ def test_promotions_visitor():
     game.accept(visitors.PromotionsVisitor(game))
 
     assert not game.headers['has_promotion']
-    assert game.headers['promotion_count'] == {chess.WHITE: 0, chess.BLACK: 0}
-    assert game.headers['promotions'] == {chess.WHITE: [], chess.BLACK: []}
+    assert game.headers['promotion_count'] == {str(chess.WHITE): 0,
+                                               str(chess.BLACK): 0}
+    assert game.headers['promotions'] == {str(chess.WHITE): [],
+                                          str(chess.BLACK): []}
     assert game.headers['promotion_count_white'] == 0
     assert game.headers['promotion_count_black'] == 0
     assert game.headers['promotions_white'] == ''
@@ -182,9 +184,10 @@ def test_promotions_visitor():
     game.accept(visitors.PromotionsVisitor(game))
 
     assert game.headers['has_promotion']
-    assert game.headers['promotion_count'] == {chess.WHITE: 0, chess.BLACK: 2}
-    assert game.headers['promotions'] == {chess.WHITE: [],
-                                          chess.BLACK: ['q', 'q']}
+    assert game.headers['promotion_count'] == {str(chess.WHITE): 0,
+                                               str(chess.BLACK): 2}
+    assert game.headers['promotions'] == {str(chess.WHITE): [],
+                                          str(chess.BLACK): ['q', 'q']}
     assert game.headers['promotion_count_white'] == 0
     assert game.headers['promotion_count_black'] == 2
     assert game.headers['promotions_white'] == ''

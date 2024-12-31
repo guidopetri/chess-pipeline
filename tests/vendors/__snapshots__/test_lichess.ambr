@@ -1,4 +1,4 @@
 # serializer version: 1
-# name: test_lichess_api_json_single_day
+# name: test_lichess_api_json
   '{"id":{"0":"q7ZvsdUF"},"rated":{"0":true},"variant":{"0":"standard"},"speed":{"0":"blitz"},"perf":{"0":"blitz"},"createdAt":{"0":1514505150384},"lastMoveAt":{"0":1514505592843},"status":{"0":"draw"},"moves":{"0":"d4 d5 c4 c6 Nc3 e6"},"players_white_user_name":{"0":"Lance5500"},"players_white_user_title":{"0":"LM"},"players_white_user_patron":{"0":true},"players_white_user_id":{"0":"lance5500"},"players_white_rating":{"0":2389},"players_white_ratingDiff":{"0":4},"players_black_user_name":{"0":"TryingHard87"},"players_black_user_id":{"0":"tryinghard87"},"players_black_rating":{"0":2498},"players_black_ratingDiff":{"0":-4},"opening_eco":{"0":"D31"},"opening_name":{"0":"Semi-Slav Defense: Marshall Gambit"},"opening_ply":{"0":7},"clock_initial":{"0":300},"clock_increment":{"0":3},"clock_totalTime":{"0":420}}'
 # ---

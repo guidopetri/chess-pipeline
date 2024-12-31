@@ -1,7 +1,6 @@
 #! /usr/bin/env python3
 
 import io
-from configparser import ConfigParser
 from subprocess import SubprocessError
 
 import chess
@@ -9,6 +8,11 @@ import pandas as pd
 import pytest
 from pipeline_import import transforms, visitors
 from pipeline_import.transforms import MAX_CLOUD_API_CALLS_PER_DAY
+
+
+@pytest.fixture
+def mock_stockfish(mocker):
+    return {'location': '/stockfish', 'depth': '1'}
 
 
 def test_parse_headers():
@@ -322,13 +326,10 @@ def test_get_sf_evaluation_local_returns_error(mocker, mocked_cloud_eval):
         transforms.get_sf_evaluation('', '', 1)
 
 
-def test_get_sf_evaluation_shallow(mocked_cloud_eval):
+def test_get_sf_evaluation_shallow(mock_stockfish, mocked_cloud_eval):
 
     fen = 'r1bq1rk1/1pp3b1/3p2np/nP2P1p1/4Pp2/PN3NP1/1B3PBP/R2Q1RK1 b - - 2 0'
-
-    cfg = ConfigParser()
-    cfg.read('luigi.cfg')
-    stockfish_loc = cfg['stockfish_cfg']['location']
+    stockfish_loc = mock_stockfish['location']
 
     depth = 10
 
@@ -344,13 +345,10 @@ def test_get_sf_evaluation_shallow(mocked_cloud_eval):
         assert rating == -0.89
 
 
-def test_get_sf_evaluation_deep(mocked_cloud_eval):
+def test_get_sf_evaluation_deep(mock_stockfish, mocked_cloud_eval):
 
     fen = 'r1bq1rk1/1pp3b1/3p2np/nP2P1p1/4Pp2/PN3NP1/1B3PBP/R2Q1RK1 b - - 2 0'
-
-    cfg = ConfigParser()
-    cfg.read('luigi.cfg')
-    stockfish_loc = cfg['stockfish_cfg']['location']
+    stockfish_loc = mock_stockfish['location']
 
     depth = 20
 
@@ -366,13 +364,10 @@ def test_get_sf_evaluation_deep(mocked_cloud_eval):
         assert rating == -0.89
 
 
-def test_get_sf_evaluation_checkmate_black(mocked_cloud_eval):
+def test_get_sf_evaluation_checkmate_black(mock_stockfish, mocked_cloud_eval):
 
     fen = '8/5q1k/7p/4Q2r/P3P3/4R1P1/7p/3R1r1K w - - 3 0'
-
-    cfg = ConfigParser()
-    cfg.read('luigi.cfg')
-    stockfish_loc = cfg['stockfish_cfg']['location']
+    stockfish_loc = mock_stockfish['location']
 
     depth = 20
 
@@ -381,13 +376,10 @@ def test_get_sf_evaluation_checkmate_black(mocked_cloud_eval):
     assert rating == -9999
 
 
-def test_get_sf_evaluation_checkmate_white(mocked_cloud_eval):
+def test_get_sf_evaluation_checkmate_white(mock_stockfish, mocked_cloud_eval):
 
     fen = '5rk1/4Q1b1/8/pp6/8/7N/1P2R1PK/8 w - - 1 0'
-
-    cfg = ConfigParser()
-    cfg.read('luigi.cfg')
-    stockfish_loc = cfg['stockfish_cfg']['location']
+    stockfish_loc = mock_stockfish['location']
 
     depth = 20
 
@@ -396,13 +388,10 @@ def test_get_sf_evaluation_checkmate_white(mocked_cloud_eval):
     assert rating == 9999
 
 
-def test_get_sf_evaluation_in_stalemate(mocked_cloud_eval):
+def test_get_sf_evaluation_in_stalemate(mock_stockfish, mocked_cloud_eval):
 
     fen = '3Q4/8/8/8/8/3QK2P/8/4k3 b - - 0 56'
-
-    cfg = ConfigParser()
-    cfg.read('luigi.cfg')
-    stockfish_loc = cfg['stockfish_cfg']['location']
+    stockfish_loc = mock_stockfish['location']
 
     depth = 20
 
@@ -411,13 +400,10 @@ def test_get_sf_evaluation_in_stalemate(mocked_cloud_eval):
     assert rating == 0
 
 
-def test_get_sf_evaluation_in_checkmate(mocked_cloud_eval):
+def test_get_sf_evaluation_in_checkmate(mock_stockfish, mocked_cloud_eval):
 
     fen = '4Rb1k/7Q/8/1p4N1/p7/8/1P4PK/8 b - - 4 0'
-
-    cfg = ConfigParser()
-    cfg.read('luigi.cfg')
-    stockfish_loc = cfg['stockfish_cfg']['location']
+    stockfish_loc = mock_stockfish['location']
 
     depth = 20
 
@@ -426,13 +412,10 @@ def test_get_sf_evaluation_in_checkmate(mocked_cloud_eval):
     assert rating == 9999
 
 
-def test_get_sf_evaluation_double_checkmate(mocked_cloud_eval):
+def test_get_sf_evaluation_double_checkmate(mock_stockfish, mocked_cloud_eval):
 
     fen = '6k1/4pppp/6r1/3b4/4r3/8/1Q5P/1R5K w - - 0 0'
-
-    cfg = ConfigParser()
-    cfg.read('luigi.cfg')
-    stockfish_loc = cfg['stockfish_cfg']['location']
+    stockfish_loc = mock_stockfish['location']
 
     depth = 20
 
@@ -473,7 +456,7 @@ def test_get_clean_fens():
     assert (transforms.get_clean_fens(fen) == clean).all()
 
 
-def test_transform_game_data():
+def test_transform_game_data(tmp_path):
     player = 'thibault'
 
     # fake game, this is dummy data anyway
@@ -503,8 +486,15 @@ def test_transform_game_data():
                }
 
     df = pd.DataFrame(headers)
+    df.to_parquet(tmp_path / 'cleaned_df.parquet')
 
-    parsed = transforms.transform_game_data(df, player)
+    transforms.transform_game_data(player='thibault',
+                                   perf_type='',
+                                   data_date='',
+                                   local_stockfish=True,
+                                   io_dir=tmp_path,
+                                   )
+    parsed = pd.read_parquet(tmp_path / 'game_infos.parquet')
 
     true_headers = {'event_type': 'Rated Bullet game',
                     'round': '?',
@@ -542,7 +532,7 @@ def test_transform_game_data():
                     'opponent_result': 'Loss',
                     'time_control_category': 'bullet',
                     'datetime_played': pd.to_datetime('2021-05-01 02:34:14'),
-                    'starting_time': '60',
+                    'starting_time': 60,
                     'increment': 0,
                     'in_arena': 'Not in arena',
                     'rated_casual': 'Rated',
@@ -560,8 +550,15 @@ def test_transform_game_data():
     del headers['white_rating_diff']
 
     df = pd.DataFrame(headers)
+    df.to_parquet(tmp_path / 'cleaned_df.parquet')
 
-    parsed = transforms.transform_game_data(df, player)
+    transforms.transform_game_data(player='thibault',
+                                   perf_type='',
+                                   data_date='',
+                                   local_stockfish=True,
+                                   io_dir=tmp_path,
+                                   )
+    parsed = pd.read_parquet(tmp_path / 'game_infos.parquet')
 
     true_headers['white_rating_diff'] = 0
     true_headers['player_rating_diff'] = 0
@@ -578,8 +575,15 @@ def test_transform_game_data():
     headers['result'] = '1/2-1/2'
 
     df = pd.DataFrame(headers)
+    df.to_parquet(tmp_path / 'cleaned_df.parquet')
 
-    parsed = transforms.transform_game_data(df, player)
+    transforms.transform_game_data(player='thibault',
+                                   perf_type='',
+                                   data_date='',
+                                   local_stockfish=True,
+                                   io_dir=tmp_path,
+                                   )
+    parsed = pd.read_parquet(tmp_path / 'game_infos.parquet')
 
     true_headers['result'] = '1/2-1/2'
     true_headers['player_result'] = 'Draw'
@@ -595,8 +599,15 @@ def test_transform_game_data():
     headers['event_type'] = 'Rated Bullet Arena'
 
     df = pd.DataFrame(headers)
+    df.to_parquet(tmp_path / 'cleaned_df.parquet')
 
-    parsed = transforms.transform_game_data(df, player)
+    transforms.transform_game_data(player='thibault',
+                                   perf_type='',
+                                   data_date='',
+                                   local_stockfish=True,
+                                   io_dir=tmp_path,
+                                   )
+    parsed = pd.read_parquet(tmp_path / 'game_infos.parquet')
 
     true_headers['event_type'] = 'Rated Bullet Arena'
     true_headers['in_arena'] = 'In arena'
@@ -611,8 +622,15 @@ def test_transform_game_data():
     headers['event_type'] = 'Casual Bullet Arena'
 
     df = pd.DataFrame(headers)
+    df.to_parquet(tmp_path / 'cleaned_df.parquet')
 
-    parsed = transforms.transform_game_data(df, player)
+    transforms.transform_game_data(player='thibault',
+                                   perf_type='',
+                                   data_date='',
+                                   local_stockfish=True,
+                                   io_dir=tmp_path,
+                                   )
+    parsed = pd.read_parquet(tmp_path / 'game_infos.parquet')
 
     true_headers['event_type'] = 'Casual Bullet Arena'
     true_headers['rated_casual'] = 'Casual'
@@ -627,8 +645,15 @@ def test_transform_game_data():
     headers['queen_exchange'] = False
 
     df = pd.DataFrame(headers)
+    df.to_parquet(tmp_path / 'cleaned_df.parquet')
 
-    parsed = transforms.transform_game_data(df, player)
+    transforms.transform_game_data(player='thibault',
+                                   perf_type='',
+                                   data_date='',
+                                   local_stockfish=True,
+                                   io_dir=tmp_path,
+                                   )
+    parsed = pd.read_parquet(tmp_path / 'game_infos.parquet')
 
     true_headers['queen_exchange'] = 'No queen exchange'
 
@@ -641,8 +666,15 @@ def test_transform_game_data():
     # test castling side
     headers['castling_sides'] = [{'black': 'queenside', 'white': None}]
     df = pd.DataFrame(headers)
+    df.to_parquet(tmp_path / 'cleaned_df.parquet')
 
-    parsed = transforms.transform_game_data(df, player)
+    transforms.transform_game_data(player='thibault',
+                                   perf_type='',
+                                   data_date='',
+                                   local_stockfish=True,
+                                   io_dir=tmp_path,
+                                   )
+    parsed = pd.read_parquet(tmp_path / 'game_infos.parquet')
 
     true_headers['player_castling_side'] = 'queenside'
     true_headers['opponent_castling_side'] = 'No castling'
@@ -659,8 +691,15 @@ def test_transform_game_data():
     headers['white_elo'] = '?'
 
     df = pd.DataFrame(headers)
+    df.to_parquet(tmp_path / 'cleaned_df.parquet')
 
-    parsed = transforms.transform_game_data(df, player)
+    transforms.transform_game_data(player='thibault',
+                                   perf_type='',
+                                   data_date='',
+                                   local_stockfish=True,
+                                   io_dir=tmp_path,
+                                   )
+    parsed = pd.read_parquet(tmp_path / 'game_infos.parquet')
 
     true_headers['white_elo'] = '?'
     true_headers['opponent_elo'] = 1500
@@ -797,23 +836,18 @@ def test_get_elo_by_weekday():
 
 
 def test_get_weekly_data():
-    cfg = ConfigParser()
-    cfg.read('luigi.cfg')
-    cfg = cfg['postgres_cfg']
-
-    class EmptyObj:
-        pass
-
-    pg_cfg = EmptyObj()  # create empty object
-    pg_cfg.read_user = cfg['read_user']
-    pg_cfg.read_password = cfg['read_password']
-    pg_cfg.host = cfg['host']
-    pg_cfg.port = cfg['port']
-    pg_cfg.database = cfg['database']
+    # TODO: what is this test testing, exactly?
+    # maybe make it work outside of docker compose
+    cfg = {'host': 'chess_pipeline_postgres',
+           'port': 5432,
+           'database': 'chess_db',
+           'read_user': 'read_user',
+           'read_password': 'read_password',
+           }
 
     player = 'thibault'
 
-    data = transforms.get_weekly_data(pg_cfg, player)
+    data = transforms.get_weekly_data(cfg, player)
 
     cols = ['event_type',
             'result',

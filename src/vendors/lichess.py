@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Type
 
@@ -18,6 +18,7 @@ from pipeline_import.visitors import (
     QueenExchangeVisitor,
 )
 from utils.types import Json, Visitor
+from zoneinfo import ZoneInfo
 
 
 def fetch_lichess_api_json(player: str,
@@ -26,9 +27,14 @@ def fetch_lichess_api_json(player: str,
                            local_stockfish: bool,
                            io_dir: Path,
                            ) -> None:
-    next_date: date = data_date + timedelta(days=1)
-    until_unix: int = 1000 * int(next_date.strftime('%s'))
-    since_unix: int = 1000 * int(data_date.strftime('%s'))
+    data_datetime = datetime(data_date.year,
+                             data_date.month,
+                             data_date.day,
+                             tzinfo=ZoneInfo('GMT'),
+                             )
+    next_datetime: datetime = data_datetime + timedelta(days=1)
+    until_unix: int = 1000 * int(next_datetime.timestamp())
+    since_unix: int = 1000 * int(data_datetime.timestamp())
 
     token = get_cfg('lichess')['token']
 
@@ -56,9 +62,14 @@ def fetch_lichess_api_pgn(player: str,
     json = pd.read_parquet(io_dir / 'raw_json.parquet')
     game_count = len(json)
 
-    next_date: date = data_date + timedelta(days=1)
-    until_unix: int = 1000 * int(next_date.strftime('%s'))
-    since_unix: int = 1000 * int(data_date.strftime('%s'))
+    data_datetime = datetime(data_date.year,
+                             data_date.month,
+                             data_date.day,
+                             tzinfo=ZoneInfo('GMT'),
+                             )
+    next_datetime: datetime = data_datetime + timedelta(days=1)
+    until_unix: int = 1000 * int(next_datetime.timestamp())
+    since_unix: int = 1000 * int(data_datetime.timestamp())
 
     token = get_cfg('lichess')['token']
 

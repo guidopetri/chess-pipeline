@@ -1,7 +1,7 @@
 from collections import defaultdict
-from datetime import datetime
+from datetime import date
 
-import freezegun
+import pandas as pd
 import pytest
 from lichess.format import JSON, PYCHESS
 from vendors.lichess import fetch_lichess_api_json, fetch_lichess_api_pgn
@@ -70,121 +70,73 @@ def mock_parse_headers(mocker):
                  )
 
 
-def test_lichess_api_json_single_day(mocker, mock_lichess_api_json, snapshot):
+@pytest.fixture
+def mock_lichess_cfg(mocker):
+    mocker.patch('vendors.lichess.get_cfg', return_value={'token': 'abc'})
+
+
+def test_lichess_api_json(mock_lichess_api_json,
+                          mock_lichess_cfg,
+                          snapshot,
+                          tmp_path,
+                          ):
     player = 'thibault'
     perf_type = 'bullet'
-    since = datetime(2024, 4, 28)
-    single_day = True
+    data_date = date(2024, 4, 28)
     # converted manually to ms format
     since_unix = 1714262400000
     until = 1714348800000
 
-    df = fetch_lichess_api_json(player=player,
-                                perf_type=perf_type,
-                                since=since,
-                                single_day=single_day,
-                                )
+    fetch_lichess_api_json(player=player,
+                           perf_type=perf_type,
+                           data_date=data_date,
+                           local_stockfish=True,
+                           io_dir=tmp_path,
+                           )
 
     mock_lichess_api_json.assert_called_once_with(player,
                                                   since=since_unix,
                                                   until=until,
                                                   perfType=perf_type,
-                                                  auth=mocker.ANY,
+                                                  auth='abc',
                                                   evals='false',
                                                   clocks='false',
                                                   moves='false',
                                                   format=JSON,
                                                   )
 
+    df = pd.read_parquet(tmp_path / 'raw_json.parquet')
     assert df.to_json() == snapshot
 
 
-@freezegun.freeze_time('2024-04-30 00:00:00')
-def test_lichess_api_json_multiple_day(mocker, mock_lichess_api_json):
+def test_lichess_api_pgn(mock_lichess_api_pgn,
+                         mock_parse_headers,
+                         mock_lichess_cfg,
+                         tmp_path,
+                         ):
     player = 'thibault'
     perf_type = 'bullet'
-    since = datetime(2024, 4, 28)
-    single_day = False
-    # converted manually to ms format
-    since_unix = 1714262400000
-    until = 1714435200000
-
-    _ = fetch_lichess_api_json(player=player,
-                               perf_type=perf_type,
-                               since=since,
-                               single_day=single_day,
-                               )
-
-    mock_lichess_api_json.assert_called_once_with(player,
-                                                  since=since_unix,
-                                                  until=until,
-                                                  perfType=perf_type,
-                                                  auth=mocker.ANY,
-                                                  evals='false',
-                                                  clocks='false',
-                                                  moves='false',
-                                                  format=JSON,
-                                                  )
-
-
-def test_lichess_api_pgn_single_day(mocker,
-                                    mock_lichess_api_pgn,
-                                    mock_parse_headers,
-                                    mock_task):
-    player = 'thibault'
-    perf_type = 'bullet'
-    since = datetime(2024, 4, 28)
-    single_day = True
+    data_date = date(2024, 4, 28)
     # converted manually to ms format
     since_unix = 1714262400000
     until = 1714348800000
 
-    _ = fetch_lichess_api_pgn(player=player,
-                              perf_type=perf_type,
-                              since=since,
-                              single_day=single_day,
-                              game_count=1,
-                              task=mock_task,
-                              )
+    # prefix = f'{data_date}_{player}_{perf_type}'
+    json_df = pd.DataFrame([['test']], columns=['abc'])
+    json_df.to_parquet(tmp_path / 'raw_json.parquet')
+
+    fetch_lichess_api_pgn(player=player,
+                          perf_type=perf_type,
+                          data_date=data_date,
+                          local_stockfish=True,
+                          io_dir=tmp_path,
+                          )
 
     mock_lichess_api_pgn.assert_called_once_with(player,
                                                  since=since_unix,
                                                  until=until,
                                                  perfType=perf_type,
-                                                 auth=mocker.ANY,
-                                                 evals='true',
-                                                 clocks='true',
-                                                 opening='true',
-                                                 format=PYCHESS,
-                                                 )
-
-
-@freezegun.freeze_time('2024-04-30 00:00:00')
-def test_lichess_api_pgn_multiple_day(mocker,
-                                      mock_lichess_api_pgn,
-                                      mock_parse_headers,
-                                      mock_task):
-    player = 'thibault'
-    perf_type = 'bullet'
-    since = datetime(2024, 4, 28)
-    single_day = False
-    # converted manually to ms format
-    since_unix = 1714262400000
-    until = 1714435200000
-
-    _ = fetch_lichess_api_pgn(player=player,
-                              perf_type=perf_type,
-                              since=since,
-                              single_day=single_day,
-                              game_count=1,
-                              task=mock_task,
-                              )
-
-    mock_lichess_api_pgn.assert_called_once_with(player,
-                                                 since=since_unix,
-                                                 until=until,
-                                                 perfType=perf_type,
-                                                 auth=mocker.ANY,
+                                                 auth='abc',
                                                  evals='true',
                                                  clocks='true',
                                                  opening='true',

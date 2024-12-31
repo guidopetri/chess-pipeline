@@ -204,7 +204,7 @@ def test_generate_win_ratio_by_color_text_generic(mocker, snapshot):
 
 
 def test_send_newsletter(tmp_path, mocker):
-    mocker.patch('utils.newsletter.sendgrid')
+    mocker.patch('utils.newsletter.get_cfg')
     mock_send = mocker.patch('utils.newsletter.SendGridAPIClient.send')
     mock_send.return_value.status_code = 202
 
@@ -222,8 +222,9 @@ def test_send_newsletter(tmp_path, mocker):
 
 
 def test_create_newsletter(tmp_path, mocker, snapshot):
-    mock_cfg = mocker.patch('utils.newsletter.newsletter_cfg')
-    mock_cfg.sender = 'foo@bar.com'
+    mocker.patch('utils.newsletter.get_cfg',
+                 return_value={'sender': 'foo@bar.com'},
+                 )
 
     mocker.patch('os.path.expanduser', return_value=tmp_path / 'images')
     os.mkdir(tmp_path / 'images')

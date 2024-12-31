@@ -3,12 +3,10 @@ version: "3"
 x-chess-pipeline-service: &chess-pipeline-service
   restart: no
   depends_on:
-    - luigi_server
     - chess_pipeline_postgres
     - valkey
   volumes:
     - chess_pipeline_logs:/logs
-    - .luigi_env:/app/luigi.cfg
   networks:
     - mainnetwork
 
@@ -22,17 +20,6 @@ services:
     <<: *chess-pipeline-service
     container_name: chess_pipeline_dev
     image: chess-pipeline-dev
-
-  luigi_server:
-    image: ghcr.io/guidopetri/luigi-server:master
-    container_name: luigi_server
-    restart: always
-    depends_on:
-      - chess_pipeline_postgres
-    ports:
-      - "127.0.0.1:8082:8082"
-    env_file:
-      - .luigi_env
 
   chess_pipeline_postgres:
     image: postgres:16-alpine

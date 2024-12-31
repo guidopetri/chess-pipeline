@@ -835,7 +835,7 @@ def test_get_elo_by_weekday():
     pd.options.mode.chained_assignment = 'warn'
 
 
-def test_get_weekly_data():
+def test_get_weekly_data(mocker):
     # TODO: what is this test testing, exactly?
     # maybe make it work outside of docker compose
     cfg = {'host': 'chess_pipeline_postgres',
@@ -844,6 +844,7 @@ def test_get_weekly_data():
            'read_user': 'read_user',
            'read_password': 'read_password',
            }
+    mocker.patch('pipeline_import.transforms.get_cfg', return_value=cfg)
 
     player = 'thibault'
 

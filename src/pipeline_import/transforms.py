@@ -22,8 +22,10 @@ from pandas import (
     to_numeric,
     to_timedelta,
 )
+from pipeline_import.configs import get_cfg
 from utils.types import Json, Visitor
 
+# TODO: set to correct value lol
 MAX_CLOUD_API_CALLS_PER_DAY = 3
 
 
@@ -361,7 +363,8 @@ def get_elo_by_weekday(df, category='blitz'):
     return elo
 
 
-def get_weekly_data(pg_cfg, player):
+def get_weekly_data(player):
+    pg_cfg = get_cfg('postgres_cfg')
     db_conn_string = 'postgresql+psycopg2://{}:{}@{}:{}/{}'
     db_conn_string = db_conn_string.format(pg_cfg['read_user'],
                                            pg_cfg['read_password'],

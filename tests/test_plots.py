@@ -1,10 +1,7 @@
 #! /usr/bin/env python3
 
-import contextlib
 import hashlib
 import os
-import pickle
-from io import BytesIO
 
 import pandas as pd
 from pipeline_import import plots
@@ -232,18 +229,8 @@ def test_create_newsletter(tmp_path, mocker, snapshot):
     with open(tmp_path / 'images' / 'thibault.png', 'w') as f:
         f.write('dummy-input')
 
-    class FakeLuigiInput:
-        def __init__(self, value):
-            self.value = value
+    texts = ['foo', 'bar']
 
-        @contextlib.contextmanager
-        def open(self, *args):
-            return (x for x in [self.value])
-
-    inputs = [FakeLuigiInput(BytesIO(pickle.dumps('foo'))),
-              FakeLuigiInput(BytesIO(pickle.dumps('bar'))),
-              ]
-
-    newsletter = create_newsletter(inputs, 'thibault', 'bar@foo.com')
+    newsletter = create_newsletter(texts, 'thibault', 'bar@foo.com')
 
     assert newsletter == snapshot

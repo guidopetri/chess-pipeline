@@ -13,7 +13,7 @@ from feature_engineering import (
 )
 
 
-def test_clean_chess_df(snapshot):
+def test_clean_chess_df(tmp_path, snapshot):
     pgn_input_df = pd.DataFrame(
         [['Rated bullet game',
           'https://lichess.org/KvnsPlh9',
@@ -41,8 +41,8 @@ def test_clean_chess_df(snapshot):
           False,
           {'black': 'kingside', 'white': 'kingside'},
           False,
-          {True: 0, False: 0},
-          {True: [], False: []},
+          {'True': 0, 'False': 0},
+          {'True': [], 'False': []},
           0,
           0,
           '',
@@ -142,27 +142,53 @@ def test_clean_chess_df(snapshot):
                  'clock_increment',
                  'clock_totalTime',
                  ])
-    df = clean_chess_df(pgn_input_df, json_input_df)
+
+    json_input_df.to_parquet(tmp_path / 'raw_json.parquet')
+    pgn_input_df.to_parquet(tmp_path / 'raw_pgn.parquet')
+
+    clean_chess_df(player='',
+                   perf_type='',
+                   data_date='',
+                   local_stockfish=True,
+                   io_dir=tmp_path,
+                   )
+    df = pd.read_parquet(tmp_path / 'cleaned_df.parquet')
     assert df.reset_index(drop=True).to_json() == snapshot
 
 
-def test_explode_moves(snapshot):
+def test_explode_moves(tmp_path, snapshot):
     input_df = pd.DataFrame([['https://fake-link.com/abc',
                               ['e4', 'c5', 'Nf3']]],
                             columns=['game_link', 'moves'])
-    df = explode_moves(input_df)
+    input_df.to_parquet(tmp_path / 'cleaned_df.parquet')
+
+    explode_moves(player='',
+                  perf_type='',
+                  data_date='',
+                  local_stockfish=True,
+                  io_dir=tmp_path,
+                  )
+    df = pd.read_parquet(tmp_path / 'exploded_moves.parquet')
     assert df.reset_index(drop=True).to_json() == snapshot
 
 
-def test_explode_clocks(snapshot):
+def test_explode_clocks(tmp_path, snapshot):
     input_df = pd.DataFrame([['https://fake-link.com/abc',
                               ['0:01:39', '0:01:45', '0:01:33']]],
                             columns=['game_link', 'clocks'])
-    df = explode_clocks(input_df)
+    input_df.to_parquet(tmp_path / 'cleaned_df.parquet')
+
+    explode_clocks(player='',
+                   perf_type='',
+                   data_date='',
+                   local_stockfish=True,
+                   io_dir=tmp_path,
+                   )
+    df = pd.read_parquet(tmp_path / 'exploded_clocks.parquet')
     assert df.reset_index(drop=True).to_json() == snapshot
 
 
-def test_explode_positions(snapshot):
+def test_explode_positions(tmp_path, snapshot):
     input_df = pd.DataFrame(
         [['https://fake-link.com/abc',
           ['rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1',
@@ -171,16 +197,32 @@ def test_explode_positions(snapshot):
            ],
           ]],
         columns=['game_link', 'positions'])
-    df = explode_positions(input_df)
+    input_df.to_parquet(tmp_path / 'cleaned_df.parquet')
+
+    explode_positions(player='',
+                      perf_type='',
+                      data_date='',
+                      local_stockfish=True,
+                      io_dir=tmp_path,
+                      )
+    df = pd.read_parquet(tmp_path / 'exploded_positions.parquet')
     assert df.reset_index(drop=True).to_json() == snapshot
 
 
-def test_explode_materials(snapshot):
+def test_explode_materials(tmp_path, snapshot):
     input_df = pd.DataFrame([['https://fake-link.com/abc',
                               [{k: idx for idx, k in enumerate('prnbqPRNBQ')},
                                {k: idx for idx, k in enumerate('rnbqPRNBQp')},
                                ]
                               ]],
                             columns=['game_link', 'material_by_move'])
-    df = explode_materials(input_df)
+    input_df.to_parquet(tmp_path / 'cleaned_df.parquet')
+
+    explode_materials(player='',
+                      perf_type='',
+                      data_date='',
+                      local_stockfish=True,
+                      io_dir=tmp_path,
+                      )
+    df = pd.read_parquet(tmp_path / 'exploded_materials.parquet')
     assert df.reset_index(drop=True).to_json() == snapshot

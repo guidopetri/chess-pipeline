@@ -1,14 +1,12 @@
 #! /usr/bin/env python3
 
+import argparse
 import os
 import pickle
+from pathlib import Path
+from typing import Protocol
 
 import pandas as pd
-from luigi import LocalTarget, Task
-from luigi.format import Nop
-from luigi.parameter import ListParameter, Parameter
-from luigi.util import requires
-from pipeline_import.configs import get_cfg
 from pipeline_import.transforms import (
     get_weekly_data,
 )
@@ -20,91 +18,130 @@ from utils.newsletter import (
 )
 
 
-class GetData(Task):
+class Step(Protocol):
+    """
+    Protocol for a data processing step of the newsletter pipeline.
 
-    player = Parameter()
-    columns = ListParameter(default=[])
+    Callable. Should read inputs from and write outputs to `io_dir`.
+    """
 
-    def run(self):
-        pg_cfg = get_cfg('postgres_cfg')
-        df = get_weekly_data(pg_cfg, self.player)
-
-        with self.output().temporary_path() as temp_output_path:
-            df.to_pickle(temp_output_path, compression=None)
-
-    def output(self):
-        file_location = f'~/Temp/luigi/week-data-{self.player}.pckl'
-        return LocalTarget(os.path.expanduser(file_location), format=Nop)
-
-
-@requires(GetData)
-class WinRatioByColor(Task):
-
-    def output(self):
-        file_loc = f'~/Temp/luigi/graphs/win-by-color-{self.player}.pckl'
-        return LocalTarget(os.path.expanduser(file_loc), format=Nop)
-
-    def run(self):
-        with self.input().open('r') as f:
-            df = pd.read_pickle(f, compression=None)
-
-        text = generate_win_ratio_by_color_text(df, self.player)
-
-        with self.output().open('w') as f:
-            pickle.dump(text, f, protocol=-1)
+    def __call__(self,
+                 player: str,
+                 category: str,
+                 receiver: str,
+                 io_dir: Path,
+                 ) -> None:
+        ...
 
 
-@requires(GetData)
-class EloByWeekday(Task):
-
-    category = Parameter(default='blitz')
-
-    def output(self):
-        file_loc = f'~/Temp/luigi/graphs/elo-by-weekday-{self.player}.pckl'
-        return LocalTarget(os.path.expanduser(file_loc), format=Nop)
-
-    def run(self):
-        with self.input().open('r') as f:
-            df = pd.read_pickle(f, compression=None)
-
-        text = generate_elo_by_weekday_text(df, self.category, self.player)
-
-        with self.output().open('w') as f:
-            pickle.dump(text, f, protocol=-1)
+def get_data(player: str,
+             category: str,
+             receiver: str,
+             io_dir: Path,
+             ) -> None:
+    df = get_weekly_data(player)
+    df.to_parquet(io_dir / f'week-data-{player}.parquet')
 
 
-@requires(WinRatioByColor, EloByWeekday)
-class CreateNewsletter(Task):
-
-    receiver = Parameter()
-
-    def run(self):
-        newsletter = create_newsletter(inputs=self.input(),
-                                       player=self.player,
-                                       receiver=self.receiver,
-                                       )
-
-        with self.output().open('w') as f:
-            pickle.dump(newsletter, f, protocol=-1)
-
-    def output(self):
-        file_loc = f'~/Temp/luigi/newsletter-{self.player}.pckl'
-        return LocalTarget(os.path.expanduser(file_loc), format=Nop)
+def win_ratio_by_color(player: str,
+                       category: str,
+                       receiver: str,
+                       io_dir: Path,
+                       ) -> None:
+    df = pd.read_parquet(io_dir / f'week-data-{player}.parquet')
+    text = generate_win_ratio_by_color_text(df, player)
+    target_path = io_dir / f'win-by-color-{player}.txt'
+    target_path.write_text(text)
 
 
-@requires(CreateNewsletter)
-class SendNewsletter(Task):
+def elo_by_weekday(player: str,
+                   category: str,
+                   receiver: str,
+                   io_dir: Path,
+                   ) -> None:
+    df = pd.read_parquet(io_dir / f'week-data-{player}.parquet')
+    text = generate_elo_by_weekday_text(df, category, player)
+    target_path = io_dir / f'elo-by-weekday-{player}.txt'
+    target_path.write_text(text)
 
-    result = False
 
-    def run(self):
-        with self.input().open('r') as f:
-            newsletter = pickle.load(f)
+def create_email(player: str,
+                 category: str,
+                 receiver: str,
+                 io_dir: Path,
+                 ) -> None:
+    input_paths = [f'win-by-color-{player}.txt',
+                   f'elo-by-weekday-{player}.txt',
+                   ]
+    texts = [(io_dir / p).read_text() for p in input_paths]
+    newsletter = create_newsletter(texts=texts,
+                                   player=player,
+                                   receiver=receiver,
+                                   )
+    target_path = io_dir / f'newsletter-{player}.pckl'
+    with open(target_path, 'wb') as f:
+        pickle.dump(f, newsletter)
 
-        self.result = send_newsletter(newsletter)
 
-    def complete(self):
-        return self.result
+def send_email(player: str,
+               category: str,
+               receiver: str,
+               io_dir: Path,
+               ) -> None:
+    source_path = io_dir / f'newsletter-{player}.pckl'
+    with open(source_path, 'rb') as f:
+        newsletter = pickle.load(f)
+    send_newsletter(newsletter)
 
-    def output(self):
-        pass
+
+STEPS: dict[str, Step] = {'get_data': get_data,
+                          'win_ratio_by_color': win_ratio_by_color,
+                          'elo_by_weekday': elo_by_weekday,
+                          'create_email': create_email,
+                          'send_email': send_email,
+                          }
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description='Newsletter for chess data')
+    parser.add_argument('--player',
+                        type=str,
+                        default='thibault',
+                        help='Lichess username for the player whose data will '
+                             'be sent.',
+                        )
+    parser.add_argument('--category',
+                        type=str,
+                        default='blitz',
+                        choices=['ultrabullet',
+                                 'bullet',
+                                 'blitz',
+                                 'rapid',
+                                 'classical',
+                                 ],
+                        help='Chess category to send newsletter for.',
+                        )
+    parser.add_argument('--receiver',
+                        type=str,
+                        required=True,
+                        help='Email to send newsletter to.',
+                        )
+
+    # todo: add other choices
+    parser.add_argument('--step',
+                        type=str,
+                        choices=STEPS.keys(),
+                        required=True,
+                        help='Which newsletter processing step to run.',
+                        )
+    return parser.parse_args()
+
+
+if __name__ == '__main__':
+    args = parse_args()
+
+    STEPS[args.step](player=args.player,
+                     category=args.category,
+                     receiver=args.receiver,
+                     io_dir=Path(os.environ['DAGSTER_IO_DIR']),
+                     )

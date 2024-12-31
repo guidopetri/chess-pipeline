@@ -1,6 +1,5 @@
 import base64
 import os
-import pickle
 import shutil
 
 from bs4 import BeautifulSoup
@@ -58,7 +57,7 @@ def get_color_stats_text(color_stats):
     return win_rate_string
 
 
-def generate_elo_by_weekday_text(df, category, player):
+def generate_elo_by_weekday_text(df, category, player) -> str:
     if df.empty:
         return '\n'
 
@@ -80,7 +79,7 @@ def generate_elo_by_weekday_text(df, category, player):
     return text
 
 
-def generate_win_ratio_by_color_text(df, player):
+def generate_win_ratio_by_color_text(df, player) -> str:
     if df.empty:
         return "Wait a second, no you didn't!"
 
@@ -118,7 +117,7 @@ def send_newsletter(newsletter) -> bool:
     return response.status_code == 202
 
 
-def create_newsletter(inputs, player, receiver):
+def create_newsletter(texts, player, receiver):
     newsletter = mail.Mail(from_email=get_cfg('newsletter_cfg')['sender'],
                            to_emails=receiver,
                            subject=f'Chess Newsletter - {player}',
@@ -144,10 +143,7 @@ def create_newsletter(inputs, player, receiver):
                f"This week you played chess! Here's your performance:"
                ]
 
-    for inp in inputs:
-        with inp.open('r') as f:
-            text = pickle.load(f)
-            message.append(text)
+    message.extend(texts)
 
     message.append('Hope you do well this upcoming week!</body></html>')
 

@@ -4,7 +4,7 @@ import pickle
 import shutil
 
 from bs4 import BeautifulSoup
-from pipeline_import.configs import newsletter_cfg, sendgrid
+from pipeline_import.configs import get_cfg
 from pipeline_import.plots import (
     make_color_stats_plot,
     make_elo_by_weekday_plot,
@@ -103,7 +103,7 @@ def generate_win_ratio_by_color_text(df, player):
 
 
 def send_newsletter(newsletter) -> bool:
-    client = SendGridAPIClient(sendgrid().apikey)
+    client = SendGridAPIClient(get_cfg('sendgrid')['apikey'])
     response = client.send(newsletter)
 
     filepath = os.path.expanduser('~/Temp/luigi')
@@ -119,7 +119,7 @@ def send_newsletter(newsletter) -> bool:
 
 
 def create_newsletter(inputs, player, receiver):
-    newsletter = mail.Mail(from_email=newsletter_cfg().sender,
+    newsletter = mail.Mail(from_email=get_cfg('newsletter_cfg')['sender'],
                            to_emails=receiver,
                            subject=f'Chess Newsletter - {player}',
                            )

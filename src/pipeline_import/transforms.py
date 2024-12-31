@@ -363,11 +363,11 @@ def get_elo_by_weekday(df, category='blitz'):
 
 def get_weekly_data(pg_cfg, player):
     db_conn_string = 'postgresql+psycopg2://{}:{}@{}:{}/{}'
-    db_conn_string = db_conn_string.format(pg_cfg.read_user,
-                                           pg_cfg.read_password,
-                                           pg_cfg.host,
-                                           pg_cfg.port,
-                                           pg_cfg.database)
+    db_conn_string = db_conn_string.format(pg_cfg['read_user'],
+                                           pg_cfg['read_password'],
+                                           pg_cfg['host'],
+                                           pg_cfg['port'],
+                                           pg_cfg['database'])
     sql = f"""SELECT * from chess_games
               WHERE player = '{player}'
               AND datetime_played >= now()::date - interval '7 days';

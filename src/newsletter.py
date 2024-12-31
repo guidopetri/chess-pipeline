@@ -8,7 +8,7 @@ from luigi import LocalTarget, Task
 from luigi.format import Nop
 from luigi.parameter import ListParameter, Parameter
 from luigi.util import requires
-from pipeline_import.configs import postgres_cfg
+from pipeline_import.configs import get_cfg
 from pipeline_import.transforms import (
     get_weekly_data,
 )
@@ -26,7 +26,7 @@ class GetData(Task):
     columns = ListParameter(default=[])
 
     def run(self):
-        pg_cfg = postgres_cfg()
+        pg_cfg = get_cfg('postgres_cfg')
         df = get_weekly_data(pg_cfg, self.player)
 
         with self.output().temporary_path() as temp_output_path:

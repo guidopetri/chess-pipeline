@@ -5,7 +5,7 @@ import configparser
 
 def _load_cfg():
     cfg = configparser.ConfigParser()
-    cfg.read('/io/config.toml')
+    cfg.read('/config/config.toml')
     return cfg
 
 

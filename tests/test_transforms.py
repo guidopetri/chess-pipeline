@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 
 import io
+from datetime import date
 from subprocess import SubprocessError
 
 import chess
@@ -8,6 +9,7 @@ import pandas as pd
 import pytest
 from pipeline_import import transforms, visitors
 from pipeline_import.transforms import MAX_CLOUD_API_CALLS_PER_DAY
+from utils.output import get_output_file_prefix
 
 
 @pytest.fixture
@@ -486,15 +488,19 @@ def test_transform_game_data(tmp_path):
                }
 
     df = pd.DataFrame(headers)
-    df.to_parquet(tmp_path / 'cleaned_df.parquet')
+    prefix: str = get_output_file_prefix(player='thibault',
+                                         perf_type='bullet',
+                                         data_date=date(2020, 5, 1),
+                                         )
+    df.to_parquet(tmp_path / f'{prefix}_cleaned_df.parquet')
 
     transforms.transform_game_data(player='thibault',
-                                   perf_type='',
-                                   data_date='',
+                                   perf_type='bullet',
+                                   data_date=date(2020, 5, 1),
                                    local_stockfish=True,
                                    io_dir=tmp_path,
                                    )
-    parsed = pd.read_parquet(tmp_path / 'game_infos.parquet')
+    parsed = pd.read_parquet(tmp_path / f'{prefix}_game_infos.parquet')
 
     true_headers = {'event_type': 'Rated Bullet game',
                     'round': '?',
@@ -550,15 +556,15 @@ def test_transform_game_data(tmp_path):
     del headers['white_rating_diff']
 
     df = pd.DataFrame(headers)
-    df.to_parquet(tmp_path / 'cleaned_df.parquet')
+    df.to_parquet(tmp_path / f'{prefix}_cleaned_df.parquet')
 
     transforms.transform_game_data(player='thibault',
-                                   perf_type='',
-                                   data_date='',
+                                   perf_type='bullet',
+                                   data_date=date(2020, 5, 1),
                                    local_stockfish=True,
                                    io_dir=tmp_path,
                                    )
-    parsed = pd.read_parquet(tmp_path / 'game_infos.parquet')
+    parsed = pd.read_parquet(tmp_path / f'{prefix}_game_infos.parquet')
 
     true_headers['white_rating_diff'] = 0
     true_headers['player_rating_diff'] = 0
@@ -575,15 +581,15 @@ def test_transform_game_data(tmp_path):
     headers['result'] = '1/2-1/2'
 
     df = pd.DataFrame(headers)
-    df.to_parquet(tmp_path / 'cleaned_df.parquet')
+    df.to_parquet(tmp_path / f'{prefix}_cleaned_df.parquet')
 
     transforms.transform_game_data(player='thibault',
-                                   perf_type='',
-                                   data_date='',
+                                   perf_type='bullet',
+                                   data_date=date(2020, 5, 1),
                                    local_stockfish=True,
                                    io_dir=tmp_path,
                                    )
-    parsed = pd.read_parquet(tmp_path / 'game_infos.parquet')
+    parsed = pd.read_parquet(tmp_path / f'{prefix}_game_infos.parquet')
 
     true_headers['result'] = '1/2-1/2'
     true_headers['player_result'] = 'Draw'
@@ -599,15 +605,15 @@ def test_transform_game_data(tmp_path):
     headers['event_type'] = 'Rated Bullet Arena'
 
     df = pd.DataFrame(headers)
-    df.to_parquet(tmp_path / 'cleaned_df.parquet')
+    df.to_parquet(tmp_path / f'{prefix}_cleaned_df.parquet')
 
     transforms.transform_game_data(player='thibault',
-                                   perf_type='',
-                                   data_date='',
+                                   perf_type='bullet',
+                                   data_date=date(2020, 5, 1),
                                    local_stockfish=True,
                                    io_dir=tmp_path,
                                    )
-    parsed = pd.read_parquet(tmp_path / 'game_infos.parquet')
+    parsed = pd.read_parquet(tmp_path / f'{prefix}_game_infos.parquet')
 
     true_headers['event_type'] = 'Rated Bullet Arena'
     true_headers['in_arena'] = 'In arena'
@@ -622,15 +628,15 @@ def test_transform_game_data(tmp_path):
     headers['event_type'] = 'Casual Bullet Arena'
 
     df = pd.DataFrame(headers)
-    df.to_parquet(tmp_path / 'cleaned_df.parquet')
+    df.to_parquet(tmp_path / f'{prefix}_cleaned_df.parquet')
 
     transforms.transform_game_data(player='thibault',
-                                   perf_type='',
-                                   data_date='',
+                                   perf_type='bullet',
+                                   data_date=date(2020, 5, 1),
                                    local_stockfish=True,
                                    io_dir=tmp_path,
                                    )
-    parsed = pd.read_parquet(tmp_path / 'game_infos.parquet')
+    parsed = pd.read_parquet(tmp_path / f'{prefix}_game_infos.parquet')
 
     true_headers['event_type'] = 'Casual Bullet Arena'
     true_headers['rated_casual'] = 'Casual'
@@ -645,15 +651,15 @@ def test_transform_game_data(tmp_path):
     headers['queen_exchange'] = False
 
     df = pd.DataFrame(headers)
-    df.to_parquet(tmp_path / 'cleaned_df.parquet')
+    df.to_parquet(tmp_path / f'{prefix}_cleaned_df.parquet')
 
     transforms.transform_game_data(player='thibault',
-                                   perf_type='',
-                                   data_date='',
+                                   perf_type='bullet',
+                                   data_date=date(2020, 5, 1),
                                    local_stockfish=True,
                                    io_dir=tmp_path,
                                    )
-    parsed = pd.read_parquet(tmp_path / 'game_infos.parquet')
+    parsed = pd.read_parquet(tmp_path / f'{prefix}_game_infos.parquet')
 
     true_headers['queen_exchange'] = 'No queen exchange'
 
@@ -666,15 +672,15 @@ def test_transform_game_data(tmp_path):
     # test castling side
     headers['castling_sides'] = [{'black': 'queenside', 'white': None}]
     df = pd.DataFrame(headers)
-    df.to_parquet(tmp_path / 'cleaned_df.parquet')
+    df.to_parquet(tmp_path / f'{prefix}_cleaned_df.parquet')
 
     transforms.transform_game_data(player='thibault',
-                                   perf_type='',
-                                   data_date='',
+                                   perf_type='bullet',
+                                   data_date=date(2020, 5, 1),
                                    local_stockfish=True,
                                    io_dir=tmp_path,
                                    )
-    parsed = pd.read_parquet(tmp_path / 'game_infos.parquet')
+    parsed = pd.read_parquet(tmp_path / f'{prefix}_game_infos.parquet')
 
     true_headers['player_castling_side'] = 'queenside'
     true_headers['opponent_castling_side'] = 'No castling'
@@ -691,15 +697,15 @@ def test_transform_game_data(tmp_path):
     headers['white_elo'] = '?'
 
     df = pd.DataFrame(headers)
-    df.to_parquet(tmp_path / 'cleaned_df.parquet')
+    df.to_parquet(tmp_path / f'{prefix}_cleaned_df.parquet')
 
     transforms.transform_game_data(player='thibault',
-                                   perf_type='',
-                                   data_date='',
+                                   perf_type='bullet',
+                                   data_date=date(2020, 5, 1),
                                    local_stockfish=True,
                                    io_dir=tmp_path,
                                    )
-    parsed = pd.read_parquet(tmp_path / 'game_infos.parquet')
+    parsed = pd.read_parquet(tmp_path / f'{prefix}_game_infos.parquet')
 
     true_headers['white_elo'] = '?'
     true_headers['opponent_elo'] = 1500

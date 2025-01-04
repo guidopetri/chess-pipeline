@@ -7,8 +7,6 @@ x-chess-pipeline-service: &chess-pipeline-service
     - valkey
   volumes:
     - chess_pipeline_logs:/logs
-  networks:
-    - mainnetwork
 
 services:
   chess_pipeline:
@@ -29,8 +27,6 @@ services:
       - "127.0.0.1:5432:5432"
     env_file:
       - .postgres_env
-    networks:
-      - mainnetwork
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./db:/sql_scripts:ro
@@ -40,8 +36,6 @@ services:
     image: valkey/valkey:alpine
     container_name: valkey
     restart: always
-    networks:
-      - mainnetwork
     ports:
       - "127.0.0.1:6379:6379"
 
@@ -50,5 +44,5 @@ volumes:
   postgres_data:
 
 networks:
-  mainnetwork:
-    external: true
+  default:
+    name: main-network

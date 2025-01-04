@@ -7,6 +7,7 @@ from pathlib import Path
 import adbc_driver_postgresql.dbapi
 import pyarrow.parquet as pq
 from pipeline_import.configs import get_cfg
+from utils.output import get_output_file_prefix
 
 
 def load_chess_games(player: str,
@@ -17,7 +18,11 @@ def load_chess_games(player: str,
                      ) -> None:
     table_name = 'chess_games'
     id_cols = ['player', 'game_link']
-    parquet_filename = 'game_infos'
+    prefix: str = get_output_file_prefix(player=player,
+                                         perf_type=perf_type,
+                                         data_date=data_date,
+                                         )
+    parquet_filename = f'{prefix}_game_infos'
 
     _load_to_table(table_name=table_name,
                    parquet_filename=parquet_filename,
@@ -34,7 +39,11 @@ def load_position_evals(player: str,
                         ) -> None:
     table_name = 'position_evals'
     id_cols = ['fen']
-    parquet_filename = 'evals'
+    prefix: str = get_output_file_prefix(player=player,
+                                         perf_type=perf_type,
+                                         data_date=data_date,
+                                         )
+    parquet_filename = f'{prefix}_evals'
 
     _load_to_table(table_name=table_name,
                    parquet_filename=parquet_filename,
@@ -51,7 +60,11 @@ def load_game_positions(player: str,
                         ) -> None:
     table_name = 'game_positions'
     id_cols = ['game_link', 'half_move']
-    parquet_filename = 'exploded_positions'
+    prefix: str = get_output_file_prefix(player=player,
+                                         perf_type=perf_type,
+                                         data_date=data_date,
+                                         )
+    parquet_filename = f'{prefix}_exploded_positions'
 
     _load_to_table(table_name=table_name,
                    parquet_filename=parquet_filename,
@@ -68,7 +81,11 @@ def load_game_materials(player: str,
                         ) -> None:
     table_name = 'game_materials'
     id_cols = ['game_link', 'half_move']
-    parquet_filename = 'exploded_materials'
+    prefix: str = get_output_file_prefix(player=player,
+                                         perf_type=perf_type,
+                                         data_date=data_date,
+                                         )
+    parquet_filename = f'{prefix}_exploded_materials'
 
     _load_to_table(table_name=table_name,
                    parquet_filename=parquet_filename,
@@ -85,7 +102,11 @@ def load_move_clocks(player: str,
                      ) -> None:
     table_name = 'game_clocks'
     id_cols = ['game_link', 'half_move']
-    parquet_filename = 'exploded_clocks'
+    prefix: str = get_output_file_prefix(player=player,
+                                         perf_type=perf_type,
+                                         data_date=data_date,
+                                         )
+    parquet_filename = f'{prefix}_exploded_clocks'
 
     _load_to_table(table_name=table_name,
                    parquet_filename=parquet_filename,
@@ -102,7 +123,11 @@ def load_move_list(player: str,
                    ) -> None:
     table_name = 'game_moves'
     id_cols = ['game_link', 'half_move']
-    parquet_filename = 'exploded_moves'
+    prefix: str = get_output_file_prefix(player=player,
+                                         perf_type=perf_type,
+                                         data_date=data_date,
+                                         )
+    parquet_filename = f'{prefix}_exploded_moves'
 
     _load_to_table(table_name=table_name,
                    parquet_filename=parquet_filename,
@@ -119,7 +144,11 @@ def load_win_probs(player: str,
                    ) -> None:
     table_name = 'win_probabilities'
     id_cols = ['game_link', 'half_move']
-    parquet_filename = 'win_probabilities'
+    prefix: str = get_output_file_prefix(player=player,
+                                         perf_type=perf_type,
+                                         data_date=data_date,
+                                         )
+    parquet_filename = f'{prefix}_win_probabilities'
 
     _load_to_table(table_name=table_name,
                    parquet_filename=parquet_filename,

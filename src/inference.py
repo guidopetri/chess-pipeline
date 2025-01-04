@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 from pipeline_import.models import predict_wp
+from utils.output import get_output_file_prefix
 
 
 def estimate_win_probabilities(player: str,
@@ -13,10 +14,15 @@ def estimate_win_probabilities(player: str,
                                local_stockfish: bool,
                                io_dir: Path,
                                ) -> None:
-    game_infos = pd.read_parquet(io_dir / 'game_infos.parquet')
-    evals = pd.read_parquet(io_dir / 'evals.parquet')
-    game_positions = pd.read_parquet(io_dir / 'exploded_positions.parquet')
-    game_clocks = pd.read_parquet(io_dir / 'exploded_clocks.parquet')
+    prefix: str = get_output_file_prefix(player=player,
+                                         perf_type=perf_type,
+                                         data_date=data_date,
+                                         )
+    # TODO: rename output files / consolidate naming to single location
+    game_infos = pd.read_parquet(io_dir / f'{prefix}_game_infos.parquet')
+    evals = pd.read_parquet(io_dir / f'{prefix}_evals.parquet')
+    positions = pd.read_parquet(io_dir / f'{prefix}_exploded_positions.parquet')  # noqa
+    game_clocks = pd.read_parquet(io_dir / f'{prefix}_exploded_clocks.parquet')
 
     game_infos['has_increment'] = (game_infos['increment'] > 0).astype(int)
 
@@ -28,7 +34,7 @@ def estimate_win_probabilities(player: str,
                        ]
 
     # evals isn't always populated
-    df = pd.merge(game_positions, evals, on='fen', how='left')
+    df = pd.merge(positions, evals, on='fen', how='left')
 
     # if there are missing evals, set to 0 so it doesn't influence the WP
     if not local_stockfish:
@@ -59,4 +65,4 @@ def estimate_win_probabilities(player: str,
         md5 = hashlib.md5(f.read()).hexdigest()
 
     df['win_prob_model_version'] = md5[:7]
-    df.to_parquet(io_dir / 'win_probabilities.parquet')
+    df.to_parquet(io_dir / f'{prefix}_win_probabilities.parquet')

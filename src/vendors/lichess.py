@@ -17,6 +17,7 @@ from pipeline_import.visitors import (
     PromotionsVisitor,
     QueenExchangeVisitor,
 )
+from utils.output import get_output_file_prefix
 from utils.types import Json, Visitor
 from zoneinfo import ZoneInfo
 
@@ -50,7 +51,11 @@ def fetch_lichess_api_json(player: str,
                                                )
 
     df: pd.DataFrame = pd.json_normalize([game for game in games], sep='_')
-    df.to_parquet(io_dir / 'raw_json.parquet')
+    prefix: str = get_output_file_prefix(player=player,
+                                         perf_type=perf_type,
+                                         data_date=data_date,
+                                         )
+    df.to_parquet(io_dir / f'{prefix}_raw_json.parquet')
 
 
 def fetch_lichess_api_pgn(player: str,
@@ -59,7 +64,11 @@ def fetch_lichess_api_pgn(player: str,
                           local_stockfish: bool,
                           io_dir: Path,
                           ) -> None:
-    json = pd.read_parquet(io_dir / 'raw_json.parquet')
+    prefix: str = get_output_file_prefix(player=player,
+                                         perf_type=perf_type,
+                                         data_date=data_date,
+                                         )
+    json = pd.read_parquet(io_dir / f'{prefix}_raw_json.parquet')
     game_count = len(json)
 
     data_datetime = datetime(data_date.year,
@@ -111,5 +120,4 @@ def fetch_lichess_api_pgn(player: str,
               f'{counter} / {game_count} :: {current_progress:.2%}')
 
     df: pd.DataFrame = pd.DataFrame(header_infos)
-
-    df.to_parquet(io_dir / 'raw_pgn.parquet')
+    df.to_parquet(io_dir / f'{prefix}_raw_pgn.parquet')

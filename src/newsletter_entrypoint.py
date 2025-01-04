@@ -49,7 +49,7 @@ def win_ratio_by_color(player: str,
                        io_dir: Path,
                        ) -> None:
     df = pd.read_parquet(io_dir / f'week-data-{player}.parquet')
-    text = generate_win_ratio_by_color_text(df, player)
+    text = generate_win_ratio_by_color_text(df, player, io_dir=io_dir)
     target_path = io_dir / f'win-by-color-{player}.txt'
     target_path.write_text(text)
 
@@ -60,7 +60,7 @@ def elo_by_weekday(player: str,
                    io_dir: Path,
                    ) -> None:
     df = pd.read_parquet(io_dir / f'week-data-{player}.parquet')
-    text = generate_elo_by_weekday_text(df, category, player)
+    text = generate_elo_by_weekday_text(df, category, player, io_dir=io_dir)
     target_path = io_dir / f'elo-by-weekday-{player}.txt'
     target_path.write_text(text)
 
@@ -77,10 +77,11 @@ def create_email(player: str,
     newsletter = create_newsletter(texts=texts,
                                    player=player,
                                    receiver=receiver,
+                                   io_dir=io_dir,
                                    )
     target_path = io_dir / f'newsletter-{player}.pckl'
     with open(target_path, 'wb') as f:
-        pickle.dump(f, newsletter)
+        pickle.dump(newsletter, f)
 
 
 def send_email(player: str,

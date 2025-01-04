@@ -1,6 +1,6 @@
 import base64
 import os
-import shutil
+from pathlib import Path
 
 from bs4 import BeautifulSoup
 from pipeline_import.configs import get_cfg
@@ -57,14 +57,13 @@ def get_color_stats_text(color_stats):
     return win_rate_string
 
 
-def generate_elo_by_weekday_text(df, category, player) -> str:
+def generate_elo_by_weekday_text(df, category, player, io_dir: Path) -> str:
     if df.empty:
         return '\n'
 
     elo = get_elo_by_weekday(df, category=category)
 
-    fig_loc = '~/Temp/luigi/graphs'
-    fig_loc = os.path.expanduser(fig_loc)
+    fig_loc = io_dir / 'graphs'
     filename = f'elo-by-weekday-{player}.png'
     make_elo_by_weekday_plot(elo, fig_loc=fig_loc, filename=filename)
 
@@ -79,14 +78,13 @@ def generate_elo_by_weekday_text(df, category, player) -> str:
     return text
 
 
-def generate_win_ratio_by_color_text(df, player) -> str:
+def generate_win_ratio_by_color_text(df, player, io_dir: Path) -> str:
     if df.empty:
         return "Wait a second, no you didn't!"
 
     color_stats = get_color_stats(df)
 
-    fig_loc = '~/Temp/luigi/graphs'
-    fig_loc = os.path.expanduser(fig_loc)
+    fig_loc = io_dir / 'graphs'
     filename = f'win-by-color-{player}.png'
     make_color_stats_plot(color_stats,
                           fig_loc=fig_loc,
@@ -105,25 +103,16 @@ def send_newsletter(newsletter) -> bool:
     client = SendGridAPIClient(get_cfg('sendgrid')['apikey'])
     response = client.send(newsletter)
 
-    filepath = os.path.expanduser('~/Temp/luigi')
-
-    if os.path.exists(filepath):
-        for file in os.listdir(filepath):
-            full_path = os.path.join(filepath, file)
-            if os.path.isfile(full_path):
-                os.remove(full_path)
-            elif os.path.isdir(full_path):
-                shutil.rmtree(full_path)
     return response.status_code == 202
 
 
-def create_newsletter(texts, player, receiver):
+def create_newsletter(texts, player, receiver, io_dir: Path):
     newsletter = mail.Mail(from_email=get_cfg('newsletter_cfg')['sender'],
                            to_emails=receiver,
                            subject=f'Chess Newsletter - {player}',
                            )
 
-    imgs_loc = os.path.expanduser('~/Temp/luigi/graphs/')
+    imgs_loc = io_dir / 'graphs'
 
     for file in os.listdir(imgs_loc):
         if file.endswith('.png') and player in file:

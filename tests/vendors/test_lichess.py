@@ -4,6 +4,7 @@ from datetime import date
 import pandas as pd
 import pytest
 from lichess.format import JSON, PYCHESS
+from utils.output import get_output_file_prefix
 from vendors.lichess import fetch_lichess_api_json, fetch_lichess_api_pgn
 
 
@@ -86,6 +87,10 @@ def test_lichess_api_json(mock_lichess_api_json,
     # converted manually to ms format
     since_unix = 1714262400000
     until = 1714348800000
+    prefix: str = get_output_file_prefix(player=player,
+                                         perf_type=perf_type,
+                                         data_date=data_date,
+                                         )
 
     fetch_lichess_api_json(player=player,
                            perf_type=perf_type,
@@ -105,7 +110,7 @@ def test_lichess_api_json(mock_lichess_api_json,
                                                   format=JSON,
                                                   )
 
-    df = pd.read_parquet(tmp_path / 'raw_json.parquet')
+    df = pd.read_parquet(tmp_path / f'{prefix}_raw_json.parquet')
     assert df.to_json() == snapshot
 
 
@@ -121,9 +126,12 @@ def test_lichess_api_pgn(mock_lichess_api_pgn,
     since_unix = 1714262400000
     until = 1714348800000
 
-    # prefix = f'{data_date}_{player}_{perf_type}'
+    prefix: str = get_output_file_prefix(player=player,
+                                         perf_type=perf_type,
+                                         data_date=data_date,
+                                         )
     json_df = pd.DataFrame([['test']], columns=['abc'])
-    json_df.to_parquet(tmp_path / 'raw_json.parquet')
+    json_df.to_parquet(tmp_path / f'{prefix}_raw_json.parquet')
 
     fetch_lichess_api_pgn(player=player,
                           perf_type=perf_type,

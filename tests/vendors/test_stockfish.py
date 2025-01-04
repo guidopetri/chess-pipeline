@@ -1,5 +1,8 @@
+from datetime import date
+
 import pandas as pd
 import pytest
+from utils.output import get_output_file_prefix
 from vendors.stockfish import get_evals
 
 
@@ -34,17 +37,22 @@ def test_get_evals_on_checkmate_position(mocker,
     monkeypatch.setenv('VALKEY_CONNECTION_URL', '')
     fen = 'rnb1k1nr/pp1p1ppp/4p3/8/8/1P2qN2/PBPKPbPP/RN1Q1B1R w kq - 2 7'
 
+    prefix: str = get_output_file_prefix(player='test',
+                                         perf_type='bullet',
+                                         data_date=date(2025, 1, 1),
+                                         )
+
     df = pd.DataFrame([[[], [], fen]],
                       columns=['evaluations', 'eval_depths', 'positions'],
                       )
-    df.to_parquet(tmp_path / 'cleaned_df.parquet')
-    get_evals(player='',
-              perf_type='',
-              data_date='',
+    df.to_parquet(tmp_path / f'{prefix}_cleaned_df.parquet')
+    get_evals(player='test',
+              perf_type='bullet',
+              data_date=date(2025, 1, 1),
               local_stockfish=True,
               io_dir=tmp_path,
               )
-    actual = pd.read_parquet(tmp_path / 'evals.parquet')
+    actual = pd.read_parquet(tmp_path / f'{prefix}_evals.parquet')
 
     expected = pd.DataFrame([[fen[:-2], -9999, 1]],
                             columns=['fen', 'evaluation', 'eval_depth'])

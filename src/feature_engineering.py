@@ -7,6 +7,7 @@ from pipeline_import.transforms import (
     fix_provisional_columns,
     get_clean_fens,
 )
+from utils.output import get_output_file_prefix
 
 
 def clean_chess_df(player: str,
@@ -15,11 +16,15 @@ def clean_chess_df(player: str,
                    local_stockfish: bool,
                    io_dir: Path,
                    ) -> None:
-    json = pd.read_parquet(io_dir / 'raw_json.parquet')
-    pgn = pd.read_parquet(io_dir / 'raw_pgn.parquet')
+    prefix: str = get_output_file_prefix(player=player,
+                                         perf_type=perf_type,
+                                         data_date=data_date,
+                                         )
+    json = pd.read_parquet(io_dir / f'{prefix}_raw_json.parquet')
+    pgn = pd.read_parquet(io_dir / f'{prefix}_raw_pgn.parquet')
 
     if pgn.empty and json.empty:
-        pgn.to_parquet(io_dir / 'cleaned_df.parquet')
+        pgn.to_parquet(io_dir / f'{prefix}_cleaned_df.parquet')
     elif pgn.empty or json.empty:
         raise ValueError('Found only one of pgn/json empty for input '
                          f'{player=} {perf_type=} {data_date=} '
@@ -61,7 +66,7 @@ def clean_chess_df(player: str,
                        'players_white_provisional': 'white_elo_tentative',
                        },
               inplace=True)
-    df.to_parquet(io_dir / 'cleaned_df.parquet')
+    df.to_parquet(io_dir / f'{prefix}_cleaned_df.parquet')
 
 
 def explode_moves(player: str,
@@ -70,14 +75,18 @@ def explode_moves(player: str,
                   local_stockfish: bool,
                   io_dir: Path,
                   ) -> None:
-    df = pd.read_parquet(io_dir / 'cleaned_df.parquet')
+    prefix: str = get_output_file_prefix(player=player,
+                                         perf_type=perf_type,
+                                         data_date=data_date,
+                                         )
+    df = pd.read_parquet(io_dir / f'{prefix}_cleaned_df.parquet')
     df = df[['game_link', 'moves']]
 
     df = df.explode('moves')
     df.rename(columns={'moves': 'move'},
               inplace=True)
     df['half_move'] = df.groupby('game_link').cumcount() + 1
-    df.to_parquet(io_dir / 'exploded_moves.parquet')
+    df.to_parquet(io_dir / f'{prefix}_exploded_moves.parquet')
 
 
 def explode_clocks(player: str,
@@ -86,7 +95,11 @@ def explode_clocks(player: str,
                    local_stockfish: bool,
                    io_dir: Path,
                    ) -> None:
-    df = pd.read_parquet(io_dir / 'cleaned_df.parquet')
+    prefix: str = get_output_file_prefix(player=player,
+                                         perf_type=perf_type,
+                                         data_date=data_date,
+                                         )
+    df = pd.read_parquet(io_dir / f'{prefix}_cleaned_df.parquet')
     df = df[['game_link', 'clocks']]
 
     df = df.explode('clocks')
@@ -94,7 +107,7 @@ def explode_clocks(player: str,
               inplace=True)
     df['half_move'] = df.groupby('game_link').cumcount() + 1
     df['clock'] = convert_clock_to_seconds(df['clock'])
-    df.to_parquet(io_dir / 'exploded_clocks.parquet')
+    df.to_parquet(io_dir / f'{prefix}_exploded_clocks.parquet')
 
 
 def explode_positions(player: str,
@@ -103,7 +116,11 @@ def explode_positions(player: str,
                       local_stockfish: bool,
                       io_dir: Path,
                       ) -> None:
-    df = pd.read_parquet(io_dir / 'cleaned_df.parquet')
+    prefix: str = get_output_file_prefix(player=player,
+                                         perf_type=perf_type,
+                                         data_date=data_date,
+                                         )
+    df = pd.read_parquet(io_dir / f'{prefix}_cleaned_df.parquet')
     df = df[['game_link', 'positions']]
 
     df = df.explode('positions')
@@ -112,7 +129,7 @@ def explode_positions(player: str,
     df['half_move'] = df.groupby('game_link').cumcount() + 1
 
     df['fen'] = get_clean_fens(df['position'])
-    df.to_parquet(io_dir / 'exploded_positions.parquet')
+    df.to_parquet(io_dir / f'{prefix}_exploded_positions.parquet')
 
 
 def explode_materials(player: str,
@@ -121,7 +138,11 @@ def explode_materials(player: str,
                       local_stockfish: bool,
                       io_dir: Path,
                       ) -> None:
-    df = pd.read_parquet(io_dir / 'cleaned_df.parquet')
+    prefix: str = get_output_file_prefix(player=player,
+                                         perf_type=perf_type,
+                                         data_date=data_date,
+                                         )
+    df = pd.read_parquet(io_dir / f'{prefix}_cleaned_df.parquet')
     df = df[['game_link', 'material_by_move']]
 
     df = df.explode('material_by_move')
@@ -145,4 +166,4 @@ def explode_materials(player: str,
               inplace=True)
 
     df['half_move'] = df.groupby('game_link').cumcount() + 1
-    df.to_parquet(io_dir / 'exploded_materials.parquet')
+    df.to_parquet(io_dir / f'{prefix}_exploded_materials.parquet')

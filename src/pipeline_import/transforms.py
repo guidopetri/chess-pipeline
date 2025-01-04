@@ -23,6 +23,7 @@ from pandas import (
     to_timedelta,
 )
 from pipeline_import.configs import get_cfg
+from utils.output import get_output_file_prefix
 from utils.types import Json, Visitor
 
 # TODO: set to correct value lol
@@ -184,7 +185,11 @@ def transform_game_data(player: str,
                         local_stockfish: bool,
                         io_dir: Path,
                         ) -> None:
-    df = pd.read_parquet(io_dir / 'cleaned_df.parquet')
+    prefix: str = get_output_file_prefix(player=player,
+                                         perf_type=perf_type,
+                                         data_date=data_date,
+                                         )
+    df = pd.read_parquet(io_dir / f'{prefix}_cleaned_df.parquet')
     df['player'] = player
 
     if 'black_rating_diff' not in df.columns:
@@ -313,7 +318,7 @@ def transform_game_data(player: str,
         df[column] = df[column].replace('?', '1500')
         df[column] = to_numeric(df[column])
 
-    df.to_parquet(io_dir / 'game_infos.parquet')
+    df.to_parquet(io_dir / f'{prefix}_game_infos.parquet')
 
 
 def get_color_stats(df):

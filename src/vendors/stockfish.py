@@ -7,6 +7,7 @@ import valkey
 from pipeline_import.configs import get_cfg
 from pipeline_import.transforms import get_clean_fens, get_sf_evaluation
 from utils.db import run_remote_sql_query
+from utils.output import get_output_file_prefix
 
 
 def get_evals(player: str,
@@ -15,7 +16,11 @@ def get_evals(player: str,
               local_stockfish: bool,
               io_dir: Path,
               ) -> None:
-    df = pd.read_parquet(io_dir / 'cleaned_df.parquet')
+    prefix: str = get_output_file_prefix(player=player,
+                                         perf_type=perf_type,
+                                         data_date=data_date,
+                                         )
+    df = pd.read_parquet(io_dir / f'{prefix}_cleaned_df.parquet')
 
     sf_params = get_cfg('stockfish_cfg')
 
@@ -100,4 +105,4 @@ def get_evals(player: str,
     if not db_evaluations.empty:
         df = pd.concat([df, db_evaluations], axis=0, ignore_index=True)
 
-    df.to_parquet(io_dir / 'evals.parquet')
+    df.to_parquet(io_dir / f'{prefix}_evals.parquet')

@@ -1,5 +1,4 @@
 import base64
-import os
 from pathlib import Path
 
 from bs4 import BeautifulSoup
@@ -114,16 +113,16 @@ def create_newsletter(texts, player, receiver, io_dir: Path):
 
     imgs_loc = io_dir / 'graphs'
 
-    for file in os.listdir(imgs_loc):
-        if file.endswith('.png') and player in file:
-            with open(os.path.join(imgs_loc, file), 'rb') as f:
+    for file in imgs_loc.glob('*.png'):
+        if player in file.stem:
+            with open(file, 'rb') as f:
                 encoded_img = base64.b64encode(f.read()).decode('utf-8')
 
             attachment = mail.Attachment(file_content=encoded_img,
-                                         file_name=file,
+                                         file_name=file.name,
                                          file_type='image/png',
                                          disposition='inline',
-                                         content_id=file[:-4],
+                                         content_id=file.stem,
                                          )
 
             newsletter.add_attachment(attachment)

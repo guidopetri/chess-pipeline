@@ -848,7 +848,7 @@ def test_get_weekly_data(mocker):
 
     player = 'thibault'
 
-    data = transforms.get_weekly_data(cfg, player)
+    data = transforms.get_weekly_data(player)
 
     cols = ['event_type',
             'result',

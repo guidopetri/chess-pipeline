@@ -163,14 +163,14 @@ def test_color_stats_text_multiple_categories():
     assert win_rate_str == true_win_rate_str
 
 
-def test_generate_elo_by_weekday_text_empty():
+def test_generate_elo_by_weekday_text_empty(tmp_path):
     input_df = pd.DataFrame()
-    text = generate_elo_by_weekday_text(input_df, '', '')
+    text = generate_elo_by_weekday_text(input_df, '', '', tmp_path)
 
     assert text == '\n'
 
 
-def test_generate_elo_by_weekday_text_generic(mocker, snapshot):
+def test_generate_elo_by_weekday_text_generic(mocker, snapshot, tmp_path):
     # TODO: split this function off so it doesn't have to be patched
     mocker.patch('utils.newsletter.make_elo_by_weekday_plot')
 
@@ -178,24 +178,24 @@ def test_generate_elo_by_weekday_text_generic(mocker, snapshot):
 
     mocker.patch('utils.newsletter.get_elo_by_weekday', return_value=elo_df)
 
-    text = generate_elo_by_weekday_text(elo_df, 'bullet', 'thibault')
+    text = generate_elo_by_weekday_text(elo_df, 'bullet', 'thibault', tmp_path)
 
     assert text == snapshot
 
 
-def test_generate_win_ratio_by_color_text_empty(snapshot):
+def test_generate_win_ratio_by_color_text_empty(snapshot, tmp_path):
     input_df = pd.DataFrame()
-    text = generate_win_ratio_by_color_text(input_df, '')
+    text = generate_win_ratio_by_color_text(input_df, '', tmp_path)
 
     assert text == snapshot
 
 
-def test_generate_win_ratio_by_color_text_generic(mocker, snapshot):
+def test_generate_win_ratio_by_color_text_generic(mocker, snapshot, tmp_path):
     mocker.patch('utils.newsletter.get_color_stats')
     mocker.patch('utils.newsletter.get_color_stats_text', return_value='foo')
     # TODO: split this function off so it doesn't have to be patched
     mocker.patch('utils.newsletter.make_color_stats_plot')
-    text = generate_win_ratio_by_color_text(pd.DataFrame([0]), '')
+    text = generate_win_ratio_by_color_text(pd.DataFrame([0]), '', tmp_path)
 
     assert text == snapshot
 
@@ -215,7 +215,6 @@ def test_send_newsletter(tmp_path, mocker):
 
     assert send_newsletter(text)
     mock_send.assert_called_once_with(text)
-    assert not list((tmp_path / 'files').glob('*'))
 
 
 def test_create_newsletter(tmp_path, mocker, snapshot):
@@ -223,14 +222,13 @@ def test_create_newsletter(tmp_path, mocker, snapshot):
                  return_value={'sender': 'foo@bar.com'},
                  )
 
-    mocker.patch('os.path.expanduser', return_value=tmp_path / 'images')
-    os.mkdir(tmp_path / 'images')
+    os.mkdir(tmp_path / 'graphs')
 
-    with open(tmp_path / 'images' / 'thibault.png', 'w') as f:
+    with open(tmp_path / 'graphs' / 'thibault.png', 'w') as f:
         f.write('dummy-input')
 
     texts = ['foo', 'bar']
 
-    newsletter = create_newsletter(texts, 'thibault', 'bar@foo.com')
+    newsletter = create_newsletter(texts, 'thibault', 'bar@foo.com', tmp_path)
 
     assert newsletter == snapshot

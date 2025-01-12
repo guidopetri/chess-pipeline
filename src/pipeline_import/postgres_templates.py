@@ -173,6 +173,9 @@ def _load_to_table(table_name: str,
                      )
 
     reader = pq.ParquetFile(io_dir / f'{parquet_filename}.parquet')
+    if not reader.scan_contents():
+        print('did not find any rows to load, exiting')
+        return
 
     temp_table_name = f'temp_{table_name}'
 

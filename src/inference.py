@@ -24,6 +24,10 @@ def estimate_win_probabilities(player: str,
     positions = pd.read_parquet(io_dir / f'{prefix}_exploded_positions.parquet')  # noqa
     game_clocks = pd.read_parquet(io_dir / f'{prefix}_exploded_clocks.parquet')
 
+    if all(df.empty for df in [game_infos, evals, positions, game_clocks]):
+        game_infos.to_parquet(io_dir / f'{prefix}_win_probabilities.parquet')
+        return
+
     game_infos['has_increment'] = (game_infos['increment'] > 0).astype(int)
 
     game_infos_cols = ['game_link',

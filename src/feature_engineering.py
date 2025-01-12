@@ -81,6 +81,9 @@ def explode_moves(player: str,
                                          data_date=data_date,
                                          )
     df = pd.read_parquet(io_dir / f'{prefix}_cleaned_df.parquet')
+    if df.empty:
+        df.to_parquet(io_dir / f'{prefix}_exploded_moves.parquet')
+        return
     df = df[['game_link', 'moves']]
 
     df = df.explode('moves')
@@ -101,6 +104,9 @@ def explode_clocks(player: str,
                                          data_date=data_date,
                                          )
     df = pd.read_parquet(io_dir / f'{prefix}_cleaned_df.parquet')
+    if df.empty:
+        df.to_parquet(io_dir / f'{prefix}_exploded_clocks.parquet')
+        return
     df = df[['game_link', 'clocks']]
 
     df = df.explode('clocks')
@@ -122,6 +128,9 @@ def explode_positions(player: str,
                                          data_date=data_date,
                                          )
     df = pd.read_parquet(io_dir / f'{prefix}_cleaned_df.parquet')
+    if df.empty:
+        df.to_parquet(io_dir / f'{prefix}_exploded_positions.parquet')
+        return
     df = df[['game_link', 'positions']]
 
     df = df.explode('positions')
@@ -144,6 +153,9 @@ def explode_materials(player: str,
                                          data_date=data_date,
                                          )
     df = pd.read_parquet(io_dir / f'{prefix}_cleaned_df.parquet')
+    if df.empty:
+        df.to_parquet(io_dir / f'{prefix}_exploded_materials.parquet')
+        return
     df = df[['game_link', 'material_by_move']]
 
     df = df.explode('material_by_move')

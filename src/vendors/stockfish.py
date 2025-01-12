@@ -21,6 +21,9 @@ def get_evals(player: str,
                                          data_date=data_date,
                                          )
     df = pd.read_parquet(io_dir / f'{prefix}_cleaned_df.parquet')
+    if df.empty:
+        df.to_parquet(io_dir / f'{prefix}_evals.parquet')
+        return
 
     sf_params = get_cfg('stockfish_cfg')
 

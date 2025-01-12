@@ -25,6 +25,7 @@ def clean_chess_df(player: str,
 
     if pgn.empty and json.empty:
         pgn.to_parquet(io_dir / f'{prefix}_cleaned_df.parquet')
+        return
     elif pgn.empty or json.empty:
         raise ValueError('Found only one of pgn/json empty for input '
                          f'{player=} {perf_type=} {data_date=} '

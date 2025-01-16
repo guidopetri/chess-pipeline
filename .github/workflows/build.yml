@@ -2,11 +2,11 @@ name: Build Docker image
 
 on:
   push:
-    branches: ['master', 'dev', 'docker-entrypoint']
+    branches: ['master', 'dev']
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}-dagster
+  IMAGE_NAME: ${{ github.repository }}
   REPO_NAME: ${{ github.event.repository.name }}
 
 jobs:

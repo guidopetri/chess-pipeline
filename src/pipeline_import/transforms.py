@@ -26,8 +26,7 @@ from pipeline_import.configs import get_cfg
 from utils.output import get_output_file_prefix
 from utils.types import Json, Visitor
 
-# TODO: set to correct value lol
-MAX_CLOUD_API_CALLS_PER_DAY = 3
+MAX_CLOUD_API_CALLS_PER_DAY = 3000
 
 
 class LichessApiClient(lichess.api.DefaultApiClient):

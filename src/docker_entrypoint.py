@@ -92,7 +92,6 @@ def parse_args() -> argparse.Namespace:
                         help='Whether to use stockfish locally to calculate '
                              'position evaluations.',
                         )
-    # todo: add other choices
     parser.add_argument('--step',
                         type=str,
                         choices=ETL_STEPS.keys(),

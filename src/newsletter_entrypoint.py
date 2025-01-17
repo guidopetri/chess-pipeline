@@ -127,8 +127,6 @@ def parse_args() -> argparse.Namespace:
                         required=True,
                         help='Email to send newsletter to.',
                         )
-
-    # todo: add other choices
     parser.add_argument('--step',
                         type=str,
                         choices=STEPS.keys(),

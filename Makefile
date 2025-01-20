@@ -70,21 +70,26 @@ ci-coverage:
 
 coverage: build-dev ci-coverage
 
-build-serverless-function: build-dev
-	docker compose run \
+ci-build-serverless-function:
+	docker run \
 	  --rm \
 	  -v $$(pwd):/app \
 	  -e POETRY_HOME \
 	  --entrypoint=/bin/bash \
-	  chess_pipeline_dev \
+	  chess-pipeline-dev \
 	  -c "poetry show stockfish | grep version | awk -F' ' '{print \$$3}'" > _stockfish_lib_version
 
 	STOCKFISH_LIB_VERSION=$$(cat _stockfish_lib_version); \
 	docker run \
 	  --rm \
-	  -v $$(pwd):/app \
+	  -v $$(pwd):/home/app/function \
 	  --workdir /home/app/function \
 	  rg.fr-par.scw.cloud/scwfunctionsruntimes-public/python-dep:3.12 \
-	  sh /app/build_stockfish.sh $$STOCKFISH_LIB_VERSION
+	  sh ./build_stockfish.sh $$STOCKFISH_LIB_VERSION
 	echo "__version__ = '$$(git log -1 --format='format:%h')'" > cloud_function/_version.py
+	sudo chown $$USER:$$USER -R package/
 	zip -FSr cloud_function.zip cloud_function/ package/
+	rm _stockfish_lib_version
+	rm -rf package/
+
+build-serverless-function: build-dev ci-build-serverless-function

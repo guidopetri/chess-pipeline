@@ -4,6 +4,7 @@ import stockfish
 from _version import __version__
 
 DEPTH = 20
+STOCKFISH_VERSION = 13
 
 
 def handle(event, context):
@@ -16,6 +17,7 @@ def handle(event, context):
     body['result'] = sf.info
     body['depth'] = DEPTH
     body['cloud_function_version'] = __version__
+    body['stockfish_version'] = STOCKFISH_VERSION
     return {
         'body': {
             'message': json.dumps(body),

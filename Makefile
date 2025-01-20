@@ -68,5 +68,23 @@ ci-coverage:
 	docker cp chess_pipeline_dev_coverage:/coverage.json .
 	docker cp chess_pipeline_dev_coverage:/cov_html .
 
-
 coverage: build-dev ci-coverage
+
+build-serverless-function: build-dev
+	docker compose run \
+	  --rm \
+	  -v $$(pwd):/app \
+	  -e POETRY_HOME \
+	  --entrypoint=/bin/bash \
+	  chess_pipeline_dev \
+	  -c "poetry show stockfish | grep version | awk -F' ' '{print \$$3}'" > _stockfish_lib_version
+
+	STOCKFISH_LIB_VERSION=$$(cat _stockfish_lib_version); \
+	docker run \
+	  --rm \
+	  -v $$(pwd):/app \
+	  --workdir /home/app/function \
+	  rg.fr-par.scw.cloud/scwfunctionsruntimes-public/python-dep:3.12 \
+	  sh /app/build_stockfish.sh $$STOCKFISH_LIB_VERSION
+	echo "__version__ = '$$(git log -1 --format='format:%h')'" > cloud_function/_version.py
+	zip -FSr cloud_function.zip cloud_function/ package/

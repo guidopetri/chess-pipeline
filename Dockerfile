@@ -24,6 +24,7 @@ WORKDIR /app
 
 ARG POETRY_VERSION=1.7.0
 ARG POETRY_HOME=/opt/poetry
+ENV PATH $POETRY_HOME/bin:$PATH
 ARG POETRY_NO_INTERACTION=1
 ARG POETRY_VIRTUALENVS_CREATE=false
 RUN curl -sSL https://install.python-poetry.org | python3 -
@@ -43,12 +44,12 @@ RUN curl -L --output stockfish_13.tar.gz https://github.com/official-stockfish/S
 
 COPY pyproject.toml poetry.lock /app
 
-RUN $POETRY_HOME/bin/poetry install --only main --no-root --no-ansi --no-cache \
-    && $POETRY_HOME/bin/poetry cache clear pypi --all
+RUN poetry install --only main --no-root --no-ansi --no-cache \
+    && poetry cache clear pypi --all
 
 ARG INSTALL_GROUPS="main"
-RUN $POETRY_HOME/bin/poetry install --with $INSTALL_GROUPS --no-root --no-ansi --no-cache \
-    && $POETRY_HOME/bin/poetry cache clear pypi --all
+RUN poetry install --with $INSTALL_GROUPS --no-root --no-ansi --no-cache \
+    && poetry cache clear pypi --all
 
 COPY src/ .
 COPY tests/ ./tests

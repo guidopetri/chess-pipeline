@@ -19,3 +19,7 @@ chess_pipeline.egg-info/
 .postgres_env
 coverage.json
 cov_html/
+/package
+cloud_function.zip
+cloud_function/_version.py
+_stockfish_lib_version

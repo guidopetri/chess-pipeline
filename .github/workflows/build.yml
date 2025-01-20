@@ -9,7 +9,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}
   REPO_NAME: ${{ github.event.repository.name }}
   SCW_REGION: fr-par
-  SCW_FUNCTION_DEPLOY_TIMEOUT: 600
+  SCW_FUNCTION_DEPLOY_TIMEOUT: 120
 
 jobs:
   build-dev-image:
@@ -114,7 +114,7 @@ jobs:
           docker image ls -a
       - name: Build serverless function zip
         run: |
-          make build-serverless-function
+          make ci-build-serverless-function
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -139,30 +139,33 @@ jobs:
           path: /tmp
       - name: Upload function zip
         run: |
-          ARCHIVE_SIZE=$(wc -c < /tmp/cloud_function.zip)
+          ARCHIVE_SIZE=$(stat -c %s /tmp/cloud_function.zip)
 
           PRESIGNED_URL=$(curl -X GET -H "X-Auth-Token: $SCW_SECRET_KEY" \
-          "https://api.scaleway.com/functions/v1beta1/regions/${{ env.SCW_REGION }}/functions/$SCW_FUNCTION_ID/upload-url?content_length=$ARCHIVE_SIZE" | jq ."url")
+          "https://api.scaleway.com/functions/v1beta1/regions/${{ env.SCW_REGION }}/functions/$SCW_FUNCTION_ID/upload-url?content_length=$ARCHIVE_SIZE" | jq --raw-output ."url")
 
-          curl -H "Content-Type: application/octet-stream" --upload-file /tmp/cloud_function.zip \
-          -H "Content-Length: $ARCHIVE_SIZE" $PRESIGNED_URL
+          curl -H "Content-Type: application/octet-stream" \
+            --upload-file /tmp/cloud_function.zip \
+            -H "Content-Length: $ARCHIVE_SIZE" \
+            $PRESIGNED_URL
       - name: Deploy function
         run: |
           curl -X POST \
             -H "X-Auth-Token: $SCW_SECRET_KEY" \
             -H "Content-Type: application/json" \
             -d '{}' \
-            "https://api.scaleway.com/functions/v1beta1/regions/${{ env.SCW_REGION }}/functions/$SCW_FUNCTION_ID/deploy"
+            "https://api.scaleway.com/functions/v1beta1/regions/${{ env.SCW_REGION }}/functions/$SCW_FUNCTION_ID/deploy" > /dev/null
       - name: Check function status and wait until ready
         run: |
           LOOP_START=$EPOCHSECONDS
           while :
           do
-            FUNCTION_STATUS=$(curl -X GET \
+            FUNCTION_STATUS=$(curl --silent -X GET \
               -H "X-Auth-Token: $SCW_SECRET_KEY" \
               "https://api.scaleway.com/functions/v1beta1/regions/${{ env.SCW_REGION }}/functions/$SCW_FUNCTION_ID" | jq .status)
-            if [[ "$FUNCTION_STATUS" == "ready" ]]; then
-              echo "Function has status ready and seems to be deployed successfully."
+            echo $FUNCTION_STATUS
+            if [[ "$FUNCTION_STATUS" == '"ready"' ]]; then
+              echo "Function has "ready" status and seems to be deployed successfully."
               exit 0
             fi
 

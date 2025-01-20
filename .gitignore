@@ -23,3 +23,4 @@ cov_html/
 cloud_function.zip
 cloud_function/_version.py
 _stockfish_lib_version
+stockfish_*.tar.gz

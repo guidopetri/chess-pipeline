@@ -138,17 +138,15 @@ def get_sf_evaluation(fen: str,
                                            0,
                                            exat=tomorrow_unix,
                                            nx=True,
-                                           keepttl=True,
                                            get=True,
-                                           )
+                                           ) or 0
 
     remote_calls: int = valkey_client.set(remote_valkey,  # pyright: ignore
                                           0,
                                           exat=next_month_unix,
                                           nx=True,
-                                          keepttl=True,
                                           get=True,
-                                          )
+                                          ) or 0
 
     if lichess_calls < MAX_CLOUD_API_CALLS_PER_DAY:
         try:

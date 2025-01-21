@@ -19,9 +19,7 @@ def handle(event, context):
     body['cloud_function_version'] = __version__
     body['stockfish_version'] = STOCKFISH_VERSION
     return {
-        'body': {
-            'message': json.dumps(body),
-        },
+        'body': json.dumps(body),
         'statusCode': 200,
     }
 

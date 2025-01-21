@@ -5,11 +5,12 @@ import re
 from datetime import date, timedelta
 from pathlib import Path
 from subprocess import SubprocessError
-from typing import Type, cast
+from typing import Type
 
 import chess
 import lichess.api
 import pandas as pd
+import requests
 import stockfish
 import valkey
 from chess.pgn import Game
@@ -27,117 +28,188 @@ from utils.output import get_output_file_prefix
 from utils.types import Json, Visitor
 
 MAX_CLOUD_API_CALLS_PER_DAY = 3000
+MAX_CLOUD_FUNCTION_CALLS_PER_MONTH = 900_000
 
 
 class LichessApiClient(lichess.api.DefaultApiClient):
     max_retries = 3
 
 
-def increment_successful_api_call(valkey_client: valkey.Valkey,
-                                  key: str,
-                                  expire_at_unix: int,
-                                  ) -> None:
-    valkey_client.incr(key, 1)
-    valkey_client.expireat(key, expire_at_unix, nx=True)
+class RemoteEvalUnavailableError(Exception):
+    """
+    Raised when remote evaluation is not available.
+    """
+
+
+def _get_lichess_cloud_eval(fen: str,
+                            valkey_client: valkey.Valkey,
+                            valkey_key: str,
+                            ) -> float:
+    # get cloud eval if available
+    client = LichessApiClient()
+    cloud_eval = lichess.api.cloud_eval(fen=fen,
+                                        multiPv=1,
+                                        client=client,
+                                        )
+    valkey_client.incr(valkey_key, 1)
+
+    rating = cloud_eval['pvs'][0]
+    if 'cp' in rating:
+        rating = rating['cp'] / 100
+    elif 'mate' in rating:
+        rating = -9999 if rating['mate'] < 0 else 9999
+    else:
+        raise KeyError(f'{fen}, {rating}')
+
+    return rating
+
+
+def _get_remote_eval(fen: str,
+                     valkey_client: valkey.Valkey,
+                     valkey_key: str,
+                     ) -> str:
+    try:
+        cfg = get_cfg('remote_eval')
+        remote_eval_url: str = cfg['REMOTE_EVAL_URL']
+        headers: dict[str, str] = {'X-Auth-Token': cfg['SCW_AUTH_TOKEN']}
+    except KeyError as e:
+        raise RemoteEvalUnavailableError('Missing environment variable') from e
+
+    data: dict[str, str] = {'fen': fen}
+
+    r = requests.post(remote_eval_url, headers=headers, data=data)
+    valkey_client.incr(valkey_key, 1)
+
+    try:
+        r.raise_for_status()
+    except Exception as e:
+        raise RemoteEvalUnavailableError('Requests error on remote') from e
+
+    remote_eval_result = r.json()
+
+    return remote_eval_result['result']
+
+
+def _get_local_eval(sf_location: Path, sf_depth: int, fen: str) -> str:
+    sf = stockfish.Stockfish(sf_location,
+                             depth=sf_depth)
+
+    sf.set_fen_position(fen)
+    sf.get_best_move()
+    return sf.info
+
+
+def _get_terminal_position_rating(fen: str) -> float | None:
+    board = chess.Board(fen)
+    if board.is_stalemate():
+        return 0
+    elif board.is_checkmate():
+        if (outcome := board.outcome()) is None:
+            raise ValueError(f'Parsed a checkmate with no outcome {fen=}')
+        if outcome.winner is chess.WHITE:
+            return 9999
+        else:
+            return -9999
+    else:
+        # non-terminal position
+        return None
 
 
 def get_sf_evaluation(fen: str,
                       sf_location: Path,
                       sf_depth: int,
-                      valkey_client: valkey.Valkey | None = None,
+                      valkey_client: valkey.Valkey,
                       ) -> float:
+    if (terminal_rating := _get_terminal_position_rating(fen=fen)) is not None:
+        return terminal_rating
+
     today: date = date.today()
-    valkey_key: str = today.strftime('lichess-cloud-evals-api-%F')
+    tomorrow: date = today + timedelta(days=1)
+    next_month: date = (today.replace(day=1)
+                        + timedelta(days=32)).replace(day=1)
 
-    # by default, don't use cloud API if we are not tracking api hits
-    api_calls_done: int = MAX_CLOUD_API_CALLS_PER_DAY + 1
+    tomorrow_unix: int = int(tomorrow.strftime('%s'))
+    next_month_unix: int = int(next_month.strftime('%s'))
 
-    if valkey_client is not None:
-        valkey_response: str | None = cast(str | None,
-                                           valkey_client.get(valkey_key),
+    api_valkey: str = today.strftime('lichess-cloud-evals-api-%F')
+    remote_valkey: str = today.strftime('remote-evals-%Y-%m')
+
+    lichess_calls: int = valkey_client.set(api_valkey,  # pyright: ignore
+                                           0,
+                                           exat=tomorrow_unix,
+                                           nx=True,
+                                           keepttl=True,
+                                           get=True,
                                            )
-        api_calls_done: int = int(valkey_response
-                                  if valkey_response is not None
-                                  else 0
-                                  )
 
-    if api_calls_done < MAX_CLOUD_API_CALLS_PER_DAY:
+    remote_calls: int = valkey_client.set(remote_valkey,  # pyright: ignore
+                                          0,
+                                          exat=next_month_unix,
+                                          nx=True,
+                                          keepttl=True,
+                                          get=True,
+                                          )
+
+    if lichess_calls < MAX_CLOUD_API_CALLS_PER_DAY:
         try:
-            # get cloud eval if available
-            client = LichessApiClient()
-            cloud_eval = lichess.api.cloud_eval(fen=fen,
-                                                multiPv=1,
-                                                client=client,
-                                                )
-            rating = cloud_eval['pvs'][0]
-            if 'cp' in rating:
-                rating = rating['cp'] / 100
-            elif 'mate' in rating:
-                rating = -9999 if rating['mate'] < 0 else 9999
-            else:
-                raise KeyError(f'{fen}, {rating}')
-
-            if valkey_client is not None:
-                tomorrow: date = today + timedelta(days=1)
-                expire_at_unix: int = int(tomorrow.strftime('%s'))
-
-                increment_successful_api_call(valkey_client,
-                                              valkey_key,
-                                              expire_at_unix,
-                                              )
-            return rating
+            return _get_lichess_cloud_eval(fen=fen,
+                                           valkey_client=valkey_client,
+                                           valkey_key=api_valkey,
+                                           )
         except lichess.api.ApiHttpError as e:
             logging.warning(f'Got an API HTTP error: {e}')
-            # continue execution
-            pass
         except lichess.api.ApiError as e:
             logging.warning('Hit an API error (potentially a rate limit) '
-                            f'with only {api_calls_done} calls')
+                            f'with only {lichess_calls} calls')
             logging.warning(e)
-            # continue execution
-            pass
 
-    # implicit else
-    sf = stockfish.Stockfish(sf_location,
-                             depth=sf_depth)
-
-    sf.set_fen_position(fen)
-    if sf.get_best_move() is not None:
-        rating_match = re.search(r'score (cp|mate) (.+?)(?: |$)',
-                                 sf.info)
-        if rating_match is None:
-            raise SubprocessError('Could not find chess engine rating'
-                                  f' in info string: {sf.info}')
-
-        if rating_match.group(1) == 'mate':
-            original_rating = int(rating_match.group(2))
-
-            # adjust ratings for checkmate sequences
-            if original_rating:
-                rating = 999900 * original_rating / abs(original_rating)
-            elif ' w ' in fen:
-                # TODO: is this + the else clause necessary? the UCI syntax
-                # returns `mate X` which seems to always be a number
-                rating = 999900
-            else:
-                rating = -999900
+    if remote_calls < MAX_CLOUD_FUNCTION_CALLS_PER_MONTH:
+        try:
+            sf_result: str = _get_remote_eval(fen=fen,
+                                              valkey_client=valkey_client,
+                                              valkey_key=remote_valkey,
+                                              )
+        except RemoteEvalUnavailableError as e:
+            logging.warning('Remote evaluation is not available (potentially '
+                            'missing an environment variable)')
+            logging.warning(e)
         else:
-            rating = int(rating_match.group(2))
-        if ' b ' in fen:
-            rating *= -1
-        rating /= 100
+            return _parse_uci_result(uci_result=sf_result, fen=fen)
+
+    # eval of last resort because it's so slow
+    sf_result = _get_local_eval(sf_location=sf_location,
+                                sf_depth=sf_depth,
+                                fen=fen,
+                                )
+
+    return _parse_uci_result(uci_result=sf_result, fen=fen)
+
+
+def _parse_uci_result(uci_result: str, fen: str) -> float:
+    rating_match = re.search(r'score (cp|mate) (.+?)(?: |$)',
+                             uci_result,
+                             )
+    if rating_match is None:
+        raise SubprocessError('Could not find chess engine rating'
+                              f' in info string: {uci_result}')
+
+    if rating_match.group(1) == 'mate':
+        original_rating = int(rating_match.group(2))
+
+        # adjust ratings for checkmate sequences
+        if original_rating:
+            rating = 999900 * original_rating / abs(original_rating)
+        elif ' w ' in fen:
+            # TODO: is this + the else clause necessary? the UCI syntax
+            # returns `mate X` which seems to always be a number
+            rating = 999900
+        else:
+            rating = -999900
     else:
-        board = chess.Board(fen)
-        if board.is_checkmate() and (outcome := board.outcome()) is not None:
-            if outcome.winner is chess.WHITE:
-                rating = 9999
-            else:
-                rating = -9999
-        elif board.is_stalemate():
-            rating = 0
-        else:
-            raise ValueError('No best move found and not a checkmate position '
-                             f'for: {fen=} {sf.info=}')
+        rating = int(rating_match.group(2))
+    if ' b ' in fen:
+        rating *= -1
+    rating /= 100
 
     return rating
 

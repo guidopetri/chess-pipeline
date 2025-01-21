@@ -227,7 +227,7 @@ def test_fix_provisional_columns_full_data():
     pd.testing.assert_frame_equal(parsed, clean, check_like=True)
 
 
-def test_get_sf_evaluation_cloud(mocker):
+def test_get_sf_evaluation_cloud(mocker, mock_valkey_client):
     mock_parsed_resp = {'pvs': [{'cp': -30}]}
 
     mocker.patch('lichess.api.cloud_eval', return_value=mock_parsed_resp)
@@ -238,7 +238,7 @@ def test_get_sf_evaluation_cloud(mocker):
     rating = transforms.get_sf_evaluation(fen,
                                           '',
                                           1,
-                                          valkey_client=mocker.MagicMock(),
+                                          mock_valkey_client,
                                           )
 
     assert rating == -0.3
@@ -258,6 +258,10 @@ def mock_valkey_client():
 
         def expireat(self, *args, **kwargs):
             pass
+
+        def set(self, key, value, exat, nx, keepttl, get, *args, **kwargs):
+            return value
+
     return MockValkey()
 
 
@@ -265,6 +269,8 @@ def test_get_sf_evaluation_tracks_api_calls(mocker, mock_valkey_client):
     mock_parsed_resp = {'pvs': [{'cp': -30}]}
 
     mocker.patch('lichess.api.cloud_eval', return_value=mock_parsed_resp)
+    mocker.patch('pipeline_import.transforms._get_terminal_position_rating',
+                 return_value=None)
 
     # loc/depth don't matter
     transforms.get_sf_evaluation('',
@@ -279,6 +285,8 @@ def test_get_sf_evaluation_tracks_api_calls(mocker, mock_valkey_client):
 def test_get_sf_evaluation_doesnt_exceed_api_calls(mocker, mock_valkey_client):
     mock_sf = mocker.patch('stockfish.Stockfish')
     mocker.patch('re.search', return_value=None)
+    mocker.patch('pipeline_import.transforms._get_terminal_position_rating',
+                 return_value=None)
 
     mock_valkey_client.counter = MAX_CLOUD_API_CALLS_PER_DAY + 1
 
@@ -292,7 +300,7 @@ def test_get_sf_evaluation_doesnt_exceed_api_calls(mocker, mock_valkey_client):
     mock_sf.assert_called_once()
 
 
-def test_get_sf_evaluation_cloud_mate_in_x(mocker):
+def test_get_sf_evaluation_cloud_mate_in_x(mocker, mock_valkey_client):
     mock_parsed_resp = {'pvs': [{'mate': 1}]}
 
     mocker.patch('lichess.api.cloud_eval', return_value=mock_parsed_resp)
@@ -304,38 +312,56 @@ def test_get_sf_evaluation_cloud_mate_in_x(mocker):
     rating = transforms.get_sf_evaluation(fen,
                                           '',
                                           1,
-                                          valkey_client=mocker.MagicMock(),
+                                          valkey_client=mock_valkey_client,
                                           )
 
     assert rating == 9999
 
 
-def test_get_sf_evaluation_cloud_error(mocker):
+def test_get_sf_evaluation_cloud_error(mocker, mock_valkey_client):
     mocker.patch('lichess.api.cloud_eval', return_value={'pvs': ['foobar']})
+    mocker.patch('pipeline_import.transforms._get_terminal_position_rating',
+                 return_value=None)
     with pytest.raises(KeyError):
         transforms.get_sf_evaluation('fake fen',
                                      '',
                                      1,
-                                     valkey_client=mocker.MagicMock(),
+                                     valkey_client=mock_valkey_client,
                                      )
 
 
-def test_get_sf_evaluation_local_returns_error(mocker, mocked_cloud_eval):
+def test_get_sf_evaluation_local_returns_error(mocker,
+                                               mocked_cloud_eval,
+                                               mock_valkey_client,
+                                               ):
     mocker.patch('stockfish.Stockfish')
     mocker.patch('re.search', return_value=None)
+    mocker.patch('pipeline_import.transforms._get_terminal_position_rating',
+                 return_value=None)
 
     with pytest.raises(SubprocessError):
-        transforms.get_sf_evaluation('', '', 1)
+        transforms.get_sf_evaluation('',
+                                     '',
+                                     1,
+                                     mock_valkey_client,
+                                     )
 
 
-def test_get_sf_evaluation_shallow(mock_stockfish, mocked_cloud_eval):
+def test_get_sf_evaluation_shallow(mock_stockfish,
+                                   mocked_cloud_eval,
+                                   mock_valkey_client,
+                                   ):
 
     fen = 'r1bq1rk1/1pp3b1/3p2np/nP2P1p1/4Pp2/PN3NP1/1B3PBP/R2Q1RK1 b - - 2 0'
     stockfish_loc = mock_stockfish['location']
 
     depth = 10
 
-    rating = transforms.get_sf_evaluation(fen, stockfish_loc, depth)
+    rating = transforms.get_sf_evaluation(fen,
+                                          stockfish_loc,
+                                          depth,
+                                          mock_valkey_client,
+                                          )
 
     if '10' in stockfish_loc:
         assert rating == -0.52
@@ -347,14 +373,21 @@ def test_get_sf_evaluation_shallow(mock_stockfish, mocked_cloud_eval):
         assert rating == -0.89
 
 
-def test_get_sf_evaluation_deep(mock_stockfish, mocked_cloud_eval):
+def test_get_sf_evaluation_deep(mock_stockfish,
+                                mocked_cloud_eval,
+                                mock_valkey_client,
+                                ):
 
     fen = 'r1bq1rk1/1pp3b1/3p2np/nP2P1p1/4Pp2/PN3NP1/1B3PBP/R2Q1RK1 b - - 2 0'
     stockfish_loc = mock_stockfish['location']
 
     depth = 20
 
-    rating = transforms.get_sf_evaluation(fen, stockfish_loc, depth)
+    rating = transforms.get_sf_evaluation(fen,
+                                          stockfish_loc,
+                                          depth,
+                                          mock_valkey_client,
+                                          )
 
     if '10' in stockfish_loc:
         assert rating == -0.89
@@ -366,68 +399,107 @@ def test_get_sf_evaluation_deep(mock_stockfish, mocked_cloud_eval):
         assert rating == -0.89
 
 
-def test_get_sf_evaluation_checkmate_black(mock_stockfish, mocked_cloud_eval):
+def test_get_sf_evaluation_checkmate_black(mock_stockfish,
+                                           mocked_cloud_eval,
+                                           mock_valkey_client,
+                                           ):
 
     fen = '8/5q1k/7p/4Q2r/P3P3/4R1P1/7p/3R1r1K w - - 3 0'
     stockfish_loc = mock_stockfish['location']
 
     depth = 20
 
-    rating = transforms.get_sf_evaluation(fen, stockfish_loc, depth)
+    rating = transforms.get_sf_evaluation(fen,
+                                          stockfish_loc,
+                                          depth,
+                                          mock_valkey_client,
+                                          )
 
     assert rating == -9999
 
 
-def test_get_sf_evaluation_checkmate_white(mock_stockfish, mocked_cloud_eval):
+def test_get_sf_evaluation_checkmate_white(mock_stockfish,
+                                           mocked_cloud_eval,
+                                           mock_valkey_client,
+                                           ):
 
     fen = '5rk1/4Q1b1/8/pp6/8/7N/1P2R1PK/8 w - - 1 0'
     stockfish_loc = mock_stockfish['location']
 
     depth = 20
 
-    rating = transforms.get_sf_evaluation(fen, stockfish_loc, depth)
+    rating = transforms.get_sf_evaluation(fen,
+                                          stockfish_loc,
+                                          depth,
+                                          mock_valkey_client,
+                                          )
 
     assert rating == 9999
 
 
-def test_get_sf_evaluation_in_stalemate(mock_stockfish, mocked_cloud_eval):
+def test_get_sf_evaluation_in_stalemate(mock_stockfish,
+                                        mocked_cloud_eval,
+                                        mock_valkey_client,
+                                        ):
 
     fen = '3Q4/8/8/8/8/3QK2P/8/4k3 b - - 0 56'
     stockfish_loc = mock_stockfish['location']
 
     depth = 20
 
-    rating = transforms.get_sf_evaluation(fen, stockfish_loc, depth)
+    rating = transforms.get_sf_evaluation(fen,
+                                          stockfish_loc,
+                                          depth,
+                                          mock_valkey_client,
+                                          )
 
     assert rating == 0
 
 
-def test_get_sf_evaluation_in_checkmate(mock_stockfish, mocked_cloud_eval):
+def test_get_sf_evaluation_in_checkmate(mock_stockfish,
+                                        mocked_cloud_eval,
+                                        mock_valkey_client,
+                                        ):
 
     fen = '4Rb1k/7Q/8/1p4N1/p7/8/1P4PK/8 b - - 4 0'
     stockfish_loc = mock_stockfish['location']
 
     depth = 20
 
-    rating = transforms.get_sf_evaluation(fen, stockfish_loc, depth)
+    rating = transforms.get_sf_evaluation(fen,
+                                          stockfish_loc,
+                                          depth,
+                                          mock_valkey_client,
+                                          )
 
     assert rating == 9999
 
 
-def test_get_sf_evaluation_double_checkmate(mock_stockfish, mocked_cloud_eval):
+def test_get_sf_evaluation_double_checkmate(mock_stockfish,
+                                            mocked_cloud_eval,
+                                            mock_valkey_client,
+                                            ):
 
     fen = '6k1/4pppp/6r1/3b4/4r3/8/1Q5P/1R5K w - - 0 0'
     stockfish_loc = mock_stockfish['location']
 
     depth = 20
 
-    rating = transforms.get_sf_evaluation(fen, stockfish_loc, depth)
+    rating = transforms.get_sf_evaluation(fen,
+                                          stockfish_loc,
+                                          depth,
+                                          mock_valkey_client,
+                                          )
 
     assert rating == 9999
 
     fen = '6k1/4pppp/6r1/3b4/4r3/8/1Q5P/1R5K b - - 0 0'
 
-    rating = transforms.get_sf_evaluation(fen, stockfish_loc, depth)
+    rating = transforms.get_sf_evaluation(fen,
+                                          stockfish_loc,
+                                          depth,
+                                          mock_valkey_client,
+                                          )
 
     assert rating == -9999
 
